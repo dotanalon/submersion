@@ -952,6 +952,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// full resolution.
   static const int _curvePointBudget = 2000;
 
+  /// Rejects raw (Celsius) temperature samples outside real-world dive water
+  /// conditions. A single garbage/duplicate-merge sample (e.g. 0 or another
+  /// sensor artifact) would otherwise stretch the whole temperature axis,
+  /// squashing every legitimate reading into a sliver and spiking the drawn
+  /// curve at that one point.
+  bool _isPlausibleTemperature(double celsius) =>
+      celsius >= -2 && celsius <= 40;
+
   /// Decimation bucket for the current viewport. Within one bucket, zoomed
   /// pans/zooms stay pure cache hits (as unzoomed interaction always has
   /// been); crossing a half-octave zoom step or a quarter-window pan
@@ -2461,7 +2469,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         ),
       );
       final temps = tempSource
-          .where((p) => p.temperature != null)
+          .where(
+            (p) =>
+                p.temperature != null &&
+                _isPlausibleTemperature(p.temperature!),
+          )
           .map((p) => units.convertTemperature(p.temperature!));
       if (temps.isNotEmpty) {
         minTemp = temps.reduce(math.min) - 1;
@@ -4524,7 +4536,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // actually receives a lead-in: samples without a temperature are skipped,
     // so the curve can legitimately start after the dive's first sample.
     final tempSpots = widget.profile
-        .where((p) => p.temperature != null)
+        .where(
+          (p) =>
+              p.temperature != null && _isPlausibleTemperature(p.temperature!),
+        )
         .map(
           (p) => FlSpot(
             p.timestamp.toDouble(),

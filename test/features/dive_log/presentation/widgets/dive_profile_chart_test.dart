@@ -1289,6 +1289,53 @@ void main() {
     });
   });
 
+  group('DiveProfileChart - implausible temperature filtering', () {
+    // Reads the primary fl_chart LineChartData (the depth/time plot is first).
+    LineChartData primaryChartData(WidgetTester tester) =>
+        tester.widget<LineChart>(find.byType(LineChart).first).data;
+
+    LineChartBarData temperatureLine(WidgetTester tester) =>
+        primaryChartData(tester).lineBarsData.firstWhere(
+          (bar) =>
+              bar.dashArray != null &&
+              bar.dashArray!.length == 2 &&
+              bar.dashArray![0] == 5 &&
+              bar.dashArray![1] == 3,
+        );
+
+    testWidgets(
+      'a single implausible sample is excluded from the plotted line and '
+      'does not distort the axis bounds of the real readings',
+      (tester) async {
+        // All real samples share one temperature; one sample is a garbage
+        // outlier (e.g. a merge/import artifact) far outside any real dive
+        // water temperature.
+        final profile = List.generate(
+          8,
+          (i) => DiveProfilePoint(
+            timestamp: i * 30,
+            depth: i * 1.0,
+            temperature: i == 3 ? -50.0 : 20.0,
+          ),
+        );
+
+        await tester.pumpWidget(_buildChart(profile: profile));
+        await tester.pumpAndSettle();
+
+        final line = temperatureLine(tester);
+
+        // The outlier's timestamp must not appear among the plotted spots.
+        expect(line.spots.any((s) => s.x == 3 * 30), isFalse);
+
+        // With the outlier excluded, every remaining sample shares the same
+        // temperature, so the mapped y-values collapse to a single value
+        // instead of spiking or compressing around the excluded reading.
+        final ys = line.spots.map((s) => s.y).toSet();
+        expect(ys.length, 1);
+      },
+    );
+  });
+
   group('DiveProfileChart - profile with heart rate data', () {
     testWidgets('renders with heart rate data points', (tester) async {
       final profile = List.generate(
