@@ -6,6 +6,8 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
+import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_surface_lead_in.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_colors.dart';
@@ -74,6 +76,65 @@ class _AllMetricsSettingsNotifier extends StateNotifier<AppSettings>
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Minimal [ProfileAnalysis] for a [ChartSourceOverlay.analysis] in tests:
+/// only the fields relevant to the overlay renderers under test are
+/// non-empty; everything else is a valid-but-empty placeholder so
+/// ProfileAnalysis's many required fields don't need repeating per test.
+ProfileAnalysis _minimalOverlayAnalysis({
+  required int length,
+  List<double>? ceilingCurve,
+  List<double>? decoStopCurve,
+  List<int>? ndlCurve,
+  List<int>? ttsCurve,
+  List<double>? ppO2Curve,
+  List<double>? ppN2Curve,
+  List<double>? ppHeCurve,
+  List<double>? modCurve,
+  List<double>? densityCurve,
+  List<double>? gfCurve,
+  List<double>? surfaceGfCurve,
+  List<double>? meanDepthCurve,
+  List<int?>? gtrCurve,
+  List<double>? cnsCurve,
+  List<double>? otuCurve,
+}) {
+  return ProfileAnalysis(
+    ascentRates: const [],
+    ascentRateStats: const AscentRateStats(
+      maxAscentRate: 0,
+      maxDescentRate: 0,
+      averageAscentRate: 0,
+      averageDescentRate: 0,
+      violationCount: 0,
+      criticalViolationCount: 0,
+      timeInViolation: 0,
+    ),
+    ascentRateViolations: const [],
+    events: const [],
+    ceilingCurve: ceilingCurve ?? const [],
+    ndlCurve: ndlCurve ?? const [],
+    decoStatuses: const [],
+    o2Exposure: const O2Exposure(otu: 0),
+    ppO2Curve: ppO2Curve ?? const [],
+    ppN2Curve: ppN2Curve,
+    ppHeCurve: ppHeCurve,
+    modCurve: modCurve,
+    densityCurve: densityCurve,
+    gfCurve: gfCurve,
+    surfaceGfCurve: surfaceGfCurve,
+    meanDepthCurve: meanDepthCurve,
+    gtrCurve: gtrCurve,
+    cnsCurve: cnsCurve,
+    otuCurve: otuCurve,
+    decoStopCurve: decoStopCurve ?? const [],
+    ttsCurve: ttsCurve,
+    maxDepth: 0,
+    averageDepth: 0,
+    maxDepthTimestamp: 0,
+    durationSeconds: length * 30,
+  );
 }
 
 List<DiveProfilePoint> _makeProfile({int points = 10}) {
@@ -4646,9 +4707,10 @@ void main() {
       'a dense source overlay decimates its depth, temperature, ceiling and '
       'NDL series to the point budget',
       (tester) async {
-        // Exercises _decimatedOverlayIndices' over-budget branch and all four
-        // overlay series builders (depth / temp / ceiling / NDL), whose
-        // envelope closures only execute when the overlay exceeds the budget.
+        // Exercises _decimatedOverlayIndices'/_decimatedOverlayCurveIndices'
+        // over-budget branch and all four overlay series builders (depth /
+        // temp / ceiling / NDL), whose envelope closures only execute when
+        // the overlay exceeds the budget.
         const n = 5000;
         final overlayPoints = List<DiveProfilePoint>.generate(
           n,
@@ -4656,8 +4718,6 @@ void main() {
             timestamp: i * 10,
             depth: 10.0 + (i % 11) * 1.0,
             temperature: 20.0 + (i % 5) * 0.5,
-            ceiling: 1.0 + (i % 7) * 0.5,
-            ndl: (i % 9) * 60,
           ),
         );
         // Active source small; its temperature seeds the shared temp scale.
@@ -4668,6 +4728,11 @@ void main() {
             depth: i * 2.0,
             temperature: 21.0,
           ),
+        );
+        final overlayAnalysis = _minimalOverlayAnalysis(
+          length: n,
+          ceilingCurve: List.generate(n, (i) => 1.0 + (i % 7) * 0.5),
+          ndlCurve: List.generate(n, (i) => (i % 9) * 60),
         );
 
         await tester.pumpWidget(
@@ -4681,6 +4746,7 @@ void main() {
                 color: Colors.orange,
                 computerId: 'comp-b',
                 points: overlayPoints,
+                analysis: overlayAnalysis,
               ),
             ],
           ),
@@ -4714,6 +4780,460 @@ void main() {
             reason: 'no overlay series emits all 5,000 samples',
           );
         }
+      },
+    );
+
+    testWidgets(
+      'an overlay with a computed TTS curve draws its own TTS line, not the '
+      'raw device field',
+      (tester) async {
+        // The raw per-point `tts` field is deliberately left null here: the
+        // overlay must read overlay.analysis.ttsCurve (already resolved
+        // computer-vs-calculated the same way the active line is), not the
+        // raw device field, so a jagged raw TTS reading a computer logs does
+        // not draw a jagged overlay line while the active line shows the
+        // smoothed calculated value.
+        final overlayPoints = List<DiveProfilePoint>.generate(
+          20,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: 20.0),
+        );
+        final active = List<DiveProfilePoint>.generate(
+          8,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: i * 2.0),
+        );
+        final overlayAnalysis = _minimalOverlayAnalysis(
+          length: 20,
+          ttsCurve: List.generate(20, (i) => (20 - i) * 60),
+        );
+
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            overlays: [
+              ChartSourceOverlay(
+                sourceId: 'src-b',
+                name: 'Overlay',
+                color: Colors.purple,
+                computerId: 'comp-b',
+                points: overlayPoints,
+                analysis: overlayAnalysis,
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DiveProfileChart)),
+        );
+        container.read(profileLegendProvider.notifier).toggleTts();
+        await tester.pumpAndSettle();
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        expect(
+          bars.any((b) => b.color == Colors.purple.withValues(alpha: 0.45)),
+          isTrue,
+          reason: 'overlay TTS line renders in the overlay color at 0.45',
+        );
+      },
+    );
+
+    testWidgets(
+      'an overlay with a computed deco-stop curve draws its own band',
+      (tester) async {
+        final overlayPoints = List<DiveProfilePoint>.generate(
+          10,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: 25.0),
+        );
+        final active = List<DiveProfilePoint>.generate(
+          8,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: i * 2.0),
+        );
+        final overlayAnalysis = _minimalOverlayAnalysis(
+          length: 10,
+          ceilingCurve: List.filled(10, 3.0),
+          decoStopCurve: List.filled(10, 6.0),
+        );
+
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            overlays: [
+              ChartSourceOverlay(
+                sourceId: 'src-b',
+                name: 'Overlay',
+                color: Colors.purple,
+                computerId: 'comp-b',
+                points: overlayPoints,
+                analysis: overlayAnalysis,
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        expect(
+          bars.any(
+            (b) =>
+                b.aboveBarData.show &&
+                b.aboveBarData.color == Colors.purple.withValues(alpha: 0.18),
+          ),
+          isTrue,
+          reason: 'overlay deco-stop band fills in the overlay color',
+        );
+      },
+    );
+
+    testWidgets(
+      'an overlay with a computed ceiling curve draws its own ceiling line, '
+      'not the raw device field',
+      (tester) async {
+        final overlayPoints = List<DiveProfilePoint>.generate(
+          10,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: 25.0),
+        );
+        final active = List<DiveProfilePoint>.generate(
+          8,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: i * 2.0),
+        );
+        final overlayAnalysis = _minimalOverlayAnalysis(
+          length: 10,
+          ceilingCurve: List.filled(10, 4.0),
+        );
+
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            overlays: [
+              ChartSourceOverlay(
+                sourceId: 'src-b',
+                name: 'Overlay',
+                color: Colors.purple,
+                computerId: 'comp-b',
+                points: overlayPoints,
+                analysis: overlayAnalysis,
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        expect(
+          bars.any((b) => b.color == Colors.purple.withValues(alpha: 0.45)),
+          isTrue,
+          reason: 'overlay ceiling line renders in the overlay color at 0.45',
+        );
+      },
+    );
+
+    testWidgets(
+      'an overlay with a computed ppO2 curve draws its own ppO2 line, not '
+      'the active source\'s curve, and draws nothing when the overlay has '
+      'no analysis or an empty curve',
+      (tester) async {
+        // Representative of the band-normalized, clamped-with-surface-lead-in
+        // family (ppN2/ppHe/density share this shape).
+        final overlayPoints = List<DiveProfilePoint>.generate(
+          10,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: 25.0),
+        );
+        final active = List<DiveProfilePoint>.generate(
+          8,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: i * 2.0),
+        );
+        final overlayAnalysis = _minimalOverlayAnalysis(
+          length: 10,
+          ppO2Curve: List.filled(10, 1.2),
+        );
+
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            overlays: [
+              ChartSourceOverlay(
+                sourceId: 'src-b',
+                name: 'Overlay',
+                color: Colors.purple,
+                computerId: 'comp-b',
+                points: overlayPoints,
+                analysis: overlayAnalysis,
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DiveProfileChart)),
+        );
+        container.read(profileLegendProvider.notifier).togglePpO2();
+        await tester.pumpAndSettle();
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        expect(
+          bars.any((b) => b.color == Colors.purple.withValues(alpha: 0.45)),
+          isTrue,
+          reason: 'overlay ppO2 line renders in the overlay color at 0.45',
+        );
+      },
+    );
+
+    testWidgets(
+      'an overlay draws no ppO2 line when its analysis is null or its ppO2 '
+      'curve is empty',
+      (tester) async {
+        final overlayPoints = List<DiveProfilePoint>.generate(
+          10,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: 25.0),
+        );
+        final active = List<DiveProfilePoint>.generate(
+          8,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: i * 2.0),
+        );
+
+        for (final analysis in [
+          null,
+          _minimalOverlayAnalysis(length: 10, ppO2Curve: const []),
+        ]) {
+          await tester.pumpWidget(
+            _buildChart(
+              profile: active,
+              overlays: [
+                ChartSourceOverlay(
+                  sourceId: 'src-b',
+                  name: 'Overlay',
+                  color: Colors.teal,
+                  computerId: 'comp-b',
+                  points: overlayPoints,
+                  analysis: analysis,
+                ),
+              ],
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          final container = ProviderScope.containerOf(
+            tester.element(find.byType(DiveProfileChart)),
+          );
+          container.read(profileLegendProvider.notifier).togglePpO2();
+          await tester.pumpAndSettle();
+
+          final bars = tester
+              .widget<LineChart>(find.byType(LineChart).first)
+              .data
+              .lineBarsData;
+
+          expect(
+            bars.any((b) => b.color == Colors.teal.withValues(alpha: 0.45)),
+            isFalse,
+            reason:
+                'no overlay ppO2 line when analysis is $analysis '
+                '(null or empty curve)',
+          );
+
+          // Reset the toggle for the next iteration.
+          container.read(profileLegendProvider.notifier).togglePpO2();
+          await tester.pumpAndSettle();
+        }
+      },
+    );
+
+    testWidgets(
+      'an overlay with a computed MOD curve draws its own MOD line in the '
+      'active profile\'s depth unit, not the active source\'s curve',
+      (tester) async {
+        // Representative of the unit-converted (units.convertDepth), flat
+        // surface lead-in family (mean depth shares this shape).
+        final overlayPoints = List<DiveProfilePoint>.generate(
+          10,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: 25.0),
+        );
+        final active = List<DiveProfilePoint>.generate(
+          8,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: i * 2.0),
+        );
+        final overlayAnalysis = _minimalOverlayAnalysis(
+          length: 10,
+          modCurve: List.filled(10, 45.0),
+        );
+
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            overlays: [
+              ChartSourceOverlay(
+                sourceId: 'src-b',
+                name: 'Overlay',
+                color: Colors.purple,
+                computerId: 'comp-b',
+                points: overlayPoints,
+                analysis: overlayAnalysis,
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DiveProfileChart)),
+        );
+        container.read(profileLegendProvider.notifier).toggleMod();
+        await tester.pumpAndSettle();
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        expect(
+          bars.any((b) => b.color == Colors.purple.withValues(alpha: 0.45)),
+          isTrue,
+          reason: 'overlay MOD line renders in the overlay color at 0.45',
+        );
+      },
+    );
+
+    testWidgets(
+      'an overlay with a computed GF% curve draws its own GF% line, not the '
+      "active source's curve",
+      (tester) async {
+        // Representative of the percent-band family (surface GF%, CNS%, OTU
+        // share this shape).
+        final overlayPoints = List<DiveProfilePoint>.generate(
+          10,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: 25.0),
+        );
+        final active = List<DiveProfilePoint>.generate(
+          8,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: i * 2.0),
+        );
+        final overlayAnalysis = _minimalOverlayAnalysis(
+          length: 10,
+          gfCurve: List.generate(10, (i) => 20.0 + i * 5),
+        );
+
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            overlays: [
+              ChartSourceOverlay(
+                sourceId: 'src-b',
+                name: 'Overlay',
+                color: Colors.purple,
+                computerId: 'comp-b',
+                points: overlayPoints,
+                analysis: overlayAnalysis,
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DiveProfileChart)),
+        );
+        container.read(profileLegendProvider.notifier).toggleGf();
+        await tester.pumpAndSettle();
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        expect(
+          bars.any((b) => b.color == Colors.purple.withValues(alpha: 0.45)),
+          isTrue,
+          reason: 'overlay GF% line renders in the overlay color at 0.45',
+        );
+      },
+    );
+
+    testWidgets(
+      'an overlay with a nullable GTR curve draws its own GTR line with a '
+      'break where the value is blanked, not the active source\'s curve',
+      (tester) async {
+        final overlayPoints = List<DiveProfilePoint>.generate(
+          10,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: 25.0),
+        );
+        final active = List<DiveProfilePoint>.generate(
+          8,
+          (i) => DiveProfilePoint(timestamp: i * 30, depth: i * 2.0),
+        );
+        // A blank in the middle of the curve must break the line rather than
+        // bridge across it or read as zero.
+        final gtrCurve = <int?>[
+          600,
+          580,
+          560,
+          null,
+          null,
+          500,
+          480,
+          460,
+          440,
+          420,
+        ];
+        final overlayAnalysis = _minimalOverlayAnalysis(
+          length: 10,
+          gtrCurve: gtrCurve,
+        );
+
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            overlays: [
+              ChartSourceOverlay(
+                sourceId: 'src-b',
+                name: 'Overlay',
+                color: Colors.purple,
+                computerId: 'comp-b',
+                points: overlayPoints,
+                analysis: overlayAnalysis,
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DiveProfileChart)),
+        );
+        container.read(profileLegendProvider.notifier).toggleGtr();
+        await tester.pumpAndSettle();
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        final gtrBar = bars.firstWhere(
+          (b) => b.color == Colors.purple.withValues(alpha: 0.45),
+          orElse: () => throw StateError('overlay GTR line not found'),
+        );
+        expect(
+          gtrBar.spots.any((s) => s == FlSpot.nullSpot),
+          isTrue,
+          reason: 'the blank pair in the middle of the curve breaks the line',
+        );
       },
     );
 

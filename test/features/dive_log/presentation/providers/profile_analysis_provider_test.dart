@@ -396,6 +396,94 @@ void main() {
       expect(segments, hasLength(2));
       expect(segments[1].fN2, closeTo(airN2Fraction, 0.000001));
     });
+
+    test('tanks: override seeds the t=0 segment from that computer\'s own '
+        'backgas, not dive.tanks\' (issue: combined-dive analysis picking up '
+        'the wrong computer\'s tank)', () {
+      // Two computers on one merged dive: computer A's backgas is air,
+      // computer B's is EAN32. dive.tanks lists B first, so without the
+      // tanks: override the t=0 segment would wrongly seed from B's gas
+      // while analyzing A's own profile.
+      final dive = Dive(
+        id: 'dive-multi-computer',
+        dateTime: DateTime.utc(2026, 3, 31),
+        tanks: const [
+          DiveTank(
+            id: 'tank-b',
+            computerId: 'computer-b',
+            gasMix: GasMix(o2: 32, he: 0),
+          ),
+          DiveTank(
+            id: 'tank-a',
+            computerId: 'computer-a',
+            gasMix: GasMix(o2: 21, he: 0),
+          ),
+        ],
+      );
+
+      final segments = buildProfileGasSegments(
+        dive,
+        const [],
+        tanks: dive.tanks.where((t) => t.computerId == 'computer-a').toList(),
+      );
+
+      expect(segments, hasLength(1));
+      expect(segments.single.fN2, closeTo(airN2Fraction, 0.000001));
+    });
+
+    test('startTimestamp: seeds the first segment before a negative-offset '
+        'secondary computer\'s own first sample (issue: combined-dive '
+        'analysis throwing "gasSegments.first.startTimestamp must be less '
+        'than or equal to the first profile timestamp")', () {
+      // A secondary computer switched on before the merged dive's t=0
+      // reference point: its own bucket's first sample is at -30, so the
+      // schedule must start there too, not at a hardcoded 0.
+      final dive = Dive(
+        id: 'dive-negative-start',
+        dateTime: DateTime.utc(2026, 3, 31),
+        tanks: const [DiveTank(id: 'tank-air', gasMix: GasMix(o2: 21))],
+      );
+
+      final segments = buildProfileGasSegments(
+        dive,
+        const [],
+        startTimestamp: -30,
+      );
+
+      expect(segments, hasLength(1));
+      expect(segments.single.startTimestamp, equals(-30));
+    });
+
+    test('startTimestamp: drops switches timestamped before the schedule '
+        'start rather than leaving the list non-monotonic', () {
+      final dive = Dive(
+        id: 'dive-negative-start-switch',
+        dateTime: DateTime.utc(2026, 3, 31),
+        tanks: const [
+          DiveTank(id: 'tank-air', gasMix: GasMix(o2: 21)),
+          DiveTank(id: 'tank-ean32', gasMix: GasMix(o2: 32)),
+        ],
+      );
+
+      final segments = buildProfileGasSegments(dive, [
+        GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'switch-before-start',
+            diveId: dive.id,
+            timestamp: -60,
+            tankId: 'tank-ean32',
+            createdAt: DateTime.utc(2026, 3, 31),
+          ),
+          tankName: '32%',
+          gasMix: 'EAN32',
+          o2Fraction: 0.32,
+        ),
+      ], startTimestamp: -30);
+
+      expect(segments, hasLength(1));
+      expect(segments.single.startTimestamp, equals(-30));
+      expect(segments.single.fN2, closeTo(airN2Fraction, 0.000001));
+    });
   });
 
   group('combineMultiTankPressures', () {

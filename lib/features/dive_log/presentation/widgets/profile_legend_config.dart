@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Configuration for what data is available in the chart.
@@ -23,6 +25,12 @@ class ProfileLegendConfig {
   /// Tank IDs whose pressure series is a synthesized linear estimate (#197),
   /// labelled with a "(est.)" suffix in the Tank Pressures section.
   final Set<String> estimatedTankIds;
+
+  /// Owning dive computer's colour for each tank id, on multi-source dives
+  /// only. Lets the Cylinders / Tank Pressures rows mark which computer a
+  /// tank belongs to when two computers logged tanks with the same gas mix
+  /// (identical gas-colour swatches otherwise).
+  final Map<String, Color>? tankSourceColors;
 
   // Advanced decompression/gas data availability
   final bool hasNdlData;
@@ -62,6 +70,7 @@ class ProfileLegendConfig {
     this.tanks,
     this.tankPressures,
     this.estimatedTankIds = const {},
+    this.tankSourceColors,
     this.hasNdlData = false,
     this.hasPpO2Data = false,
     this.hasPpN2Data = false,

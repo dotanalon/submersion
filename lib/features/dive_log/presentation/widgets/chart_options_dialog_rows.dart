@@ -70,14 +70,6 @@ Widget buildToggleWithSource<T>(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
         children: [
-          Icon(
-            isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-            size: 20,
-            color: isEnabled
-                ? color
-                : Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 8),
           // Area metrics are drawn on the chart as a translucent shaded
           // region rather than a stroked curve, so their swatch is a filled
           // block in the same wash instead of a line.
@@ -105,7 +97,16 @@ Widget buildToggleWithSource<T>(
               ),
             ),
           const SizedBox(width: 8),
-          Expanded(child: Text(label)),
+          Expanded(
+            child: Text(
+              label,
+              style: isEnabled
+                  ? null
+                  : TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+            ),
+          ),
           GestureDetector(
             onTap: () {}, // absorb tap to prevent parent InkWell from firing
             child: SizedBox(
@@ -149,9 +150,6 @@ Widget buildGasToggleItem(
   required VoidCallback onTap,
 }) {
   final colorScheme = Theme.of(context).colorScheme;
-  final iconColor = isEnabled
-      ? colorScheme.primary
-      : colorScheme.onSurfaceVariant;
   Widget bar(Color color) => Container(
     width: 16,
     height: 3,
@@ -167,12 +165,6 @@ Widget buildGasToggleItem(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
-          Icon(
-            isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-            size: 20,
-            color: iconColor,
-          ),
-          const SizedBox(width: 8),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -186,7 +178,14 @@ Widget buildGasToggleItem(
             ],
           ),
           const SizedBox(width: 8),
-          Expanded(child: Text(label)),
+          Expanded(
+            child: Text(
+              label,
+              style: isEnabled
+                  ? null
+                  : TextStyle(color: colorScheme.onSurfaceVariant),
+            ),
+          ),
         ],
       ),
     ),
@@ -209,6 +208,7 @@ Widget buildToggleItem(
   required Color color,
   required bool isEnabled,
   required VoidCallback onTap,
+  Color? sourceColor,
 }) {
   return _checkboxSemantics(
     isEnabled: isEnabled,
@@ -218,24 +218,28 @@ Widget buildToggleItem(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            Icon(
-              isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-              size: 20,
-              color: isEnabled
-                  ? color
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 8),
             Container(
               width: 16,
               height: 4,
               decoration: BoxDecoration(
                 color: isEnabled ? color : color.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
+                border: sourceColor == null
+                    ? null
+                    : Border.all(color: sourceColor, width: 1),
               ),
             ),
             const SizedBox(width: 8),
-            Expanded(child: Text(label)),
+            Expanded(
+              child: Text(
+                label,
+                style: isEnabled
+                    ? null
+                    : TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+              ),
+            ),
           ],
         ),
       ),
@@ -261,15 +265,14 @@ Widget buildBehaviorItem(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            Icon(
-              isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-              size: 20,
-              color: isEnabled
-                  ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant,
+            Expanded(
+              child: Text(
+                label,
+                style: isEnabled
+                    ? TextStyle(color: colorScheme.primary)
+                    : TextStyle(color: colorScheme.onSurfaceVariant),
+              ),
             ),
-            const SizedBox(width: 8),
-            Expanded(child: Text(label)),
           ],
         ),
       ),
@@ -281,12 +284,23 @@ Widget buildStaticItem(
   BuildContext context, {
   required String label,
   required Color color,
+  Color? sourceColor,
 }) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
     child: Row(
       children: [
-        Icon(Icons.circle, size: 12, color: color),
+        sourceColor == null
+            ? Icon(Icons.circle, size: 12, color: color)
+            : Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: sourceColor, width: 2),
+                ),
+              ),
         const SizedBox(width: 12),
         Container(
           width: 16,

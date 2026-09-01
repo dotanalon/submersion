@@ -231,7 +231,14 @@ class ChartOptionsDialog extends StatelessWidget {
         final color = GasColors.forGasMix(tank.gasMix);
         final label = tankLegendLabel(context, tank, fallbackIndex: i + 1);
 
-        tankItems.add(buildStaticItem(context, label: label, color: color));
+        tankItems.add(
+          buildStaticItem(
+            context,
+            label: label,
+            color: color,
+            sourceColor: config.tankSourceColors?[tank.id],
+          ),
+        );
       }
 
       if (tankItems.isNotEmpty) {
@@ -275,6 +282,7 @@ class ChartOptionsDialog extends StatelessWidget {
             color: color,
             isEnabled: legendState.showTankPressure[tankId] ?? true,
             onTap: () => legendNotifier.toggleTankPressure(tankId),
+            sourceColor: config.tankSourceColors?[tankId],
           ),
         );
       }
