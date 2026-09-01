@@ -92,10 +92,9 @@ class ChartSourceOverlay {
   final List<DiveProfilePoint> points;
 
   /// This source's own computed analysis (NDL/ceiling/deco stops/etc, index-
-  /// aligned with [points]), for overlay curves with no raw per-point device
-  /// field to fall back on -- e.g. the stepped deco-stop level. Null while
-  /// still loading, or for metrics the active source reads straight off
-  /// [points] (depth, temp, computer-reported ceiling/NDL/TTS).
+  /// aligned with [points]), driving every overlay curve except depth and
+  /// temperature, which are read straight off [points]. Null while still
+  /// loading.
   final ProfileAnalysis? analysis;
 }
 
@@ -4810,7 +4809,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           if (spots.isNotEmpty) {
             lines.add(
               LineChartBarData(
-                spots: spots,
+                spots: _withFlatSurfaceLeadIn(spots, owner: overlay.points),
                 isCurved: false,
                 color: overlay.color.withValues(alpha: 0.45),
                 barWidth: 2,
@@ -4846,10 +4845,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           ];
           lines.add(
             LineChartBarData(
-              spots: spots,
+              spots: _withFlatSurfaceLeadIn(spots, owner: overlay.points),
               isCurved: true,
               curveSmoothness: 0.2,
-              preventCurveOverShooting: true,
+              preventCurveOverShooting: _seriesGetsLeadIn(
+                spots,
+                overlay.points,
+              ),
               color: overlay.color.withValues(alpha: 0.45),
               barWidth: 2,
               isStrokeCapRound: true,

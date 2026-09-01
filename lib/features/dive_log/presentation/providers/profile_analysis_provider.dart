@@ -173,9 +173,9 @@ final _log = LoggerService.forClass(_ProfileAnalysisProvider);
 
 /// Builds a time-ordered gas schedule for decompression analysis.
 ///
-/// The schedule always starts at timestamp 0 using the primary tank gas when
-/// available, otherwise air. Gas switches then replace the active gas from
-/// their timestamp onward.
+/// The schedule starts at [buildProfileGasSegments]'s `startTimestamp`
+/// (0 by default) using the primary tank gas when available, otherwise air.
+/// Gas switches then replace the active gas from their timestamp onward.
 DiveTank? _selectOcPrimaryTank(List<DiveTank> tanks) {
   if (tanks.isEmpty) return null;
   return tanks.firstWhere(
