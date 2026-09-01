@@ -274,6 +274,51 @@ void main() {
       },
     );
 
+    test('seeds the first segment from a non-air primary tank mix', () {
+      // Every other primary-tank test here starts on air, which takes the
+      // isAir branch of the fN2 ternary; a nitrox primary with no switches
+      // exercises the other branch, computed from o2/he directly.
+      final dive = Dive(
+        id: 'dive-nitrox-primary',
+        dateTime: DateTime.utc(2026, 3, 31),
+        tanks: const [
+          DiveTank(id: 'tank-ean32', gasMix: GasMix(o2: 32, he: 0)),
+        ],
+      );
+
+      final segments = buildProfileGasSegments(dive, const []);
+
+      expect(segments, hasLength(1));
+      expect(segments.single.fN2, closeTo(0.68, 0.000001));
+      expect(segments.single.fHe, closeTo(0.0, 0.000001));
+    });
+
+    test('falls back to the first tank when none is role backGas', () {
+      final dive = Dive(
+        id: 'dive-no-backgas-role',
+        dateTime: DateTime.utc(2026, 3, 31),
+        tanks: const [
+          DiveTank(
+            id: 'tank-deco',
+            role: TankRole.deco,
+            gasMix: GasMix(o2: 50, he: 0),
+          ),
+          DiveTank(
+            id: 'tank-bailout',
+            role: TankRole.bailout,
+            gasMix: GasMix(o2: 21, he: 0),
+          ),
+        ],
+      );
+
+      final segments = buildProfileGasSegments(dive, const []);
+
+      // No backGas-role tank exists, so the seed falls back to the first
+      // tank in list order (the deco tank), not the bailout tank.
+      expect(segments, hasLength(1));
+      expect(segments.single.fN2, closeTo(0.5, 0.000001));
+    });
+
     test('adds sorted switch segments using switch tank gas mixes', () {
       final dive = Dive(
         id: 'dive-2',
