@@ -1174,7 +1174,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// [curve] must be index-aligned with the overlay's own points -- true for
   /// every curve on [ChartSourceOverlay.analysis], which is computed FROM
   /// those same points. Budget-only, like [_decimatedOverlayIndices].
-  List<int> _decimatedOverlayCurveIndices(List<num> curve) {
+  List<int> _decimatedOverlayCurveIndices<T extends num>(List<T> curve) {
     if (curve.length <= _curvePointBudget) {
       return List<int>.generate(curve.length, (i) => i);
     }
