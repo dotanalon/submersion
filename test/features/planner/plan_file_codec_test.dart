@@ -56,14 +56,16 @@ domain.DivePlan _plan() {
       ),
     ],
     segments: [
-      PlanSegment.descent(
+      PlanSegment.travel(
         id: 'seg-1',
+        fromDepth: 0,
         targetDepth: 50.0,
         tankId: 'tank-1',
         gasMix: trimix,
         order: 0,
+        ratePerMinute: 18.0,
       ),
-      PlanSegment.bottom(
+      PlanSegment.hold(
         id: 'seg-2',
         depth: 50.0,
         durationMinutes: 30,
@@ -114,7 +116,7 @@ void main() {
     expect(restored.tanks[1].isTravelGas, isFalse);
 
     expect(restored.segments, hasLength(2));
-    expect(restored.segments[1].type, SegmentType.bottom);
+    expect(restored.segments[1].targetDepth, original.segments[1].targetDepth);
     expect(restored.segments[1].durationSeconds, 30 * 60);
     // Segment tank references remap onto the regenerated tank ids.
     expect(restored.segments.first.tankId, restored.tanks.first.id);

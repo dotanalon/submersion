@@ -17,7 +17,7 @@ void main() {
     gasMix: gas,
   );
   final segments = [
-    PlanSegment.bottom(
+    PlanSegment.hold(
       id: 's1',
       depth: 30.0,
       durationMinutes: 20,

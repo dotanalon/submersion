@@ -7743,6 +7743,13 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get divePlanner_field_bailoutGas => 'Gas de emergencia';
+
+  @override
+  String get divePlanner_field_bailoutGasHint =>
+      'Gas de circuito aberto levado em caso de falha do circuito';
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override
@@ -7753,9 +7760,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get divePlanner_field_planName => 'Nome do Plano';
-
-  @override
-  String get divePlanner_field_role => 'Função';
 
   @override
   String divePlanner_field_startPressure(Object pressureSymbol) {
@@ -7840,6 +7844,28 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get divePlanner_label_tanks => 'Cilindros';
+
+  @override
+  String get divePlanner_savedTanks_title => 'Cilindros guardados';
+
+  @override
+  String get divePlanner_savedTanks_save => 'Guardar um cilindro';
+
+  @override
+  String get divePlanner_savedTanks_saveTitle => 'Guardar cilindro como';
+
+  @override
+  String get divePlanner_savedTanks_nameField => 'Nome do cilindro';
+
+  @override
+  String get divePlanner_savedTanks_saved => 'Cilindro guardado';
+
+  @override
+  String get divePlanner_savedTanks_manage => 'Gerir';
+
+  @override
+  String get divePlanner_savedTanks_empty =>
+      'Ainda não há cilindros guardados. Guarde um cilindro deste plano para o reutilizar em outros planos.';
 
   @override
   String get divePlanner_label_time => 'Tempo';
@@ -14474,6 +14500,22 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerCanvas_rates_ascent => 'Taxa de subida';
 
   @override
+  String get plannerCanvas_rates_intermediateAscent =>
+      'Velocidade de subida entre paradas intermédias';
+
+  @override
+  String get plannerCanvas_rates_lastStop => 'Última parada';
+
+  @override
+  String get plannerCanvas_rates_shallowAscent =>
+      'Velocidade de subida entre paradas rasas';
+
+  @override
+  String plannerCanvas_rates_finalAscent(String depth) {
+    return 'Velocidade de subida final (últimos $depth)';
+  }
+
+  @override
   String get plannerCanvas_rates_descent => 'Taxa de descida';
 
   @override
@@ -14553,7 +14595,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerCanvas_table_runtime => 'RT';
 
   @override
-  String get plannerCanvas_table_stop => 'Parada';
+  String get plannerCanvas_table_duration => 'Duração';
 
   @override
   String get plannerCanvas_turnRule_allUsable => 'Tudo utilizável';
@@ -22220,13 +22262,44 @@ class AppLocalizationsPt extends AppLocalizations {
   String get divePlanner_segmentEditor_addTitle => 'Adicionar Segmento';
 
   @override
-  String divePlanner_segmentEditor_ascentRate(Object unit) {
-    return 'Taxa de Subida ($unit/min)';
+  String divePlanner_segmentEditor_depth(Object unit) {
+    return 'Profundidade ($unit)';
   }
 
   @override
-  String divePlanner_segmentEditor_descentRate(Object unit) {
-    return 'Taxa de Descida ($unit/min)';
+  String divePlanner_segmentEditor_derivedAscent(
+    Object from,
+    Object to,
+    Object rate,
+  ) {
+    return 'Subida $from -> $to a $rate/min';
+  }
+
+  @override
+  String divePlanner_segmentEditor_derivedAscentNoRate(Object from, Object to) {
+    return 'Subida $from -> $to';
+  }
+
+  @override
+  String divePlanner_segmentEditor_derivedDescent(
+    Object from,
+    Object to,
+    Object rate,
+  ) {
+    return 'Descida $from -> $to a $rate/min';
+  }
+
+  @override
+  String divePlanner_segmentEditor_derivedDescentNoRate(
+    Object from,
+    Object to,
+  ) {
+    return 'Descida $from -> $to';
+  }
+
+  @override
+  String divePlanner_segmentEditor_derivedLevel(Object depth) {
+    return 'Nivel a $depth';
   }
 
   @override
@@ -22234,22 +22307,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get divePlanner_segmentEditor_editTitle => 'Editar Segmento';
-
-  @override
-  String divePlanner_segmentEditor_endDepth(Object unit) {
-    return 'Profundidade Final ($unit)';
-  }
-
-  @override
-  String get divePlanner_segmentEditor_gasSwitchTime => 'Tempo de troca de gas';
-
-  @override
-  String get divePlanner_segmentEditor_segmentType => 'Tipo de Segmento';
-
-  @override
-  String divePlanner_segmentEditor_startDepth(Object unit) {
-    return 'Profundidade Inicial ($unit)';
-  }
 
   @override
   String get divePlanner_segmentEditor_tankGas => 'Cilindro / Gas';
@@ -22299,30 +22356,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get divePlanner_segmentList_quickPlan => 'Plano Rapido';
 
   @override
-  String divePlanner_segmentList_safetyStop(Object depth, Object minutes) {
-    return 'Parada de seguranca $depth por $minutes min';
-  }
-
-  @override
   String get divePlanner_segmentList_title => 'Segmentos do Mergulho';
-
-  @override
-  String get divePlanner_segmentType_ascent => 'Subida';
-
-  @override
-  String get divePlanner_segmentType_bottomTime => 'Tempo de Fundo';
-
-  @override
-  String get divePlanner_segmentType_decoStop => 'Parada Deco';
-
-  @override
-  String get divePlanner_segmentType_descent => 'Descida';
-
-  @override
-  String get divePlanner_segmentType_gasSwitch => 'Troca de Gas';
-
-  @override
-  String get divePlanner_segmentType_safetyStop => 'Parada de Seguranca';
 
   @override
   String get divePlanner_undo => 'Desfazer';

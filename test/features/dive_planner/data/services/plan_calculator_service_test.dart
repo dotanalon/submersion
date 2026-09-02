@@ -157,14 +157,16 @@ void main() {
     // Descent + bottom only, ending AT depth so calculatePlan builds the full
     // deco schedule from the bottom (createSimplePlan ends at the surface).
     List<PlanSegment> decoSegments() => [
-      PlanSegment.descent(
+      PlanSegment.travel(
         id: 'descent',
+        fromDepth: 0,
         targetDepth: 45,
         tankId: air.id,
         gasMix: air.gasMix,
         order: 0,
+        ratePerMinute: 18.0,
       ),
-      PlanSegment.bottom(
+      PlanSegment.hold(
         id: 'bottom',
         depth: 45,
         durationMinutes: 25,

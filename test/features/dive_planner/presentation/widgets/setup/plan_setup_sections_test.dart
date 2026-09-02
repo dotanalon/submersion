@@ -42,6 +42,30 @@ void main() {
     expect(find.text('85%'), findsOneWidget);
   });
 
+  testWidgets('deco section chooses the last stop from 3, 4, 5 or 6 m', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness(const PlanDecoSection()));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanDecoSection)),
+    );
+
+    expect(find.text('Last stop'), findsOneWidget);
+    for (final choice in ['3 m', '4 m', '5 m', '6 m']) {
+      expect(find.text(choice), findsOneWidget, reason: choice);
+    }
+    expect(container.read(divePlanNotifierProvider).lastStopDepth, 3.0);
+
+    await tester.tap(find.text('6 m'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).lastStopDepth, 6.0);
+
+    await tester.tap(find.text('4 m'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).lastStopDepth, 4.0);
+  });
+
   testWidgets('gas section shows SAC slider and reserve field with unit', (
     tester,
   ) async {

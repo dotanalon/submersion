@@ -527,6 +527,17 @@ class DivePlans extends Table {
   IntColumn get gfHigh => integer()();
   RealColumn get descentRate => real().withDefault(const Constant(18.0))();
   RealColumn get ascentRate => real().withDefault(const Constant(9.0))();
+
+  /// Ascent rate between intermediate (deeper than 9 m) stops, m/min.
+  RealColumn get intermediateAscentRate =>
+      real().withDefault(const Constant(6.0))();
+
+  /// Ascent rate between shallow (9 m and above) stops, m/min.
+  RealColumn get shallowAscentRate => real().withDefault(const Constant(3.0))();
+
+  /// Ascent rate from the last stop to the surface, m/min.
+  RealColumn get finalAscentRate => real().withDefault(const Constant(1.0))();
+
   RealColumn get lastStopDepth => real().withDefault(const Constant(3.0))();
   IntColumn get gasSwitchStopSeconds =>
       integer().withDefault(const Constant(0))();
@@ -3332,7 +3343,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 183;
+  static const int currentSchemaVersion = 184;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -3765,6 +3776,7 @@ class AppDatabase extends _$AppDatabase {
     // a parallel branch's rung never ran ours and the beforeOpen backstop
     // only runs AFTER onUpgrade: by then the rows would be gone.
     183,
+    184,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5996,6 +6008,30 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'ALTER TABLE dive_plan_tanks ADD COLUMN is_travel_gas '
         'INTEGER NOT NULL DEFAULT 0',
+      );
+    }
+  }
+
+  /// The v184 dive_plans per-band ascent rate columns: the ascent slows in
+  /// stages between intermediate stops, between shallow stops, and over the
+  /// final stretch to the surface. PRAGMA-guarded so a healthy database
+  /// no-ops and a partial schema does not throw. Called from the v184
+  /// onUpgrade step and the beforeOpen backstop, matching the other additive
+  /// column helpers.
+  Future<void> _assertPlanAscentRateColumns() async {
+    final cols = await customSelect("PRAGMA table_info('dive_plans')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    const defaults = {
+      'intermediate_ascent_rate': '6.0',
+      'shallow_ascent_rate': '3.0',
+      'final_ascent_rate': '1.0',
+    };
+    for (final entry in defaults.entries) {
+      if (names.contains(entry.key)) continue;
+      await customStatement(
+        'ALTER TABLE dive_plans ADD COLUMN ${entry.key} '
+        'REAL NOT NULL DEFAULT ${entry.value}',
       );
     }
   }
@@ -9770,6 +9806,14 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 183) await reportProgress();
+        // v184: per-band planner ascent rates. Additive columns with
+        // defaults, so an existing plan picks up the standard 6/3/1 m/min
+        // ascent bands and its computed schedule redistributes time from the
+        // stops into the ascent.
+        if (from < 184) {
+          await _assertPlanAscentRateColumns();
+        }
+        if (from < 184) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -9939,6 +9983,11 @@ class AppDatabase extends _$AppDatabase {
         // v156 backstop: re-assert the dive_plan_tanks travel-gas column
         // (same parallel-branch version-collision self-heal).
         await _assertTravelGasColumn();
+
+        // v184 backstop: re-assert the dive_plans per-band ascent rate
+        // columns. A database that arrives by restore or sync-adopt never
+        // runs onUpgrade, and reading a plan without them throws.
+        await _assertPlanAscentRateColumns();
 
         // v157 backstop: re-assert the default service price columns (issue
         // #829; same parallel-branch version-collision self-heal).

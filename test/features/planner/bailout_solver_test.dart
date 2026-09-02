@@ -36,14 +36,16 @@ domain.DivePlan _plan({
     gfHigh: 80,
     tanks: tanks ?? [_diluentTank, _bailout()],
     segments: [
-      PlanSegment.descent(
+      PlanSegment.travel(
         id: 'seg-1',
+        fromDepth: 0,
         targetDepth: 60.0,
         tankId: 'dil',
         gasMix: _diluent,
         order: 0,
+        ratePerMinute: 18.0,
       ),
-      PlanSegment.bottom(
+      PlanSegment.hold(
         id: 'seg-2',
         depth: 60.0,
         durationMinutes: bottomMinutes,

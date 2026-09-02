@@ -58,6 +58,13 @@ void main() {
 
     // Runtime table header(s) — the contingency mini-tables repeat it.
     expect(find.text('Depth'), findsWidgets);
+    expect(find.text('Duration'), findsWidgets);
+    // The table reads like a slate: the authored descent and bottom, then
+    // a travel leg and a stop per computed stop, marked by direction.
+    expect(find.text('↘'), findsOneWidget);
+    expect(find.text('→'), findsOneWidget);
+    expect(find.text('↗'), findsWidgets);
+    expect(find.text('−'), findsWidgets);
     // Gas section rendered a per-tank consumption bar.
     expect(find.byType(LinearProgressIndicator), findsWidgets);
     // Air at 45 m trips the critical gas-density issue (issues sit below
