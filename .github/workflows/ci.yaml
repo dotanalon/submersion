@@ -279,12 +279,12 @@ jobs:
         # It is also bounded by the account-wide concurrent-job cap: this workflow
         # already fans out ~10-11 non-test jobs (analyze + 5 builds + scripts +
         # timezone + integration) that share the pool AND gate ci-success, so
-        # oversharding queues the builds and makes total CI slower, not faster.
-        # 10 is the agreed cap for this repo -- raising it further needs a
-        # matching bump to the account-wide concurrent-job budget first.
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        # oversharding queues the builds and makes total CI slower, not
+        # faster. 8 keeps us under the cap while roughly halving test
+        # wall-clock.
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
     env:
-      TOTAL_SHARDS: 10
+      TOTAL_SHARDS: 8
     steps:
       - uses: actions/checkout@v7
         with:
