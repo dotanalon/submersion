@@ -48,6 +48,11 @@ class FindTestFilesTests(unittest.TestCase):
                 "test/nested/deep/c_test.dart",
             })
 
+    def test_raises_when_test_dir_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(FileNotFoundError):
+                guard.find_test_files(os.path.join(tmp, "no_such_dir"))
+
 
 class DiffTests(unittest.TestCase):
     def test_no_drift(self):
@@ -90,6 +95,18 @@ class CheckTests(unittest.TestCase):
             self.assertIn("test/new_test.dart", text)
             self.assertIn("test/gone_test.dart", text)
             self.assertIn(guard.FIX_COMMAND, text)
+
+    def test_fix_command_includes_non_default_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            test_dir = os.path.join(tmp, "test")
+            _make_test_tree(test_dir, ["new_test.dart"])
+            timings_path = os.path.join(tmp, "timings.json")
+            _write_timings(timings_path, {})
+
+            ok, lines = guard.check(test_dir, timings_path)
+            self.assertFalse(ok)
+            text = "\n".join(lines)
+            self.assertIn(f"{guard.FIX_COMMAND} {test_dir} {timings_path}", text)
 
 
 class MainTests(unittest.TestCase):

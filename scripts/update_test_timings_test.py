@@ -93,6 +93,28 @@ class UpdateTests(unittest.TestCase):
                 updated = json.load(fh)["files"]
             self.assertEqual(updated, {"test/only_test.dart": 0.0})
 
+    def test_missing_files_are_inserted_in_sorted_order(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            test_dir = os.path.join(tmp, "test")
+            _make_test_tree(test_dir, ["z_new_test.dart", "a_existing_test.dart"])
+            timings_path = os.path.join(tmp, "timings.json")
+            _write_timings(timings_path, {"test/a_existing_test.dart": 1.0})
+
+            guard.update(test_dir, timings_path)
+
+            with open(timings_path) as fh:
+                updated = json.load(fh)["files"]
+            self.assertEqual(
+                list(updated),
+                ["test/a_existing_test.dart", "test/z_new_test.dart"])
+
+    def test_raises_when_test_dir_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            timings_path = os.path.join(tmp, "timings.json")
+            _write_timings(timings_path, {})
+            with self.assertRaises(FileNotFoundError):
+                guard.update(os.path.join(tmp, "no_such_dir"), timings_path)
+
 
 class MainTests(unittest.TestCase):
     def test_main_reports_when_already_in_sync(self):
