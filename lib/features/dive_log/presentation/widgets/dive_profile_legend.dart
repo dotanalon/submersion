@@ -148,7 +148,7 @@ class DiveProfileLegend extends ConsumerWidget {
       children: [
         Container(
           width: 10,
-          height: 3,
+          height: 10,
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(2),
@@ -161,10 +161,10 @@ class DiveProfileLegend extends ConsumerWidget {
   }
 
   // Geometry of one inline toggle as built by _buildMetricToggle below:
-  // horizontal padding 2+2, swatch 10, gap 3, then the label text.
+  // horizontal padding 2+2, checkbox icon 14, gap 2, then the label text.
   // _toggleChromeWidth MUST change in lockstep with any visual edit to
   // _buildMetricToggle.
-  static const double _toggleChromeWidth = 2 + 2 + 10 + 3;
+  static const double _toggleChromeWidth = 2 + 2 + 14 + 2;
 
   // Geometry of the always-shown depth legend item (_buildLegendItem):
   // swatch 10, gap 3, label text.
@@ -487,15 +487,14 @@ class DiveProfileLegend extends ConsumerWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 10,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: isEnabled ? color : color.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
+              Icon(
+                isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
+                size: 14,
+                color: isEnabled
+                    ? color
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(width: 3),
+              const SizedBox(width: 2),
               Text(
                 label,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
