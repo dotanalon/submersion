@@ -52,16 +52,18 @@ void main() {
     );
 
     expect(find.text('Last stop'), findsOneWidget);
-    for (final choice in ['3 m', '4 m', '5 m', '6 m']) {
+    // Labels come from UnitFormatter.formatDepth, which spells metres with no
+    // space ('3m'), as everywhere else in the app.
+    for (final choice in ['3m', '4m', '5m', '6m']) {
       expect(find.text(choice), findsOneWidget, reason: choice);
     }
     expect(container.read(divePlanNotifierProvider).lastStopDepth, 3.0);
 
-    await tester.tap(find.text('6 m'));
+    await tester.tap(find.text('6m'));
     await tester.pumpAndSettle();
     expect(container.read(divePlanNotifierProvider).lastStopDepth, 6.0);
 
-    await tester.tap(find.text('4 m'));
+    await tester.tap(find.text('4m'));
     await tester.pumpAndSettle();
     expect(container.read(divePlanNotifierProvider).lastStopDepth, 4.0);
   });
