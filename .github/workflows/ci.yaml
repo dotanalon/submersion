@@ -279,12 +279,12 @@ jobs:
         # It is also bounded by the account-wide concurrent-job cap: this workflow
         # already fans out ~10-11 non-test jobs (analyze + 5 builds + scripts +
         # timezone + integration) that share the pool AND gate ci-success, so
-        # oversharding queues the builds and makes total CI slower, not
-        # faster. 8 keeps us under the cap while roughly halving test
-        # wall-clock.
-        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+        # oversharding queues the builds and makes total CI slower, not faster.
+        # 10 is the agreed cap for this repo -- raising it further needs a
+        # matching bump to the account-wide concurrent-job budget first.
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     env:
-      TOTAL_SHARDS: 8
+      TOTAL_SHARDS: 10
     steps:
       - uses: actions/checkout@v7
         with:
@@ -511,10 +511,18 @@ jobs:
         # native download crash would then kill the app again (issue #318).
         run: python3 scripts/check_dc_process_isolation.py
 
+      - name: Check test-timings.json is up to date
+        # .github/test-timings.json holds a per-file duration weight for every
+        # test file (see its _meta.method), kept as input for shard-balancing.
+        # A test file added/removed/renamed without updating the weights lets
+        # the file list drift out of sync silently -- this fails loudly
+        # instead, with the fix command printed inline.
+        run: python3 scripts/check_test_timings.py
+
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/check_test_timings.py,scripts/update_test_timings.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -531,6 +539,10 @@ jobs:
             scripts/fix_macho_symbol_order_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/release/sanitize_apple_store_notes_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_test_timings_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/update_test_timings_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
