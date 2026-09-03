@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
@@ -562,7 +563,7 @@ void main() {
           .lineBarsData;
       expect(bars.length, withoutOverlay + 1);
       final overlayBar = bars.last;
-      expect(overlayBar.color, Colors.purple);
+      expect(overlayBar.color, overlayTint(ProfileMetricColors.depth, 0));
       expect(overlayBar.dashArray, [6, 4]);
       expect(overlayBar.spots.length, 6);
       // Depth bar 0 is still the active source.
@@ -848,7 +849,7 @@ void main() {
 
         // Overlay depth bar is appended last and DOES get one.
         final overlayBar = bars.last;
-        expect(overlayBar.color, Colors.purple);
+        expect(overlayBar.color, overlayTint(ProfileMetricColors.depth, 0));
         expect(overlayBar.spots.first, const FlSpot(0, 0));
         expect(overlayBar.spots.length, other.length + 1);
         expect(overlayBar.spots[1].x, 10);
@@ -3697,7 +3698,7 @@ void main() {
 
       List<LineChartBarData> ceilingBars() => chartData(
         tester,
-      ).lineBarsData.where((b) => b.color == const Color(0xFFD32F2F)).toList();
+      ).lineBarsData.where((b) => b.color == const Color(0xFF7B1FA2)).toList();
 
       expect(ceilingBars(), isNotEmpty, reason: 'ceiling line renders');
       expect(ceilingBars().first.spots.every((s) => s.y == -6.0), isTrue);
@@ -4835,9 +4836,9 @@ void main() {
             .lineBarsData;
 
         expect(
-          bars.any((b) => b.color == Colors.purple.withValues(alpha: 0.45)),
+          bars.any((b) => b.color == overlayTint(ProfileMetricColors.tts, 0)),
           isTrue,
-          reason: 'overlay TTS line renders in the overlay color at 0.45',
+          reason: 'overlay TTS line renders as a tint of the TTS colour',
         );
       },
     );
@@ -4885,10 +4886,15 @@ void main() {
           bars.any(
             (b) =>
                 b.aboveBarData.show &&
-                b.aboveBarData.color == Colors.purple.withValues(alpha: 0.18),
+                b.aboveBarData.color ==
+                    overlayTint(
+                      ProfileMetricColors.decoStops,
+                      0,
+                    ).withValues(alpha: 0.18),
           ),
           isTrue,
-          reason: 'overlay deco-stop band fills in the overlay color',
+          reason:
+              'overlay deco-stop band fills in a tint of the deco-stop colour',
         );
       },
     );
@@ -4933,9 +4939,12 @@ void main() {
             .lineBarsData;
 
         expect(
-          bars.any((b) => b.color == Colors.purple.withValues(alpha: 0.45)),
+          bars.any(
+            (b) => b.color == overlayTint(ProfileMetricColors.ceiling, 0),
+          ),
           isTrue,
-          reason: 'overlay ceiling line renders in the overlay color at 0.45',
+          reason:
+              'overlay ceiling line renders as a tint of the ceiling colour',
         );
       },
     );
@@ -4989,9 +4998,9 @@ void main() {
             .lineBarsData;
 
         expect(
-          bars.any((b) => b.color == Colors.purple.withValues(alpha: 0.45)),
+          bars.any((b) => b.color == overlayTint(ProfileMetricColors.ppO2, 0)),
           isTrue,
-          reason: 'overlay ppO2 line renders in the overlay color at 0.45',
+          reason: 'overlay ppO2 line renders as a tint of the ppO2 colour',
         );
       },
     );
@@ -5042,7 +5051,9 @@ void main() {
               .lineBarsData;
 
           expect(
-            bars.any((b) => b.color == Colors.teal.withValues(alpha: 0.45)),
+            bars.any(
+              (b) => b.color == overlayTint(ProfileMetricColors.ppO2, 0),
+            ),
             isFalse,
             reason:
                 'no overlay ppO2 line when analysis is $analysis '
@@ -5104,9 +5115,9 @@ void main() {
             .lineBarsData;
 
         expect(
-          bars.any((b) => b.color == Colors.purple.withValues(alpha: 0.45)),
+          bars.any((b) => b.color == overlayTint(ProfileMetricColors.mod, 0)),
           isTrue,
-          reason: 'overlay MOD line renders in the overlay color at 0.45',
+          reason: 'overlay MOD line renders as a tint of the MOD colour',
         );
       },
     );
@@ -5159,9 +5170,9 @@ void main() {
             .lineBarsData;
 
         expect(
-          bars.any((b) => b.color == Colors.purple.withValues(alpha: 0.45)),
+          bars.any((b) => b.color == overlayTint(ProfileMetricColors.gf, 0)),
           isTrue,
-          reason: 'overlay GF% line renders in the overlay color at 0.45',
+          reason: 'overlay GF% line renders as a tint of the GF colour',
         );
       },
     );
@@ -5226,7 +5237,7 @@ void main() {
             .lineBarsData;
 
         final gtrBar = bars.firstWhere(
-          (b) => b.color == Colors.purple.withValues(alpha: 0.45),
+          (b) => b.color == overlayTint(ProfileMetricColors.gtr, 0),
           orElse: () => throw StateError('overlay GTR line not found'),
         );
         expect(
@@ -5262,7 +5273,7 @@ void main() {
           .lineBarsData
           .where(
             (b) =>
-                b.color == Colors.deepOrange &&
+                b.color == const Color(0xFFFFB300) &&
                 b.dashArray != null &&
                 b.dashArray!.length == 2 &&
                 b.dashArray!.first == 8 &&

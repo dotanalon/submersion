@@ -13,8 +13,9 @@ Widget _wrap(Widget Function(BuildContext context) builder) => MaterialApp(
 
 void main() {
   group('buildToggleItem', () {
-    testWidgets('draws a plain swatch with no border when sourceColor is '
-        'null', (tester) async {
+    testWidgets('draws a checkbox with no ring when sourceColor is null', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(
           (context) => buildToggleItem(
@@ -27,20 +28,19 @@ void main() {
         ),
       );
 
-      final container = tester.widget<Container>(
-        find
-            .descendant(
-              of: find.byType(InkWell),
-              matching: find.byType(Container),
-            )
-            .first,
+      expect(
+        find.descendant(
+          of: find.byType(InkWell),
+          matching: find.byType(Container),
+        ),
+        findsNothing,
       );
-      final decoration = container.decoration! as BoxDecoration;
-      expect(decoration.border, isNull);
+      final icon = tester.widget<Icon>(find.byIcon(Icons.check_box));
+      expect(icon.color, Colors.blue);
     });
 
-    testWidgets('draws the source colour as a border around the swatch when '
-        'sourceColor is given', (tester) async {
+    testWidgets('draws the source colour as a border around the checkbox '
+        'when sourceColor is given', (tester) async {
       await tester.pumpWidget(
         _wrap(
           (context) => buildToggleItem(
@@ -208,7 +208,7 @@ void main() {
       expect(text.style, isNotNull);
     });
 
-    testWidgets('renders a filled area swatch when isAreaSwatch is true', (
+    testWidgets('shows a checkbox reflecting the enabled state', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -222,13 +222,36 @@ void main() {
             currentSource: 0,
             onSourceChanged: (_) {},
             segments: const [(0, 'DC'), (1, 'Calc')],
-            isAreaSwatch: true,
           ),
         ),
       );
 
       expect(find.text('Deco stops'), findsOneWidget);
       expect(find.byType(SegmentedButton<int>), findsOneWidget);
+      expect(find.byIcon(Icons.check_box), findsOneWidget);
+    });
+
+    testWidgets('is announced as a checkbox with the enabled state', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          (context) => buildToggleWithSource<int>(
+            context,
+            label: 'Deco stops',
+            color: Colors.blue,
+            isEnabled: true,
+            onTap: () {},
+            currentSource: 0,
+            onSourceChanged: (_) {},
+            segments: const [(0, 'DC'), (1, 'Calc')],
+          ),
+        ),
+      );
+
+      // The SegmentedButton has InkWells of its own; the row's is outermost.
+      final semantics = tester.getSemantics(find.byType(InkWell).first);
+      expect(semantics.flagsCollection.isChecked, CheckedState.isTrue);
     });
   });
 

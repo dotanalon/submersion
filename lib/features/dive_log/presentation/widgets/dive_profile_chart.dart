@@ -33,6 +33,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readou
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_spread.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
@@ -83,13 +84,23 @@ class ChartSourceOverlay {
     required this.computerId,
     required this.points,
     this.analysis,
+    this.tintByMetric = true,
   });
 
   final String sourceId;
   final String name;
+
+  /// The source's identity colour (source-bar chip, tank rings). Traces only
+  /// use it directly when [tintByMetric] is false.
   final Color color;
   final String? computerId;
   final List<DiveProfilePoint> points;
+
+  /// When true (the default for overlaid dive computers) every trace is drawn
+  /// in a lighter tint of its metric's own colour via [overlayTint], so the
+  /// metric stays recognisable across computers. Set false for overlays that
+  /// are a different thing entirely (a planned profile), which keep [color].
+  final bool tintByMetric;
 
   /// This source's own computed analysis (NDL/ceiling/deco stops/etc, index-
   /// aligned with [points]), driving every overlay curve except depth and
@@ -740,6 +751,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return best;
   }
 
+  /// Trace colour for [overlay]'s rendering of a metric the active source
+  /// draws in [base]: a lighter tint of [base] for overlaid computers, or the
+  /// overlay's own identity colour when it opted out of tinting.
+  Color _overlayColor(ChartSourceOverlay overlay, Color base) {
+    if (!overlay.tintByMetric) return overlay.color;
+    final index = widget.overlays?.indexOf(overlay) ?? 0;
+    return overlayTint(base, index < 0 ? 0 : index);
+  }
+
   /// Shared tooltip-row builder for overlay curves that are a simple
   /// per-point `List<T>` on [ChartSourceOverlay.analysis] -- ppO2/ppN2/ppHe,
   /// MOD, density, GF%, surface GF%, mean depth, CNS%, OTU. Reads the
@@ -753,6 +773,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     required int timestamp,
     required List<T>? Function(ProfileAnalysis) curveOf,
     required String label,
+    required Color color,
     required String Function(T) formatValue,
     bool Function(T)? skip,
   }) {
@@ -770,7 +791,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         TooltipRow(
           label: '$label · ${overlay.name}',
           value: formatValue(value),
-          bulletColor: overlay.color,
+          bulletColor: _overlayColor(overlay, color),
         ),
       );
     }
@@ -1306,7 +1327,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         TooltipRow(
           label: '${l10n.diveLog_tooltip_depth} · ${overlay.name}',
           value: units.formatDepth(overlayPoint.depth),
-          bulletColor: overlay.color,
+          bulletColor: _overlayColor(overlay, ProfileMetricColors.depth),
         ),
       );
     }
@@ -1332,7 +1353,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           TooltipRow(
             label: '${l10n.diveLog_tooltip_temp} · ${overlay.name}',
             value: units.formatTemperature(overlayTemp),
-            bulletColor: overlay.color.withValues(alpha: 0.6),
+            bulletColor: _overlayColor(overlay, colorScheme.tertiary),
           ),
         );
       }
@@ -1347,7 +1368,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         TooltipRow(
           label: l10n.diveLog_tooltip_ceiling,
           value: ceiling > 0 ? units.formatDepth(ceiling) : '-',
-          bulletColor: const Color(0xFFD32F2F),
+          bulletColor: const Color(0xFF7B1FA2),
         ),
       );
     }
@@ -1361,7 +1382,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           TooltipRow(
             label: '${l10n.diveLog_tooltip_ceiling} · ${overlay.name}',
             value: ceiling > 0 ? units.formatDepth(ceiling) : '-',
-            bulletColor: overlay.color,
+            bulletColor: _overlayColor(overlay, ProfileMetricColors.ceiling),
           ),
         );
       }
@@ -1391,7 +1412,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           TooltipRow(
             label: '${l10n.diveLog_tooltip_decoStop} · ${overlay.name}',
             value: stop > 0 ? units.formatDepth(stop) : '-',
-            bulletColor: overlay.color,
+            bulletColor: _overlayColor(overlay, ProfileMetricColors.decoStops),
           ),
         );
       }
@@ -1505,7 +1526,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           TooltipRow(
             label: '${l10n.diveLog_tooltip_ndl} · ${overlay.name}',
             value: overlayNdlValue,
-            bulletColor: overlay.color,
+            bulletColor: _overlayColor(overlay, ProfileMetricColors.ndl),
           ),
         );
       }
@@ -1532,6 +1553,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _overlayCurveRows<double>(
           timestamp: point.timestamp,
           curveOf: (a) => a.ppO2Curve,
+          color: ProfileMetricColors.ppO2,
           label: l10n.diveLog_tooltip_ppO2,
           formatValue: (v) =>
               '${v.toStringAsFixed(2)} ${l10n.units_pressure_bar}',
@@ -1564,6 +1586,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _overlayCurveRows<double>(
           timestamp: point.timestamp,
           curveOf: (a) => a.ppN2Curve,
+          color: ProfileMetricColors.ppN2,
           label: l10n.diveLog_tooltip_ppN2,
           formatValue: (v) =>
               '${v.toStringAsFixed(2)} ${l10n.units_pressure_bar}',
@@ -1592,6 +1615,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _overlayCurveRows<double>(
           timestamp: point.timestamp,
           curveOf: (a) => a.ppHeCurve,
+          color: ProfileMetricColors.ppHe,
           label: l10n.diveLog_tooltip_ppHe,
           formatValue: (v) =>
               '${v.toStringAsFixed(2)} ${l10n.units_pressure_bar}',
@@ -1610,7 +1634,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           TooltipRow(
             label: l10n.diveLog_tooltip_mod,
             value: units.formatDepth(mod),
-            bulletColor: Colors.deepOrange,
+            bulletColor: const Color(0xFFFFB300),
           ),
         );
       }
@@ -1620,6 +1644,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _overlayCurveRows<double>(
           timestamp: point.timestamp,
           curveOf: (a) => a.modCurve,
+          color: ProfileMetricColors.mod,
           label: l10n.diveLog_tooltip_mod,
           formatValue: units.formatDepth,
           skip: (v) => !(v > 0 && v < 200),
@@ -1636,7 +1661,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           label: l10n.diveLog_tooltip_density,
           value:
               '${_readoutValue(widget.densityCurve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} ${l10n.units_profileMetric_gPerL}',
-          bulletColor: Colors.brown,
+          bulletColor: const Color(0xFF827717),
         ),
       );
     }
@@ -1645,6 +1670,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _overlayCurveRows<double>(
           timestamp: point.timestamp,
           curveOf: (a) => a.densityCurve,
+          color: ProfileMetricColors.density,
           label: l10n.diveLog_tooltip_density,
           formatValue: (v) =>
               '${v.toStringAsFixed(2)} ${l10n.units_profileMetric_gPerL}',
@@ -1669,6 +1695,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _overlayCurveRows<double>(
           timestamp: point.timestamp,
           curveOf: (a) => a.gfCurve,
+          color: ProfileMetricColors.gf,
           label: l10n.diveLog_tooltip_gfPercent,
           formatValue: (v) => '${v.toStringAsFixed(0)}%',
         ),
@@ -1693,6 +1720,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _overlayCurveRows<double>(
           timestamp: point.timestamp,
           curveOf: (a) => a.surfaceGfCurve,
+          color: ProfileMetricColors.surfaceGf,
           label: l10n.diveLog_tooltip_srfGf,
           formatValue: (v) => '${v.toStringAsFixed(0)}%',
         ),
@@ -1716,6 +1744,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _overlayCurveRows<double>(
           timestamp: point.timestamp,
           curveOf: (a) => a.meanDepthCurve,
+          color: ProfileMetricColors.meanDepth,
           label: l10n.diveLog_tooltip_mean,
           formatValue: units.formatDepth,
         ),
@@ -1749,7 +1778,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             value: tts > 0
                 ? '${(tts / 60).ceil()} ${l10n.units_profileMetric_min}'
                 : '0 ${l10n.units_profileMetric_min}',
-            bulletColor: overlay.color,
+            bulletColor: _overlayColor(overlay, ProfileMetricColors.tts),
           ),
         );
       }
@@ -1782,7 +1811,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               curve[idx],
               minuteUnit: l10n.units_profileMetric_min,
             ),
-            bulletColor: overlay.color,
+            bulletColor: _overlayColor(overlay, ProfileMetricColors.gtr),
           ),
         );
       }
@@ -1805,6 +1834,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _overlayCurveRows<double>(
           timestamp: point.timestamp,
           curveOf: (a) => a.cnsCurve,
+          color: ProfileMetricColors.cns,
           label: l10n.diveLog_tooltip_cns,
           formatValue: (v) => '${v.toStringAsFixed(1)}%',
         ),
@@ -1828,6 +1858,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _overlayCurveRows<double>(
           timestamp: point.timestamp,
           curveOf: (a) => a.otuCurve,
+          color: ProfileMetricColors.otu,
           label: l10n.diveLog_tooltip_otu,
           formatValue: (v) => v.toStringAsFixed(0),
         ),
@@ -2679,7 +2710,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     final display = ref.read(gasConsumptionDisplayProvider);
-    const heartRateColor = Colors.red;
+    const heartRateColor = ProfileMetricColors.heartRate;
 
     // Calculate full data bounds (all values stored in meters, convert for
     // display). Overlaid sources widen the extents so a deeper or longer
@@ -3436,7 +3467,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         '${context.l10n.diveLog_tooltip_depth}'
                         ' · ${overlay.name}',
                         units.formatDepth(overlayPoint.depth),
-                        overlay.color,
+                        _overlayColor(overlay, ProfileMetricColors.depth),
                       );
                     }
 
@@ -3461,7 +3492,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           '${context.l10n.diveLog_tooltip_temp}'
                           ' · ${overlay.name}',
                           units.formatTemperature(overlayTemp),
-                          overlay.color.withValues(alpha: 0.6),
+                          _overlayColor(overlay, colorScheme.tertiary),
                         );
                       }
                     }
@@ -3515,7 +3546,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       addRow(
                         context.l10n.diveLog_tooltip_ceiling,
                         ceilingValue,
-                        const Color(0xFFD32F2F),
+                        const Color(0xFF7B1FA2),
                       );
                     }
                     if (_showCeiling) {
@@ -3533,7 +3564,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           '${context.l10n.diveLog_tooltip_ceiling}'
                           ' · ${overlay.name}',
                           ceiling > 0 ? units.formatDepth(ceiling) : '—',
-                          overlay.color,
+                          _overlayColor(overlay, ProfileMetricColors.ceiling),
                         );
                       }
                     }
@@ -3569,7 +3600,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           '${context.l10n.diveLog_tooltip_decoStop}'
                           ' · ${overlay.name}',
                           stop > 0 ? units.formatDepth(stop) : '—',
-                          overlay.color,
+                          _overlayColor(overlay, ProfileMetricColors.decoStops),
                         );
                       }
                     }
@@ -3663,7 +3694,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           '${context.l10n.diveLog_tooltip_ndl}'
                           ' · ${overlay.name}',
                           overlayNdlValue,
-                          overlay.color,
+                          _overlayColor(overlay, ProfileMetricColors.ndl),
                         );
                       }
                     }
@@ -3691,6 +3722,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       for (final row in _overlayCurveRows<double>(
                         timestamp: point.timestamp,
                         curveOf: (a) => a.ppO2Curve,
+                        color: ProfileMetricColors.ppO2,
                         label: context.l10n.diveLog_tooltip_ppO2,
                         formatValue: (v) => '${v.toStringAsFixed(2)} $bar',
                       )) {
@@ -3729,6 +3761,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       for (final row in _overlayCurveRows<double>(
                         timestamp: point.timestamp,
                         curveOf: (a) => a.ppN2Curve,
+                        color: ProfileMetricColors.ppN2,
                         label: context.l10n.diveLog_tooltip_ppN2,
                         formatValue: (v) => '${v.toStringAsFixed(2)} $bar',
                       )) {
@@ -3757,6 +3790,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       for (final row in _overlayCurveRows<double>(
                         timestamp: point.timestamp,
                         curveOf: (a) => a.ppHeCurve,
+                        color: ProfileMetricColors.ppHe,
                         label: context.l10n.diveLog_tooltip_ppHe,
                         formatValue: (v) => '${v.toStringAsFixed(2)} $bar',
                         skip: (v) => v <= 0.001,
@@ -3778,13 +3812,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       addRow(
                         context.l10n.diveLog_tooltip_mod,
                         modValue,
-                        Colors.deepOrange,
+                        const Color(0xFFFFB300),
                       );
                     }
                     if (_showMod) {
                       for (final row in _overlayCurveRows<double>(
                         timestamp: point.timestamp,
                         curveOf: (a) => a.modCurve,
+                        color: ProfileMetricColors.mod,
                         label: context.l10n.diveLog_tooltip_mod,
                         formatValue: units.formatDepth,
                         skip: (v) => !(v > 0 && v < 200),
@@ -3807,13 +3842,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       addRow(
                         context.l10n.diveLog_tooltip_density,
                         densityValue,
-                        Colors.brown,
+                        const Color(0xFF827717),
                       );
                     }
                     if (_showDensity) {
                       for (final row in _overlayCurveRows<double>(
                         timestamp: point.timestamp,
                         curveOf: (a) => a.densityCurve,
+                        color: ProfileMetricColors.density,
                         label: context.l10n.diveLog_tooltip_density,
                         formatValue: (v) => '${v.toStringAsFixed(2)} $gPerL',
                       )) {
@@ -3839,6 +3875,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       for (final row in _overlayCurveRows<double>(
                         timestamp: point.timestamp,
                         curveOf: (a) => a.gfCurve,
+                        color: ProfileMetricColors.gf,
                         label: context.l10n.diveLog_tooltip_gfPercent,
                         formatValue: (v) => '${v.toStringAsFixed(0)}%',
                       )) {
@@ -3865,6 +3902,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       for (final row in _overlayCurveRows<double>(
                         timestamp: point.timestamp,
                         curveOf: (a) => a.surfaceGfCurve,
+                        color: ProfileMetricColors.surfaceGf,
                         label: context.l10n.diveLog_tooltip_srfGf,
                         formatValue: (v) => '${v.toStringAsFixed(0)}%',
                       )) {
@@ -3891,6 +3929,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       for (final row in _overlayCurveRows<double>(
                         timestamp: point.timestamp,
                         curveOf: (a) => a.meanDepthCurve,
+                        color: ProfileMetricColors.meanDepth,
                         label: context.l10n.diveLog_tooltip_mean,
                         formatValue: units.formatDepth,
                       )) {
@@ -3935,7 +3974,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           '${context.l10n.diveLog_tooltip_tts}'
                           ' · ${overlay.name}',
                           overlayTtsValue,
-                          overlay.color,
+                          _overlayColor(overlay, ProfileMetricColors.tts),
                         );
                       }
                     }
@@ -3970,7 +4009,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           '${context.l10n.diveLog_tooltip_gtr}'
                           ' · ${overlay.name}',
                           formatGtrMinutes(curve[idx], minuteUnit: minUnit),
-                          overlay.color,
+                          _overlayColor(overlay, ProfileMetricColors.gtr),
                         );
                       }
                     }
@@ -3993,6 +4032,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       for (final row in _overlayCurveRows<double>(
                         timestamp: point.timestamp,
                         curveOf: (a) => a.cnsCurve,
+                        color: ProfileMetricColors.cns,
                         label: context.l10n.diveLog_tooltip_cns,
                         formatValue: (v) => '${v.toStringAsFixed(1)}%',
                       )) {
@@ -4018,6 +4058,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       for (final row in _overlayCurveRows<double>(
                         timestamp: point.timestamp,
                         curveOf: (a) => a.otuCurve,
+                        color: ProfileMetricColors.otu,
                         label: context.l10n.diveLog_tooltip_otu,
                         formatValue: (v) => v.toStringAsFixed(0),
                       )) {
@@ -4671,7 +4712,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             overlayDepthSpots,
             overlay.points,
           ),
-          color: overlay.color,
+          color: _overlayColor(overlay, ProfileMetricColors.depth),
           barWidth: 2,
           isStrokeCapRound: true,
           dotData: const FlDotData(show: false),
@@ -4705,7 +4746,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ],
               isCurved: true,
               curveSmoothness: 0.2,
-              color: overlay.color.withValues(alpha: 0.6),
+              color: _overlayColor(
+                overlay,
+                Theme.of(context).colorScheme.tertiary,
+              ),
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
@@ -4725,7 +4769,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               decoStopCurve: decoStopCurve,
               timestamps: [for (final p in overlay.points) p.timestamp],
               units: units,
-              fillColor: overlay.color,
+              fillColor: _overlayColor(overlay, ProfileMetricColors.decoStops),
             ),
           );
         }
@@ -4768,7 +4812,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 spots: spots,
                 isCurved: true,
                 curveSmoothness: 0.2,
-                color: overlay.color.withValues(alpha: 0.45),
+                color: _overlayColor(overlay, ProfileMetricColors.ceiling),
                 barWidth: 2,
                 isStrokeCapRound: true,
                 dotData: const FlDotData(show: false),
@@ -4811,7 +4855,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               LineChartBarData(
                 spots: _withFlatSurfaceLeadIn(spots, owner: overlay.points),
                 isCurved: false,
-                color: overlay.color.withValues(alpha: 0.45),
+                color: _overlayColor(overlay, ProfileMetricColors.ndl),
                 barWidth: 2,
                 isStrokeCapRound: true,
                 dotData: const FlDotData(show: false),
@@ -4852,7 +4896,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 spots,
                 overlay.points,
               ),
-              color: overlay.color.withValues(alpha: 0.45),
+              color: _overlayColor(overlay, ProfileMetricColors.tts),
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
@@ -4900,7 +4944,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 spots,
                 overlay.points,
               ),
-              color: overlay.color.withValues(alpha: 0.45),
+              color: _overlayColor(overlay, ProfileMetricColors.ppO2),
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
@@ -4946,7 +4990,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 spots,
                 overlay.points,
               ),
-              color: overlay.color.withValues(alpha: 0.45),
+              color: _overlayColor(overlay, ProfileMetricColors.ppN2),
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
@@ -4996,7 +5040,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   spots,
                   overlay.points,
                 ),
-                color: overlay.color.withValues(alpha: 0.45),
+                color: _overlayColor(overlay, ProfileMetricColors.ppHe),
                 barWidth: 2,
                 isStrokeCapRound: true,
                 dotData: const FlDotData(show: false),
@@ -5028,7 +5072,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               LineChartBarData(
                 spots: _withFlatSurfaceLeadIn(spots, owner: overlay.points),
                 isCurved: false,
-                color: overlay.color.withValues(alpha: 0.45),
+                color: _overlayColor(overlay, ProfileMetricColors.mod),
                 barWidth: 2,
                 isStrokeCapRound: true,
                 dotData: const FlDotData(show: false),
@@ -5079,7 +5123,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 spots,
                 overlay.points,
               ),
-              color: overlay.color.withValues(alpha: 0.45),
+              color: _overlayColor(overlay, ProfileMetricColors.density),
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
@@ -5114,7 +5158,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 spots,
                 overlay.points,
               ),
-              color: overlay.color.withValues(alpha: 0.45),
+              color: _overlayColor(overlay, ProfileMetricColors.gf),
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
@@ -5149,7 +5193,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 spots,
                 overlay.points,
               ),
-              color: overlay.color.withValues(alpha: 0.45),
+              color: _overlayColor(overlay, ProfileMetricColors.surfaceGf),
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
@@ -5182,7 +5226,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 spots,
                 overlay.points,
               ),
-              color: overlay.color.withValues(alpha: 0.45),
+              color: _overlayColor(overlay, ProfileMetricColors.meanDepth),
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
@@ -5235,7 +5279,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   spots: spots,
                   isCurved: true,
                   curveSmoothness: 0.2,
-                  color: overlay.color.withValues(alpha: 0.45),
+                  color: _overlayColor(overlay, ProfileMetricColors.gtr),
                   barWidth: 2,
                   isStrokeCapRound: true,
                   dotData: const FlDotData(show: false),
@@ -5275,7 +5319,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 spots,
                 overlay.points,
               ),
-              color: overlay.color.withValues(alpha: 0.45),
+              color: _overlayColor(overlay, ProfileMetricColors.cns),
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
@@ -5311,7 +5355,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 spots,
                 overlay.points,
               ),
-              color: overlay.color.withValues(alpha: 0.45),
+              color: _overlayColor(overlay, ProfileMetricColors.otu),
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
@@ -5726,7 +5770,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     double minSac,
     double maxSac,
   ) {
-    const sacColor = Colors.teal;
+    const sacColor = ProfileMetricColors.sac;
     final sacCurve = widget.sacCurve!;
 
     // Build spots for each profile point that has SAC data
@@ -5813,9 +5857,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Build the ceiling line (decompression ceiling)
   LineChartBarData _buildCeilingLine(UnitFormatter units) {
     final ceilingData = widget.ceilingCurve!;
-    const ceilingColor = Color(
-      0xFFD32F2F,
-    ); // Red 700 - distinct from pressure orange
+    // Purple 700 - distinct from the red deco-stop band it sits beside.
+    const ceilingColor = ProfileMetricColors.ceiling;
 
     // Build spots only where ceiling > 0, breaking the curve wherever the
     // obligation clears. fl_chart splits a bar on null spots and gives each
@@ -5875,7 +5918,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// NDL values are in seconds; shows time remaining before deco obligation
   LineChartBarData _buildNdlLine(MetricBand band) {
     final ndlData = widget.ndlCurve!;
-    final ndlColor = Colors.yellow.shade700;
+    const ndlColor = ProfileMetricColors.ndl;
 
     // Map NDL to chart: max NDL (~60 min) at top, 0 at bottom
     const maxNdlSeconds = 3600.0; // 60 minutes as max display
@@ -5919,7 +5962,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Values typically range from 0.21 (surface air) to 1.6+ (critical)
   LineChartBarData _buildPpO2Line(MetricBand band) {
     final ppO2Data = widget.ppO2Curve!;
-    const ppO2Color = Color(0xFF00ACC1); // Cyan 600 - distinct from depth blue
+    const ppO2Color = ProfileMetricColors.ppO2;
 
     // Map ppO2 to chart: 0 at top, 2.0 bar at bottom
     const minPpO2 = 0.0;
@@ -6198,7 +6241,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Build ppN2 (partial pressure of nitrogen) line
   LineChartBarData _buildPpN2Line(MetricBand band) {
     final ppN2Data = widget.ppN2Curve!;
-    const ppN2Color = Colors.indigo;
+    const ppN2Color = ProfileMetricColors.ppN2;
 
     // Map ppN2 to chart: 0 at top, ~5 bar at bottom (deep dive)
     const minPpN2 = 0.0;
@@ -6239,7 +6282,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Build ppHe (partial pressure of helium) line for trimix dives
   LineChartBarData _buildPpHeLine(MetricBand band) {
     final ppHeData = widget.ppHeCurve!;
-    final ppHeColor = Colors.pink.shade300;
+    const ppHeColor = ProfileMetricColors.ppHe;
 
     // Map ppHe to chart: 0 at top, ~3 bar at bottom
     const minPpHe = 0.0;
@@ -6286,7 +6329,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Shows the MOD limit as a horizontal reference line
   LineChartBarData _buildModLine(UnitFormatter units) {
     final modData = widget.modCurve!;
-    const modColor = Colors.deepOrange;
+    // Amber 600 - distinct from the CNS orange it often overlays.
+    const modColor = ProfileMetricColors.mod;
 
     // MOD is typically constant for a given gas
     final spots = <FlSpot>[];
@@ -6320,7 +6364,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// High density (>5.7 g/L) increases work of breathing
   LineChartBarData _buildDensityLine(MetricBand band) {
     final densityData = widget.densityCurve!;
-    const densityColor = Colors.brown;
+    // Lime 900 (olive) - distinct from the OTU brown.
+    const densityColor = ProfileMetricColors.density;
 
     // Map density to chart: 0 at top, 8 g/L at bottom
     const minDensity = 0.0;
@@ -6363,7 +6408,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Shows how close tissues are to M-value limit
   LineChartBarData _buildGfLine(MetricBand band) {
     final gfData = widget.gfCurve!;
-    const gfColor = Colors.deepPurple;
+    const gfColor = ProfileMetricColors.gf;
 
     // Map GF% to chart: 0% at top, 120% at bottom
     const minGf = 0.0;
@@ -6397,7 +6442,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Values >100% indicate deco obligation
   LineChartBarData _buildSurfaceGfLine(MetricBand band) {
     final surfaceGfData = widget.surfaceGfCurve!;
-    final surfaceGfColor = Colors.purple.shade300;
+    const surfaceGfColor = ProfileMetricColors.surfaceGf;
 
     // Map Surface GF% to chart: 0% at top, 150% at bottom
     const minGf = 0.0;
@@ -6430,7 +6475,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Build mean depth line (running average from start)
   LineChartBarData _buildMeanDepthLine(UnitFormatter units) {
     final meanDepthData = widget.meanDepthCurve!;
-    const meanDepthColor = Colors.blueGrey;
+    const meanDepthColor = ProfileMetricColors.meanDepth;
 
     final spots = <FlSpot>[];
     for (final i in _decimatedCurveIndices(meanDepthData)) {
@@ -6463,9 +6508,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Shows total time including deco stops to reach surface
   LineChartBarData _buildTtsLine(MetricBand band) {
     final ttsData = widget.ttsCurve!;
-    const ttsColor = Color(
-      0xFFAD1457,
-    ); // Pink 800 - distinct from pressure orange
+    const ttsColor = ProfileMetricColors.tts;
 
     // Map TTS to chart: 0 at top, 60 min at bottom
     const maxTtsSeconds = 3600.0;
@@ -6562,7 +6605,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Build cumulative CNS% line
   LineChartBarData _buildCnsLine(MetricBand band) {
     final cnsData = widget.cnsCurve!;
-    const cnsColor = Color(0xFFE65100); // Orange 900
+    const cnsColor = ProfileMetricColors.cns;
 
     const minCns = 0.0;
     final maxCns = _getCnsMaxScale();
@@ -6594,7 +6637,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Build cumulative OTU line
   LineChartBarData _buildOtuLine(MetricBand band) {
     final otuData = widget.otuCurve!;
-    const otuColor = Color(0xFF6D4C41); // Brown 600
+    const otuColor = ProfileMetricColors.otu;
 
     const minOtu = 0.0;
     final maxOtu = _getOtuMaxScale();
