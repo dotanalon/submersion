@@ -1320,12 +1320,13 @@ present - so the swap must arrive with tests that would have caught it:
   stops to leave from, stop time falling when the ascent itself decompresses,
   and setting all four bands equal reproducing the old single-rate arithmetic
   exactly.
-- `test/core/database/migration_v184_plan_ascent_rates_test.dart` - all three
+- `test/core/database/migration_v185_plan_ascent_rates_test.dart` - all three
   columns on a fresh database, NOT NULL with the standard defaults pinned by
   value (a wrong default silently rewrites every saved plan's schedule), the
-  `beforeOpen` backstop healing a database stranded before v184, and the
+  `beforeOpen` backstop healing a database stranded before v185, and the
   helper no-opping when the table is absent. Mirrors the v156 travel-gas
-  test.
+  test. Renumbered from v184: main landed the merge_source_slot marker
+  (issue #1451) at that rung while this branch was open.
 
 **Part E - the deco core**
 

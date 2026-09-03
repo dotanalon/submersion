@@ -854,6 +854,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // The site suggestion sits above the header card, never inside
+            // it. Embedded mode has its own copy under the toolbar (which
+            // stays put while the body scrolls), so only the standalone page
+            // renders one here; otherwise the banner would appear twice.
+            // Collapses to nothing when there is no suggestion, so no
+            // spacing of its own is needed.
+            if (!widget.embedded)
+              SiteSuggestionCard(diveId: dive.id, currentSite: dive.site),
             // Fixed: Header
             Consumer(
               builder: (context, ref, _) {
@@ -1417,7 +1425,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               );
             },
           ),
-          SiteSuggestionCard(diveId: dive.id, currentSite: dive.site),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1710,7 +1717,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ref.watch(diveDataSourcesProvider(dive.id)).value ?? const [];
     final computerNames = _computerDisplayNames(context, dataSources);
     final labels = _sourceNameLabels(context);
-    final isMultiSource = dataSources.length >= 2;
+    // Per-source rendering exists because two computers recording one dive
+    // disagree sample by sample (#543); the halves of a split dive a Combine
+    // stitched together are not that, and drawing one of those would hide the
+    // rest of the dive (#1451). Profiles that have not loaded yet carry no
+    // spans, so this stays true on the first build, exactly as it does today.
+    final isMultiSource = usesPerSourceRendering(
+      dataSources,
+      sourceProfiles.values,
+    );
 
     final activeSourceId = ref.watch(activeDiveSourceProvider(dive.id));
     final overlayIds = ref.watch(overlaySourcesProvider(dive.id));
@@ -1731,9 +1746,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     // The chart's main series: the active source's own points on a
     // multi-source dive; dive.profile otherwise (identical for the primary).
-    final activeProfile = activeSource == null
-        ? null
-        : sourceProfiles[activeSource.id];
+    // activeSourceProfileProvider is the one rule for this, shared with the
+    // dive-list panel and the selected-point lookups further down (#543).
+    // Attribution (activeComputerId) reads the SAME result, so the drawn
+    // points and the computer they are credited to can never disagree; the
+    // direct lookup only serves single-source dives, where the provider
+    // yields null and dive.profile is drawn.
+    final resolvedActive = ref.watch(activeSourceProfileProvider(dive.id));
+    final activeProfile =
+        resolvedActive ??
+        (activeSource == null ? null : sourceProfiles[activeSource.id]);
     // A metadata-only active source has an entry with no points; the chart
     // then renders its empty-profile placeholder instead of silently
     // falling back to the primary's profile (mixed attribution).
@@ -1742,9 +1764,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // from dive.profile: the merged series spans every source, so markers
     // computed against it can report a depth the drawn curve never reaches
     // and a range extent that runs past its end (#1167).
-    final chartProfile = (isMultiSource && activeProfile != null)
-        ? activeProfile.points
-        : dive.profile;
+    final chartProfile = resolvedActive?.points ?? dive.profile;
 
     // Keep the playback and range extents on the drawn series.
     //
@@ -2141,6 +2161,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             // Sources bar: tap a chip to make that source drive the whole
             // page; the eye overlays a source on the chart for comparison.
+            // Both of those are per-source RENDERING, which is why the bar
+            // follows usesPerSourceRendering rather than the source count:
+            // on a dive whose sources are consecutive halves there is no
+            // "other source" to switch to or overlay, only the rest of the
+            // same dive. Set primary and Split do not disappear with it --
+            // the Data Sources section carries its own copy of both, gated
+            // on the source count alone (data_sources_section.dart).
             if (isMultiSource)
               SourceBar(
                 sources: [
@@ -2286,11 +2313,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         : analysis.decoStatuses.length - 1;
     final status = analysis.decoStatuses[index];
 
-    // Build "at time" subtitle when a point is selected
+    // Build "at time" subtitle when a point is selected. The index came from
+    // the chart, which draws the active source's series, so it is resolved
+    // against that series and never against the merged dive.profile: on a
+    // consolidated dive the union has every computer's samples, so the same
+    // index lands on a different time (#543).
+    final chartProfile =
+        ref.watch(activeSourceProfileProvider(dive.id))?.points ?? dive.profile;
     final String? timeSubtitle =
-        selectedPointIndex != null && selectedPointIndex < dive.profile.length
+        selectedPointIndex != null && selectedPointIndex < chartProfile.length
         ? context.l10n.diveLog_detail_collapsed_atTime(
-            _formatTimestamp(dive.profile[selectedPointIndex].timestamp),
+            _formatTimestamp(chartProfile[selectedPointIndex].timestamp),
           )
         : null;
 
@@ -2483,13 +2516,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     }
 
     // Determine which phase the selected point falls into (using original
-    // non-overlapping segments for correct timestamp matching)
+    // non-overlapping segments for correct timestamp matching). The index is
+    // a chart index, so it is resolved against the series the chart draws
+    // (#543), see activeSourceProfileProvider.
+    final chartProfile =
+        ref.watch(activeSourceProfileProvider(dive.id))?.points ?? dive.profile;
     DivePhase? selectedPhase;
     int? selectedSegmentIndex;
     if (selectedPointIndex != null &&
-        dive.profile.isNotEmpty &&
-        selectedPointIndex < dive.profile.length) {
-      final selectedTimestamp = dive.profile[selectedPointIndex].timestamp;
+        chartProfile.isNotEmpty &&
+        selectedPointIndex < chartProfile.length) {
+      final selectedTimestamp = chartProfile[selectedPointIndex].timestamp;
       for (int i = 0; i < displaySegments.length; i++) {
         if (selectedTimestamp >= displaySegments[i].startTimestamp &&
             selectedTimestamp <= displaySegments[i].endTimestamp) {
