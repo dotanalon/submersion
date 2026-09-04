@@ -12,7 +12,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// route (a bad link 404s to the "Page Not Found" screen).
 const kSetupFinishFeatureRoutes = <String>[
   '/dive-computers/discover', // dive computer download
-  '/transfer', // file import
+  '/import', // file import
   '/statistics', // statistics
   '/sites', // dive sites map
   '/equipment', // gear / service tracking

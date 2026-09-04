@@ -13981,7 +13981,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nav_equipment => 'Equipement';
 
   @override
+  String get nav_export => 'Exporter';
+
+  @override
   String get nav_gpsLog => 'Journal GPS';
+
+  @override
+  String get nav_group_dives => 'Plongees';
+
+  @override
+  String get nav_group_gearTraining => 'Equipement et formation';
+
+  @override
+  String get nav_group_tools => 'Outils';
 
   @override
   String get media_console_library => 'Bibliothèque';
@@ -14303,6 +14315,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nav_home => 'Accueil';
 
   @override
+  String get nav_import => 'Importer';
+
+  @override
+  String get nav_log => 'Journal';
+
+  @override
   String get nav_media => 'Médias';
 
   @override
@@ -14334,9 +14352,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get nav_tooltip_expandMenu => 'Developper le menu';
-
-  @override
-  String get nav_transfer => 'Transfert';
 
   @override
   String get nav_trips => 'Voyages';
@@ -19738,7 +19753,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'Sites';
 
   @override
-  String get transfer_detail_backTooltip => 'Retour au transfert';
+  String get transfer_detail_backTooltip => 'Retour a l\'importation';
 
   @override
   String get transfer_export_aboutContent =>
@@ -19930,7 +19945,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get transfer_summary_description =>
-      'Importer et exporter les donnees de plongee';
+      'Importer les donnees de plongee depuis des fichiers, des ordinateurs de plongee et des comptes cloud';
 
   @override
   String get transfer_summary_selectSection =>

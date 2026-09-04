@@ -56,7 +56,7 @@ void main() {
             'buddies',
             'statistics',
             'planning',
-            'transfer',
+            'import',
           ],
           movableIds: movableNavIds,
           defaults: kDefaultPrimaryIds,

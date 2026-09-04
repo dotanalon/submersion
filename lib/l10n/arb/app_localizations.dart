@@ -23156,11 +23156,35 @@ abstract class AppLocalizations {
   /// **'Equipment'**
   String get nav_equipment;
 
+  /// Nav label for the file export page
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get nav_export;
+
   /// No description provided for @nav_gpsLog.
   ///
   /// In en, this message translates to:
   /// **'GPS Log'**
   String get nav_gpsLog;
+
+  /// Nav rail group header for dive-related destinations
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get nav_group_dives;
+
+  /// Nav rail group header for equipment, dive centers, certifications, courses, species
+  ///
+  /// In en, this message translates to:
+  /// **'Gear & Training'**
+  String get nav_group_gearTraining;
+
+  /// Nav rail group header for statistics, media, GPS log, settings
+  ///
+  /// In en, this message translates to:
+  /// **'Tools'**
+  String get nav_group_tools;
 
   /// Media console sidebar/tab label for the library view
   ///
@@ -23738,6 +23762,18 @@ abstract class AppLocalizations {
   /// **'Home'**
   String get nav_home;
 
+  /// Nav label for the import hub (files, dive computers, cloud)
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get nav_import;
+
+  /// Rail/bottom-nav label for the dive log list (sits under the Dives group)
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get nav_log;
+
   /// Navigation label for the media section
   ///
   /// In en, this message translates to:
@@ -23803,12 +23839,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expand menu'**
   String get nav_tooltip_expandMenu;
-
-  /// Navigation label for data transfer section
-  ///
-  /// In en, this message translates to:
-  /// **'Transfer'**
-  String get nav_transfer;
 
   /// Navigation label for trips section
   ///
@@ -32387,7 +32417,7 @@ abstract class AppLocalizations {
   /// No description provided for @transfer_detail_backTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Back to transfer'**
+  /// **'Back to import'**
   String get transfer_detail_backTooltip;
 
   /// No description provided for @transfer_export_aboutContent.
@@ -32729,7 +32759,7 @@ abstract class AppLocalizations {
   /// No description provided for @transfer_summary_description.
   ///
   /// In en, this message translates to:
-  /// **'Import and export dive data'**
+  /// **'Import dive data from files, dive computers and cloud accounts'**
   String get transfer_summary_description;
 
   /// No description provided for @transfer_summary_selectSection.

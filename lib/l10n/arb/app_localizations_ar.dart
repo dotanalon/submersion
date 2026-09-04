@@ -13675,7 +13675,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_equipment => 'المعدات';
 
   @override
+  String get nav_export => 'تصدير';
+
+  @override
   String get nav_gpsLog => 'سجل GPS';
+
+  @override
+  String get nav_group_dives => 'الغوصات';
+
+  @override
+  String get nav_group_gearTraining => 'المعدات والتدريب';
+
+  @override
+  String get nav_group_tools => 'الأدوات';
 
   @override
   String get media_console_library => 'المكتبة';
@@ -13994,6 +14006,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_home => 'الرئيسية';
 
   @override
+  String get nav_import => 'استيراد';
+
+  @override
+  String get nav_log => 'السجل';
+
+  @override
   String get nav_media => 'الوسائط';
 
   @override
@@ -14025,9 +14043,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nav_tooltip_expandMenu => 'توسيع القائمة';
-
-  @override
-  String get nav_transfer => 'نقل البيانات';
 
   @override
   String get nav_trips => 'الرحلات';
@@ -19291,7 +19306,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'المواقع';
 
   @override
-  String get transfer_detail_backTooltip => 'العودة إلى النقل';
+  String get transfer_detail_backTooltip => 'العودة إلى الاستيراد';
 
   @override
   String get transfer_export_aboutContent =>
@@ -19480,7 +19495,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_section_importTitle => 'استيراد ملف';
 
   @override
-  String get transfer_summary_description => 'استيراد وتصدير بيانات الغوص';
+  String get transfer_summary_description =>
+      'استيراد بيانات الغوص من الملفات وأجهزة كمبيوتر الغوص وحسابات السحابة';
 
   @override
   String get transfer_summary_selectSection => 'اختر قسمًا من القائمة';

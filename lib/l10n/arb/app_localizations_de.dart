@@ -13921,7 +13921,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nav_equipment => 'Ausrüstung';
 
   @override
+  String get nav_export => 'Export';
+
+  @override
   String get nav_gpsLog => 'GPS-Log';
+
+  @override
+  String get nav_group_dives => 'Tauchgänge';
+
+  @override
+  String get nav_group_gearTraining => 'Ausrüstung & Ausbildung';
+
+  @override
+  String get nav_group_tools => 'Werkzeuge';
 
   @override
   String get media_console_library => 'Bibliothek';
@@ -14243,6 +14255,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nav_home => 'Startseite';
 
   @override
+  String get nav_import => 'Import';
+
+  @override
+  String get nav_log => 'Logbuch';
+
+  @override
   String get nav_media => 'Medien';
 
   @override
@@ -14274,9 +14292,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get nav_tooltip_expandMenu => 'Menü ausklappen';
-
-  @override
-  String get nav_transfer => 'Übertragung';
 
   @override
   String get nav_trips => 'Reisen';
@@ -19616,7 +19631,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'Tauchplätze';
 
   @override
-  String get transfer_detail_backTooltip => 'Zurück zur Übertragung';
+  String get transfer_detail_backTooltip => 'Zurück zum Import';
 
   @override
   String get transfer_export_aboutContent =>
@@ -19807,7 +19822,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transfer_summary_description =>
-      'Tauchdaten importieren und exportieren';
+      'Tauchdaten aus Dateien, Tauchcomputern und Cloud-Konten importieren';
 
   @override
   String get transfer_summary_selectSection =>

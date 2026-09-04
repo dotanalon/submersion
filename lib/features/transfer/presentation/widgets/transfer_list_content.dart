@@ -28,13 +28,6 @@ final transferSections = [
     color: Colors.green,
   ),
   TransferSection(
-    id: 'export',
-    icon: Icons.file_upload,
-    titleBuilder: (context) => context.l10n.transfer_section_exportTitle,
-    subtitleBuilder: (context) => context.l10n.transfer_section_exportSubtitle,
-    color: Colors.blue,
-  ),
-  TransferSection(
     id: 'computers',
     icon: Icons.bluetooth,
     titleBuilder: (context) => context.l10n.transfer_section_computersTitle,

@@ -8160,7 +8160,11 @@
   "nav_diveCenters": "Dive Centers",
   "nav_dives": "Dives",
   "nav_equipment": "Equipment",
+  "nav_export": "Export",
   "nav_gpsLog": "GPS Log",
+  "nav_group_dives": "Dives",
+  "nav_group_gearTraining": "Gear & Training",
+  "nav_group_tools": "Tools",
   "media_console_library": "Library",
   "@media_console_library": {
     "description": "Media console sidebar/tab label for the library view"
@@ -8622,6 +8626,8 @@
     "description": "Viewer action: navigate to the dive owning this media"
   },
   "nav_home": "Home",
+  "nav_import": "Import",
+  "nav_log": "Log",
   "nav_media": "Media",
   "nav_more": "More",
   "nav_planning": "Planning",
@@ -8633,7 +8639,6 @@
   "nav_tooltip_closeMenu": "Close menu",
   "nav_tooltip_collapseMenu": "Collapse menu",
   "nav_tooltip_expandMenu": "Expand menu",
-  "nav_transfer": "Transfer",
   "nav_trips": "Trips",
   "@nav_buddies": {
     "description": "Navigation label for buddies section"
@@ -8656,8 +8661,26 @@
   "@nav_equipment": {
     "description": "Navigation label for equipment section"
   },
+  "@nav_export": {
+    "description": "Nav label for the file export page"
+  },
+  "@nav_group_dives": {
+    "description": "Nav rail group header for dive-related destinations"
+  },
+  "@nav_group_gearTraining": {
+    "description": "Nav rail group header for equipment, dive centers, certifications, courses, species"
+  },
+  "@nav_group_tools": {
+    "description": "Nav rail group header for statistics, media, GPS log, settings"
+  },
   "@nav_home": {
     "description": "Navigation label for home/dashboard"
+  },
+  "@nav_import": {
+    "description": "Nav label for the import hub (files, dive computers, cloud)"
+  },
+  "@nav_log": {
+    "description": "Rail/bottom-nav label for the dive log list (sits under the Dives group)"
   },
   "@nav_media": {
     "description": "Navigation label for the media section"
@@ -8691,9 +8714,6 @@
   },
   "@nav_tooltip_expandMenu": {
     "description": "Tooltip for the expand navigation rail button"
-  },
-  "@nav_transfer": {
-    "description": "Navigation label for data transfer section"
   },
   "@nav_trips": {
     "description": "Navigation label for trips section"
@@ -11872,7 +11892,7 @@
   "transfer_csvExport_typeDives": "Dives",
   "transfer_csvExport_typeEquipment": "Equipment",
   "transfer_csvExport_typeSites": "Sites",
-  "transfer_detail_backTooltip": "Back to transfer",
+  "transfer_detail_backTooltip": "Back to import",
   "transfer_export_aboutContent": "Export your dive data in various formats. PDF creates a printable logbook. UDDF is a universal format compatible with most dive logging software. CSV and Excel files can be opened in spreadsheet applications. You can also back up your entire database from Settings > Backup & Restore.",
   "transfer_export_backupLink": "Go to Backup & Restore",
   "transfer_export_aboutTitle": "About Export",
@@ -11929,7 +11949,7 @@
   "transfer_section_exportTitle": "File Export",
   "transfer_section_importSubtitle": "CSV, UDDF files",
   "transfer_section_importTitle": "File Import",
-  "transfer_summary_description": "Import and export dive data",
+  "transfer_summary_description": "Import dive data from files, dive computers and cloud accounts",
   "transfer_summary_selectSection": "Select a section from the list",
   "transfer_summary_title": "Transfer",
   "transfer_unknownSection": "Unknown section: {sectionId}",

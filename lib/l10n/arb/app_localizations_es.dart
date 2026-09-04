@@ -13923,7 +13923,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get nav_equipment => 'Equipo';
 
   @override
+  String get nav_export => 'Exportar';
+
+  @override
   String get nav_gpsLog => 'Registro GPS';
+
+  @override
+  String get nav_group_dives => 'Inmersiones';
+
+  @override
+  String get nav_group_gearTraining => 'Equipo y formación';
+
+  @override
+  String get nav_group_tools => 'Herramientas';
 
   @override
   String get media_console_library => 'Biblioteca';
@@ -14244,6 +14256,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get nav_home => 'Inicio';
 
   @override
+  String get nav_import => 'Importar';
+
+  @override
+  String get nav_log => 'Registro';
+
+  @override
   String get nav_media => 'Multimedia';
 
   @override
@@ -14276,9 +14294,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get nav_tooltip_expandMenu => 'Expandir menú';
-
-  @override
-  String get nav_transfer => 'Transferencia';
 
   @override
   String get nav_trips => 'Viajes';
@@ -19670,7 +19685,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'Puntos';
 
   @override
-  String get transfer_detail_backTooltip => 'Volver a transferir';
+  String get transfer_detail_backTooltip => 'Volver a importar';
 
   @override
   String get transfer_export_aboutContent =>
@@ -19865,7 +19880,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get transfer_summary_description =>
-      'Importar y exportar datos de buceo';
+      'Importar datos de buceo desde archivos, ordenadores de buceo y cuentas en la nube';
 
   @override
   String get transfer_summary_selectSection =>

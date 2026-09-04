@@ -253,6 +253,221 @@ void main() {
       expect(childNames, isNot(contains('uddfImport')));
     });
 
+    GoRoute? findTransferRoute() {
+      for (final route in router.configuration.routes) {
+        if (route is ShellRoute) {
+          for (final child in route.routes) {
+            if (child is GoRoute && child.name == 'transfer') return child;
+          }
+        }
+      }
+      return null;
+    }
+
+    test('transfer route is now redirect-only (no builder/pageBuilder)', () {
+      final transferRoute = findTransferRoute();
+      expect(transferRoute, isNotNull);
+      expect(transferRoute!.redirect, isNotNull);
+      expect(transferRoute.builder, isNull);
+      expect(transferRoute.pageBuilder, isNull);
+    });
+
+    test('import route is registered at top level', () {
+      final route = _findRouteByName(router.configuration.routes, 'import');
+      expect(route, isNotNull);
+      expect(route!.path, '/import');
+    });
+
+    test('export route is registered at top level', () {
+      final route = _findRouteByName(router.configuration.routes, 'export');
+      expect(route, isNotNull);
+      expect(route!.path, '/export');
+    });
+
+    testWidgets('import route builder returns TransferPage', (tester) async {
+      final config = router.configuration;
+      final route = _findRouteByName(config.routes, 'import');
+      expect(route, isNotNull);
+
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final state = GoRouterState(
+        config,
+        uri: Uri.parse('/import'),
+        matchedLocation: '/import',
+        fullPath: '/import',
+        pathParameters: const {},
+        pageKey: const ValueKey('/import'),
+      );
+      final page = route!.pageBuilder!(capturedContext, state);
+      expect((page as dynamic).child.runtimeType.toString(), 'TransferPage');
+    });
+
+    testWidgets('export route builder returns ExportPage', (tester) async {
+      final config = router.configuration;
+      final route = _findRouteByName(config.routes, 'export');
+      expect(route, isNotNull);
+
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final state = GoRouterState(
+        config,
+        uri: Uri.parse('/export'),
+        matchedLocation: '/export',
+        fullPath: '/export',
+        pathParameters: const {},
+        pageKey: const ValueKey('/export'),
+      );
+      final page = route!.pageBuilder!(capturedContext, state);
+      expect((page as dynamic).child.runtimeType.toString(), 'ExportPage');
+    });
+
+    testWidgets('bare /transfer redirects to /import', (tester) async {
+      final config = router.configuration;
+      final transferRoute = findTransferRoute()!;
+
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final state = GoRouterState(
+        config,
+        uri: Uri.parse('/transfer'),
+        matchedLocation: '/transfer',
+        fullPath: '/transfer',
+        pathParameters: const {},
+        pageKey: const ValueKey('/transfer'),
+      );
+      final result = await transferRoute.redirect!(capturedContext, state);
+      expect(result, '/import');
+    });
+
+    testWidgets('/transfer?selected=export redirects to /export', (
+      tester,
+    ) async {
+      final config = router.configuration;
+      final transferRoute = findTransferRoute()!;
+
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final state = GoRouterState(
+        config,
+        uri: Uri.parse('/transfer?selected=export'),
+        matchedLocation: '/transfer',
+        fullPath: '/transfer',
+        pathParameters: const {},
+        pageKey: const ValueKey('/transfer'),
+      );
+      final result = await transferRoute.redirect!(capturedContext, state);
+      expect(result, '/export');
+    });
+
+    testWidgets(
+      '/transfer?selected=computers redirects to /import with the query preserved',
+      (tester) async {
+        final config = router.configuration;
+        final transferRoute = findTransferRoute()!;
+
+        late BuildContext capturedContext;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) {
+                capturedContext = context;
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+
+        final state = GoRouterState(
+          config,
+          uri: Uri.parse('/transfer?selected=computers'),
+          matchedLocation: '/transfer',
+          fullPath: '/transfer',
+          pathParameters: const {},
+          pageKey: const ValueKey('/transfer'),
+        );
+        final result = await transferRoute.redirect!(capturedContext, state);
+        expect(result, '/import?selected=computers');
+      },
+    );
+
+    testWidgets(
+      '/transfer/import-wizard is not redirected (child match is a no-op)',
+      (tester) async {
+        final config = router.configuration;
+        final transferRoute = findTransferRoute()!;
+
+        late BuildContext capturedContext;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) {
+                capturedContext = context;
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+
+        final state = GoRouterState(
+          config,
+          uri: Uri.parse('/transfer/import-wizard'),
+          matchedLocation: '/transfer/import-wizard',
+          fullPath: '/transfer/import-wizard',
+          pathParameters: const {},
+          pageKey: const ValueKey('/transfer/import-wizard'),
+        );
+        final result = await transferRoute.redirect!(capturedContext, state);
+        expect(result, isNull);
+      },
+    );
+
     test(':computerId path has download as a nested route', () {
       // Walk the tree to find diveComputers > :computerId > download
       GoRoute? computersRoute;

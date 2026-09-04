@@ -3,7 +3,7 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 
-/// Canonical list of every nav destination (15 entries including `more`).
+/// Canonical list of every nav destination (18 entries including `more`).
 final navDestinationsProvider = Provider<List<NavDestination>>((ref) {
   return kNavDestinations;
 });

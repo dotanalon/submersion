@@ -13936,7 +13936,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get nav_equipment => 'Equipamentos';
 
   @override
+  String get nav_export => 'Exportar';
+
+  @override
   String get nav_gpsLog => 'Registro GPS';
+
+  @override
+  String get nav_group_dives => 'Mergulhos';
+
+  @override
+  String get nav_group_gearTraining => 'Equipamento e formação';
+
+  @override
+  String get nav_group_tools => 'Ferramentas';
 
   @override
   String get media_console_library => 'Biblioteca';
@@ -14259,6 +14271,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get nav_home => 'Inicio';
 
   @override
+  String get nav_import => 'Importar';
+
+  @override
+  String get nav_log => 'Registro';
+
+  @override
   String get nav_media => 'Mídia';
 
   @override
@@ -14290,9 +14308,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get nav_tooltip_expandMenu => 'Expandir menu';
-
-  @override
-  String get nav_transfer => 'Transferir';
 
   @override
   String get nav_trips => 'Viagens';
@@ -19666,7 +19681,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'Pontos';
 
   @override
-  String get transfer_detail_backTooltip => 'Voltar para transferencia';
+  String get transfer_detail_backTooltip => 'Voltar para importação';
 
   @override
   String get transfer_export_aboutContent =>
@@ -19857,7 +19872,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get transfer_summary_description =>
-      'Importar e exportar dados de mergulho';
+      'Importar dados de mergulho de arquivos, computadores de mergulho e contas na nuvem';
 
   @override
   String get transfer_summary_selectSection => 'Selecione uma secao da lista';

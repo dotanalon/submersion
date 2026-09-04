@@ -206,18 +206,18 @@ void main() {
     testWidgets('move-up on first overflow row promotes it to primary', (
       tester,
     ) async {
-      // Default primary: [dives, sites, trips]; first overflow = media.
+      // Default primary: [dives, sites, trips]; first overflow = planning.
       final repo = _FakeRepo();
       await tester.pumpWidget(buildHarness(repo));
       await tester.pumpAndSettle();
 
-      // Find the move-up button whose tooltip targets Media.
-      await tester.tap(find.byTooltip('Move Media up'));
+      // Find the move-up button whose tooltip targets Planning.
+      await tester.tap(find.byTooltip('Move Planning up'));
       await tester.pumpAndSettle();
 
-      // Media should now be primary; trips (the last default primary)
+      // Planning should now be primary; trips (the last default primary)
       // should drop to overflow.
-      expect(repo.stored, contains('media'));
+      expect(repo.stored, contains('planning'));
       expect(repo.stored, isNot(contains('trips')));
     });
 
@@ -232,9 +232,9 @@ void main() {
       await tester.tap(find.byTooltip('Move Trips down'));
       await tester.pumpAndSettle();
 
-      // Trips should be displaced; media (first overflow originally)
+      // Trips should be displaced; planning (first overflow originally)
       // should now be primary.
-      expect(repo.stored, contains('media'));
+      expect(repo.stored, contains('planning'));
       expect(repo.stored, isNot(contains('trips')));
     });
 

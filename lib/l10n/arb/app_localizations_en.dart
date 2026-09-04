@@ -13699,7 +13699,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_equipment => 'Equipment';
 
   @override
+  String get nav_export => 'Export';
+
+  @override
   String get nav_gpsLog => 'GPS Log';
+
+  @override
+  String get nav_group_dives => 'Dives';
+
+  @override
+  String get nav_group_gearTraining => 'Gear & Training';
+
+  @override
+  String get nav_group_tools => 'Tools';
 
   @override
   String get media_console_library => 'Library';
@@ -14018,6 +14030,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_home => 'Home';
 
   @override
+  String get nav_import => 'Import';
+
+  @override
+  String get nav_log => 'Log';
+
+  @override
   String get nav_media => 'Media';
 
   @override
@@ -14049,9 +14067,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nav_tooltip_expandMenu => 'Expand menu';
-
-  @override
-  String get nav_transfer => 'Transfer';
 
   @override
   String get nav_trips => 'Trips';
@@ -19317,7 +19332,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'Sites';
 
   @override
-  String get transfer_detail_backTooltip => 'Back to transfer';
+  String get transfer_detail_backTooltip => 'Back to import';
 
   @override
   String get transfer_export_aboutContent =>
@@ -19506,7 +19521,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transfer_section_importTitle => 'File Import';
 
   @override
-  String get transfer_summary_description => 'Import and export dive data';
+  String get transfer_summary_description =>
+      'Import dive data from files, dive computers and cloud accounts';
 
   @override
   String get transfer_summary_selectSection => 'Select a section from the list';

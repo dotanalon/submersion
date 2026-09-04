@@ -160,15 +160,16 @@ void main() {
         final result = container.read(navOverflowDestinationsProvider);
         expect(result.map((d) => d.id).toList(), [
           'dives',
+          'planning',
+          'import',
+          'export',
           'sites',
           'trips',
-          'media',
           'dive-centers',
           'certifications',
           'courses',
           'species',
-          'planning',
-          'transfer',
+          'media',
           'gps-log',
           'settings',
         ]);

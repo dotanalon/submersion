@@ -13828,7 +13828,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get nav_equipment => 'Uitrusting';
 
   @override
+  String get nav_export => 'Exporteren';
+
+  @override
   String get nav_gpsLog => 'GPS-log';
+
+  @override
+  String get nav_group_dives => 'Duiken';
+
+  @override
+  String get nav_group_gearTraining => 'Uitrusting en opleiding';
+
+  @override
+  String get nav_group_tools => 'Hulpmiddelen';
 
   @override
   String get media_console_library => 'Bibliotheek';
@@ -14149,6 +14161,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get nav_home => 'Home';
 
   @override
+  String get nav_import => 'Importeren';
+
+  @override
+  String get nav_log => 'Logboek';
+
+  @override
   String get nav_media => 'Media';
 
   @override
@@ -14180,9 +14198,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get nav_tooltip_expandMenu => 'Menu uitklappen';
-
-  @override
-  String get nav_transfer => 'Overdracht';
 
   @override
   String get nav_trips => 'Reizen';
@@ -19493,7 +19508,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'Duikstekken';
 
   @override
-  String get transfer_detail_backTooltip => 'Terug naar overdracht';
+  String get transfer_detail_backTooltip => 'Terug naar importeren';
 
   @override
   String get transfer_export_aboutContent =>
@@ -19684,7 +19699,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get transfer_summary_description =>
-      'Duikgegevens importeren en exporteren';
+      'Duikgegevens importeren uit bestanden, duikcomputers en cloudaccounts';
 
   @override
   String get transfer_summary_selectSection =>

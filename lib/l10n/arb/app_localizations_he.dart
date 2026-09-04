@@ -13584,7 +13584,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_equipment => 'ציוד';
 
   @override
+  String get nav_export => 'ייצוא';
+
+  @override
   String get nav_gpsLog => 'יומן GPS';
+
+  @override
+  String get nav_group_dives => 'צלילות';
+
+  @override
+  String get nav_group_gearTraining => 'ציוד והכשרה';
+
+  @override
+  String get nav_group_tools => 'כלים';
 
   @override
   String get media_console_library => 'ספרייה';
@@ -13903,6 +13915,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_home => 'בית';
 
   @override
+  String get nav_import => 'ייבוא';
+
+  @override
+  String get nav_log => 'יומן';
+
+  @override
   String get nav_media => 'מדיה';
 
   @override
@@ -13934,9 +13952,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get nav_tooltip_expandMenu => 'הרחבת תפריט';
-
-  @override
-  String get nav_transfer => 'העברה';
 
   @override
   String get nav_trips => 'טיולים';
@@ -19151,7 +19166,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'אתרים';
 
   @override
-  String get transfer_detail_backTooltip => 'חזרה להעברה';
+  String get transfer_detail_backTooltip => 'חזרה לייבוא';
 
   @override
   String get transfer_export_aboutContent =>
@@ -19338,7 +19353,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_section_importTitle => 'ייבוא קובץ';
 
   @override
-  String get transfer_summary_description => 'ייבוא וייצוא נתוני צלילה';
+  String get transfer_summary_description =>
+      'ייבוא נתוני צלילה מקבצים, ממחשבי צלילה ומחשבונות ענן';
 
   @override
   String get transfer_summary_selectSection => 'בחר מדור מהרשימה';

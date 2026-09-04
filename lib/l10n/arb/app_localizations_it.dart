@@ -13936,7 +13936,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get nav_equipment => 'Attrezzatura';
 
   @override
+  String get nav_export => 'Esporta';
+
+  @override
   String get nav_gpsLog => 'Registro GPS';
+
+  @override
+  String get nav_group_dives => 'Immersioni';
+
+  @override
+  String get nav_group_gearTraining => 'Attrezzatura e formazione';
+
+  @override
+  String get nav_group_tools => 'Strumenti';
 
   @override
   String get media_console_library => 'Libreria';
@@ -14257,6 +14269,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get nav_home => 'Home';
 
   @override
+  String get nav_import => 'Importa';
+
+  @override
+  String get nav_log => 'Registro';
+
+  @override
   String get nav_media => 'Media';
 
   @override
@@ -14288,9 +14306,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get nav_tooltip_expandMenu => 'Espandi menu';
-
-  @override
-  String get nav_transfer => 'Trasferimento';
 
   @override
   String get nav_trips => 'Viaggi';
@@ -19659,7 +19674,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'Siti';
 
   @override
-  String get transfer_detail_backTooltip => 'Torna al trasferimento';
+  String get transfer_detail_backTooltip => 'Torna all\'importazione';
 
   @override
   String get transfer_export_aboutContent =>
@@ -19850,7 +19865,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get transfer_summary_description =>
-      'Importa ed esporta dati immersione';
+      'Importa dati immersione da file, computer subacquei e account cloud';
 
   @override
   String get transfer_summary_selectSection =>

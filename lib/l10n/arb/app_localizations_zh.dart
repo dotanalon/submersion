@@ -13263,7 +13263,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_equipment => '装备';
 
   @override
+  String get nav_export => '导出';
+
+  @override
   String get nav_gpsLog => 'GPS 记录';
+
+  @override
+  String get nav_group_dives => '潜水';
+
+  @override
+  String get nav_group_gearTraining => '装备与培训';
+
+  @override
+  String get nav_group_tools => '工具';
 
   @override
   String get media_console_library => '媒体库';
@@ -13581,6 +13593,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_home => '首页';
 
   @override
+  String get nav_import => '导入';
+
+  @override
+  String get nav_log => '日志';
+
+  @override
   String get nav_media => '媒体';
 
   @override
@@ -13612,9 +13630,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get nav_tooltip_expandMenu => '展开菜单';
-
-  @override
-  String get nav_transfer => '传输';
 
   @override
   String get nav_trips => '旅行';
@@ -18630,7 +18645,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_csvExport_typeSites => '潜水点';
 
   @override
-  String get transfer_detail_backTooltip => '返回传输';
+  String get transfer_detail_backTooltip => '返回导入';
 
   @override
   String get transfer_export_aboutContent =>
@@ -18807,7 +18822,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_section_importTitle => '文件导入';
 
   @override
-  String get transfer_summary_description => '导入和导出潜水数据';
+  String get transfer_summary_description => '从文件、潜水电脑和云账户导入潜水数据';
 
   @override
   String get transfer_summary_selectSection => '从列表中选择一个部分';

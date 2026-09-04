@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
+import 'package:submersion/shared/widgets/nav/grouped_navigation_rail.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 Future<Widget> _buildTestApp({
@@ -55,8 +56,44 @@ Future<Widget> _buildTestApp({
             builder: (context, state) => const Text('Equipment'),
           ),
           GoRoute(
-            path: '/transfer',
-            builder: (context, state) => const Text('Transfer'),
+            path: '/import',
+            builder: (context, state) => const Text('Import'),
+          ),
+          GoRoute(
+            path: '/export',
+            builder: (context, state) => const Text('Export'),
+          ),
+          GoRoute(
+            path: '/planning',
+            builder: (context, state) => const Text('Planning'),
+          ),
+          GoRoute(
+            path: '/buddies',
+            builder: (context, state) => const Text('Buddies'),
+          ),
+          GoRoute(
+            path: '/dive-centers',
+            builder: (context, state) => const Text('Dive Centers'),
+          ),
+          GoRoute(
+            path: '/certifications',
+            builder: (context, state) => const Text('Certifications'),
+          ),
+          GoRoute(
+            path: '/courses',
+            builder: (context, state) => const Text('Courses'),
+          ),
+          GoRoute(
+            path: '/species',
+            builder: (context, state) => const Text('Species'),
+          ),
+          GoRoute(
+            path: '/statistics',
+            builder: (context, state) => const Text('Statistics'),
+          ),
+          GoRoute(
+            path: '/media',
+            builder: (context, state) => const Text('Media'),
           ),
           GoRoute(
             path: '/gps-log',
@@ -160,7 +197,8 @@ void main() {
       await tester.pumpWidget(await _buildTestApp());
       await tester.pumpAndSettle();
 
-      expect(find.byType(NavigationRail), findsOneWidget);
+      expect(find.byType(GroupedNavigationRail), findsOneWidget);
+      expect(find.byType(NavigationRail), findsNWidgets(4));
       expect(find.text('Dashboard'), findsOneWidget);
     });
 
@@ -197,13 +235,15 @@ void main() {
       await tester.pumpWidget(await _buildTestApp());
       await tester.pumpAndSettle();
 
-      // Tap the second rail destination (Dives).
-      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      rail.onDestinationSelected!(1);
+      // Tap the first destination of the Dives group rail (dives/"Log").
+      final rail = tester.widget<NavigationRail>(
+        find.byKey(const ValueKey('navRail-dives')),
+      );
+      rail.onDestinationSelected!(0);
       await tester.pumpAndSettle();
 
-      // "Dives" appears both in rail label and route content.
-      expect(find.text('Dives'), findsWidgets);
+      // "Log" appears both in rail label and route content.
+      expect(find.text('Log'), findsWidgets);
     });
 
     testWidgets('desktop rail navigates to the GPS Log destination', (
@@ -217,17 +257,29 @@ void main() {
       await tester.pumpWidget(await _buildTestApp());
       await tester.pumpAndSettle();
 
-      // GPS Log is rail index 14 (after Transfer, before Settings).
-      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      rail.onDestinationSelected!(14);
+      // GPS Log is local index 2 in the Tools group rail
+      // (statistics, media, gps-log, settings).
+      final rail = tester.widget<NavigationRail>(
+        find.byKey(const ValueKey('navRail-tools')),
+      );
+      rail.onDestinationSelected!(2);
       await tester.pumpAndSettle();
 
       expect(find.text('GPS Log Page'), findsOneWidget);
       // Re-reading recomputes the selected index from the /gps-log route.
       final selected = tester
-          .widget<NavigationRail>(find.byType(NavigationRail))
+          .widget<NavigationRail>(find.byKey(const ValueKey('navRail-tools')))
           .selectedIndex;
-      expect(selected, 14);
+      expect(selected, 2);
+      // The other group rails have nothing selected.
+      for (final id in ['home', 'dives', 'gear-training']) {
+        expect(
+          tester
+              .widget<NavigationRail>(find.byKey(ValueKey('navRail-$id')))
+              .selectedIndex,
+          isNull,
+        );
+      }
     });
 
     testWidgets('recording strip appears while a GPS session is active', (
@@ -336,7 +388,23 @@ void main() {
                 builder: (context, state) => const SizedBox(),
               ),
               GoRoute(
-                path: '/transfer',
+                path: '/import',
+                builder: (context, state) => const SizedBox(),
+              ),
+              GoRoute(
+                path: '/export',
+                builder: (context, state) => const SizedBox(),
+              ),
+              GoRoute(
+                path: '/species',
+                builder: (context, state) => const SizedBox(),
+              ),
+              GoRoute(
+                path: '/media',
+                builder: (context, state) => const SizedBox(),
+              ),
+              GoRoute(
+                path: '/gps-log',
                 builder: (context, state) => const SizedBox(),
               ),
               GoRoute(
@@ -408,10 +476,7 @@ void main() {
         find.widgetWithText(NavigationDestination, 'Home'),
         findsOneWidget,
       );
-      expect(
-        find.widgetWithText(NavigationDestination, 'Dives'),
-        findsOneWidget,
-      );
+      expect(find.widgetWithText(NavigationDestination, 'Log'), findsOneWidget);
       expect(
         find.widgetWithText(NavigationDestination, 'Sites'),
         findsOneWidget,
@@ -457,12 +522,12 @@ void main() {
         findsOneWidget,
       );
       // Replaced items should not appear in the primary bar.
-      expect(find.widgetWithText(NavigationDestination, 'Dives'), findsNothing);
+      expect(find.widgetWithText(NavigationDestination, 'Log'), findsNothing);
       expect(find.widgetWithText(NavigationDestination, 'Sites'), findsNothing);
       expect(find.widgetWithText(NavigationDestination, 'Trips'), findsNothing);
     });
 
-    testWidgets('wide-screen rail still shows all 16 default destinations', (
+    testWidgets('wide-screen rail still shows all 17 default destinations', (
       tester,
     ) async {
       // Wide viewport (desktop-extended so rail labels are rendered as Text).
@@ -476,37 +541,58 @@ void main() {
       await tester.pumpAndSettle();
 
       // The wide-screen rail is NOT customized, so it keeps the default
-      // 16-entry order regardless of stored primary-ids customization.
-      // NavigationRailDestination is a descriptor (not a Widget), so inspect
-      // the NavigationRail.destinations list directly.
-      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      expect(rail.destinations, hasLength(16));
-
+      // 17-entry grouped order regardless of stored primary-ids
+      // customization. The rail is stacked as one NavigationRail per group,
+      // so gather NavigationRailDestination across all of them in group
+      // order, then flatten to the labels.
       String labelOf(NavigationRailDestination d) {
         final label = d.label;
         if (label is Text) return label.data ?? '';
         return label.toString();
       }
 
-      final labels = rail.destinations.map(labelOf).toList();
+      final rails = [
+        tester.widget<NavigationRail>(
+          find.byKey(const ValueKey('navRail-home')),
+        ),
+        tester.widget<NavigationRail>(
+          find.byKey(const ValueKey('navRail-dives')),
+        ),
+        tester.widget<NavigationRail>(
+          find.byKey(const ValueKey('navRail-gear-training')),
+        ),
+        tester.widget<NavigationRail>(
+          find.byKey(const ValueKey('navRail-tools')),
+        ),
+      ];
+      final labels = rails
+          .expand((rail) => rail.destinations)
+          .map(labelOf)
+          .toList();
       expect(labels, [
         'Home',
-        'Dives',
+        'Log',
+        'Planning',
+        'Import',
+        'Export',
         'Sites',
-        'Trips',
-        'Media',
-        'Equipment',
         'Buddies',
+        'Trips',
+        'Equipment',
         'Dive Centers',
         'Certifications',
         'Courses',
         'Species',
         'Statistics',
-        'Planning',
-        'Transfer',
+        'Media',
         'GPS Log',
         'Settings',
       ]);
+
+      // Group headers are rendered when the rail is extended.
+      expect(find.text('Dives'), findsOneWidget);
+      expect(find.text('Gear & Training'), findsOneWidget);
+      expect(find.text('Tools'), findsOneWidget);
     });
 
     testWidgets('tapping a customized primary item navigates to its route', (
@@ -549,27 +635,36 @@ void main() {
       await tester.tap(find.widgetWithText(NavigationDestination, 'More'));
       await tester.pumpAndSettle();
 
-      // The overflow sheet should contain the items NOT in primary. The sheet
-      // is height-capped, so the tiles past the fold have to be scrolled to;
-      // reaching them all is itself the guard that none is stranded.
+      // The overflow sheet should contain the items NOT in primary, under
+      // group headers. The sheet is height-capped and the list virtualizes
+      // offscreen children, so each finder is scrolled to in the order it
+      // appears -- reaching them all is itself the guard that none is
+      // stranded, and scrolling to a header before its own items keeps it
+      // mounted long enough to assert on.
       final sheetList = find.descendant(
         of: find.byType(BottomSheet),
         matching: find.byType(Scrollable),
       );
-      for (final label in const [
-        'Dives',
-        'Sites',
-        'Trips',
-        'Dive Centers',
-        'Certifications',
-        'Courses',
-        'Planning',
-        'Transfer',
-        'Settings',
-      ]) {
-        final tile = find.widgetWithText(ListTile, label);
-        await tester.scrollUntilVisible(tile, 100, scrollable: sheetList);
-        expect(tile, findsOneWidget);
+      const expectedGroups = [
+        (
+          'navOverflowGroup-dives',
+          ['Log', 'Planning', 'Import', 'Export', 'Sites', 'Trips'],
+        ),
+        (
+          'navOverflowGroup-gear-training',
+          ['Dive Centers', 'Certifications', 'Courses'],
+        ),
+        ('navOverflowGroup-tools', ['Settings']),
+      ];
+      for (final (headerKey, labels) in expectedGroups) {
+        final header = find.byKey(ValueKey(headerKey));
+        await tester.scrollUntilVisible(header, 100, scrollable: sheetList);
+        expect(header, findsOneWidget);
+        for (final label in labels) {
+          final tile = find.widgetWithText(ListTile, label);
+          await tester.scrollUntilVisible(tile, 100, scrollable: sheetList);
+          expect(tile, findsOneWidget);
+        }
       }
 
       // Items now in primary should NOT appear in the overflow sheet.
@@ -753,12 +848,15 @@ void main() {
       await tester.pumpAndSettle();
 
       // NavigationRailDestination is a descriptor, so read the icons from the
-      // rail's destination list rather than the widget tree.
-      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      final sitesIcon = rail.destinations[2].icon as Icon;
+      // rail's destination list rather than the widget tree. Sites is local
+      // index 4 in the Dives group rail (dives, planning, import, export, sites).
+      final rail = tester.widget<NavigationRail>(
+        find.byKey(const ValueKey('navRail-dives')),
+      );
+      final sitesIcon = rail.destinations[4].icon as Icon;
       expect(sitesIcon.color, FeatureAccentColors.light.of('sites'));
 
-      final selectedSitesIcon = rail.destinations[2].selectedIcon as Icon;
+      final selectedSitesIcon = rail.destinations[4].selectedIcon as Icon;
       expect(selectedSitesIcon.color, FeatureAccentColors.light.of('sites'));
     });
 
@@ -777,8 +875,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      expect((rail.destinations[2].icon as Icon).color, isNull);
+      final rail = tester.widget<NavigationRail>(
+        find.byKey(const ValueKey('navRail-dives')),
+      );
+      expect((rail.destinations[4].icon as Icon).color, isNull);
     });
 
     testWidgets('overflow sheet icons are tinted when the toggle is on', (

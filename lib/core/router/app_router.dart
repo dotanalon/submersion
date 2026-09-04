@@ -128,6 +128,7 @@ import 'package:submersion/features/settings/presentation/pages/debug_log_viewer
 import 'package:submersion/features/media/presentation/pages/media_sources_page.dart';
 import 'package:submersion/features/media/presentation/pages/network_sources_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
+import 'package:submersion/features/transfer/presentation/pages/export_page.dart';
 import 'package:submersion/features/transfer/presentation/pages/transfer_page.dart';
 import 'package:submersion/features/dive_types/presentation/pages/dive_types_page.dart';
 import 'package:submersion/features/dive_roles/presentation/pages/dive_roles_page.dart';
@@ -880,14 +881,41 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
 
-          // Transfer (Import/Export/Dive Computers)
+          // Import hub (File Import/Dive Computers/Cloud)
           GoRoute(
-            path: '/transfer',
-            name: 'transfer',
+            path: '/import',
+            name: 'import',
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               child: const TransferPage(),
             ),
+          ),
+
+          // File Export
+          GoRoute(
+            path: '/export',
+            name: 'export',
+            pageBuilder: (context, state) =>
+                NoTransitionPage(key: state.pageKey, child: const ExportPage()),
+          ),
+
+          // Legacy hub. Kept only as a redirect and as the parent of the
+          // import wizard routes below, which still live under this path so
+          // existing deep links and callers (app.dart, GlobalDropTarget,
+          // IncomingFileHandler) keep working unchanged.
+          GoRoute(
+            path: '/transfer',
+            name: 'transfer',
+            redirect: (context, state) {
+              // go_router evaluates a parent's redirect for every child
+              // match too, so this must be a no-op once the location has
+              // already moved past the bare `/transfer` path.
+              if (state.uri.path != '/transfer') return null;
+              final selected = state.uri.queryParameters['selected'];
+              if (selected == 'export') return '/export';
+              if (selected == null) return '/import';
+              return '/import?selected=$selected';
+            },
             routes: [
               GoRoute(
                 path: 'import-wizard',

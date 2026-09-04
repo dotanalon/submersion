@@ -15,7 +15,7 @@ import 'package:submersion/features/equipment/domain/entities/service_record.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/transfer/presentation/pages/transfer_page.dart';
+import 'package:submersion/features/transfer/presentation/pages/export_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
@@ -47,11 +47,11 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     final router = GoRouter(
-      initialLocation: '/transfer?selected=export',
+      initialLocation: '/export',
       routes: [
         GoRoute(
-          path: '/transfer',
-          builder: (context, state) => const TransferPage(),
+          path: '/export',
+          builder: (context, state) => const ExportPage(),
         ),
       ],
     );

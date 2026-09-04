@@ -11,6 +11,7 @@ import 'package:submersion/features/gps_log/presentation/widgets/gps_recording_s
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
+import 'package:submersion/shared/widgets/nav/grouped_navigation_rail.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_primary_provider.dart';
 
@@ -64,10 +65,12 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final location = GoRouterState.of(context).uri.path;
 
     if (isWideScreen) {
-      // Wide-screen rail: ordered by kNavDestinations.
+      // Wide-screen rail: ordered by kNavDestinations. `matches` also checks
+      // routeAliases, so legacy route trees (e.g. the import wizards still
+      // living under `/transfer`) keep the right destination highlighted.
       final rail = _railDestinations;
       for (var i = 0; i < rail.length; i++) {
-        if (location.startsWith(rail[i].route)) return i;
+        if (rail[i].matches(location)) return i;
       }
       return 0;
     }
@@ -75,8 +78,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     // Mobile: iterate the dynamic primary list (length 5: [dashboard, 3 middle, more]).
     final primary = ref.watch(navPrimaryDestinationsProvider);
     for (var i = 0; i < primary.length - 1; i++) {
-      final route = primary[i].route;
-      if (route.isNotEmpty && location.startsWith(route)) return i;
+      if (primary[i].matches(location)) return i;
     }
     return primary.length - 1; // fall through to More (index 4)
   }
@@ -158,21 +160,38 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
               child: ListView(
                 shrinkWrap: true,
                 children: [
-                  for (final destination in overflow)
-                    ListTile(
-                      leading: Icon(
-                        destination.icon,
-                        color: navAccent(destination.id),
+                  for (final (group, members) in partitionByNavGroup(
+                    overflow,
+                  )) ...[
+                    Padding(
+                      key: ValueKey('navOverflowGroup-${group.id}'),
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                      child: Text(
+                        group.label(sheetContext.l10n),
+                        style: Theme.of(sheetContext).textTheme.labelSmall
+                            ?.copyWith(
+                              color: Theme.of(
+                                sheetContext,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
                       ),
-                      title: Text(destination.label(sheetContext.l10n)),
-                      subtitle: destination.subtitle != null
-                          ? Text(destination.subtitle!(sheetContext.l10n))
-                          : null,
-                      onTap: () {
-                        Navigator.pop(sheetContext);
-                        context.go(destination.route);
-                      },
                     ),
+                    for (final destination in members)
+                      ListTile(
+                        leading: Icon(
+                          destination.icon,
+                          color: navAccent(destination.id),
+                        ),
+                        title: Text(destination.label(sheetContext.l10n)),
+                        subtitle: destination.subtitle != null
+                            ? Text(destination.subtitle!(sheetContext.l10n))
+                            : null,
+                        onTap: () {
+                          Navigator.pop(sheetContext);
+                          context.go(destination.route);
+                        },
+                      ),
+                  ],
                   const SizedBox(height: 8),
                 ],
               ),
@@ -231,7 +250,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
             child: Row(
               children: [
                 // Wrap in a scrollable container so the rail doesn't overflow
-                // on short screens (e.g. phone landscape with 13 destinations).
+                // on short screens (e.g. phone landscape with 17 destinations).
                 LayoutBuilder(
                   builder: (context, constraints) {
                     return SingleChildScrollView(
@@ -239,48 +258,31 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                         constraints: BoxConstraints(
                           minHeight: constraints.maxHeight,
                         ),
-                        child: IntrinsicHeight(
-                          child: NavigationRail(
-                            extended: showExtended,
-                            minExtendedWidth: 190,
-                            leading: isDesktopExtended
-                                ? IconButton(
-                                    icon: Icon(
-                                      _isCollapsed
-                                          ? Icons.keyboard_double_arrow_right
-                                          : Icons.keyboard_double_arrow_left,
-                                    ),
-                                    tooltip: _isCollapsed
-                                        ? context.l10n.nav_tooltip_expandMenu
-                                        : context.l10n.nav_tooltip_collapseMenu,
-                                    onPressed: () {
-                                      setState(() {
-                                        _isCollapsed = !_isCollapsed;
-                                      });
-                                    },
-                                  )
-                                : null,
-                            selectedIndex: selectedIndex,
-                            onDestinationSelected: (index) =>
-                                _onDestinationSelected(
-                                  index,
-                                  isWideScreen: true,
-                                ),
-                            destinations: [
-                              for (final destination in _railDestinations)
-                                NavigationRailDestination(
+                        child: GroupedNavigationRail(
+                          destinations: _railDestinations,
+                          extended: showExtended,
+                          minExtendedWidth: 190,
+                          leading: isDesktopExtended
+                              ? IconButton(
                                   icon: Icon(
-                                    destination.icon,
-                                    color: navAccent(destination.id),
+                                    _isCollapsed
+                                        ? Icons.keyboard_double_arrow_right
+                                        : Icons.keyboard_double_arrow_left,
                                   ),
-                                  selectedIcon: Icon(
-                                    destination.selectedIcon,
-                                    color: navAccent(destination.id),
-                                  ),
-                                  label: Text(destination.label(context.l10n)),
-                                ),
-                            ],
-                          ),
+                                  tooltip: _isCollapsed
+                                      ? context.l10n.nav_tooltip_expandMenu
+                                      : context.l10n.nav_tooltip_collapseMenu,
+                                  onPressed: () {
+                                    setState(() {
+                                      _isCollapsed = !_isCollapsed;
+                                    });
+                                  },
+                                )
+                              : null,
+                          selectedIndex: selectedIndex,
+                          onDestinationSelected: (index) =>
+                              _onDestinationSelected(index, isWideScreen: true),
+                          accentOf: navAccent,
                         ),
                       ),
                     );

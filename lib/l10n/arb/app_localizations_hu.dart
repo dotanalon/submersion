@@ -13886,7 +13886,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_equipment => 'Felszereles';
 
   @override
+  String get nav_export => 'Exportalas';
+
+  @override
   String get nav_gpsLog => 'GPS-napló';
+
+  @override
+  String get nav_group_dives => 'Merulesek';
+
+  @override
+  String get nav_group_gearTraining => 'Felszereles es kepzes';
+
+  @override
+  String get nav_group_tools => 'Eszkozok';
 
   @override
   String get media_console_library => 'Könyvtár';
@@ -14207,6 +14219,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_home => 'Fooldal';
 
   @override
+  String get nav_import => 'Importalas';
+
+  @override
+  String get nav_log => 'Naplo';
+
+  @override
   String get nav_media => 'Média';
 
   @override
@@ -14238,9 +14256,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get nav_tooltip_expandMenu => 'Menu kinyitasa';
-
-  @override
-  String get nav_transfer => 'Atvitel';
 
   @override
   String get nav_trips => 'Utak';
@@ -19596,7 +19611,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get transfer_csvExport_typeSites => 'Merülohelyek';
 
   @override
-  String get transfer_detail_backTooltip => 'Vissza az atvitelhez';
+  String get transfer_detail_backTooltip => 'Vissza az importalashoz';
 
   @override
   String get transfer_export_aboutContent =>
@@ -19788,7 +19803,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get transfer_summary_description =>
-      'Merülesi adatok importalasa es exportalasa';
+      'Merulesi adatok importalasa fajlokbol, buvarkomputerekbol es felhofiokokbol';
 
   @override
   String get transfer_summary_selectSection =>

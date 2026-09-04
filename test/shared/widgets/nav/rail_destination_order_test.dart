@@ -1,28 +1,35 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 
-/// Locks the wide-screen rail contract. Before the rail was driven from
-/// [kNavDestinations] it hardcoded these 14 destinations, and two hardcoded
-/// switch statements mapped index <-> route. This test encodes that exact
-/// mapping so the refactor cannot silently reorder or reroute navigation.
+/// Locks the wide-screen rail contract. The rail is driven from
+/// [kNavDestinations], and selection is resolved positionally, so this test
+/// encodes the exact (id, route) sequence to stop a refactor from silently
+/// reordering or rerouting navigation.
+///
+/// The order is grouped: Home first, then the Dives, Gear & Training and
+/// Tools groups in their canonical order (see [kNavGroups]).
 void main() {
   test('kNavDestinations order matches the wide-screen rail contract', () {
     final rail = kNavDestinations.where((d) => d.id != 'more').toList();
     final expected = <(String, String)>[
       ('dashboard', '/dashboard'),
+      // Dives
       ('dives', '/dives'),
+      ('planning', '/planning'),
+      ('import', '/import'),
+      ('export', '/export'),
       ('sites', '/sites'),
-      ('trips', '/trips'),
-      ('media', '/media'),
-      ('equipment', '/equipment'),
       ('buddies', '/buddies'),
+      ('trips', '/trips'),
+      // Gear & Training
+      ('equipment', '/equipment'),
       ('dive-centers', '/dive-centers'),
       ('certifications', '/certifications'),
       ('courses', '/courses'),
       ('species', '/species'),
+      // Tools
       ('statistics', '/statistics'),
-      ('planning', '/planning'),
-      ('transfer', '/transfer'),
+      ('media', '/media'),
       ('gps-log', '/gps-log'),
       ('settings', '/settings'),
     ];
