@@ -10216,13 +10216,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Layout im PADI-Logbuchformat';
 
   @override
-  String get enum_pdfTemplate_professional => 'Professionell';
-
-  @override
-  String get enum_pdfTemplate_professional_description =>
-      'Unterschrift- und Stempelbereiche zur Verifizierung';
-
-  @override
   String get enum_pdfTemplate_simple => 'Einfach';
 
   @override
@@ -19772,6 +19765,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gescannte Zertifizierungskartenbilder zum PDF hinzufügen';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'Bestaetigungsfelder einfuegen';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'Stempel- und Unterschriftsfelder fuer die Verbandspruefung';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -19809,13 +19810,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get transfer_pdfExport_templatePadiStyleDesc =>
       'Layout im PADI-Logbuchformat';
-
-  @override
-  String get transfer_pdfExport_templateProfessional => 'Professionell';
-
-  @override
-  String get transfer_pdfExport_templateProfessionalDesc =>
-      'Unterschrift- und Stempelbereiche zur Verifizierung';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {
@@ -34858,6 +34852,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_export_progress_loadingSignatures =>
       'Signaturen werden geladen...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'Tauchprofile werden geladen...';
 
   @override
   String get settings_export_progress_loadingCertifications =>
