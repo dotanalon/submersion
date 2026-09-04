@@ -277,4 +277,30 @@ void main() {
       },
     );
   });
+
+  group('DiveProfileChart overlay metrics - inline legend', () {
+    testWidgets('lists the overlay\'s traces per computer beside the active '
+        'source\'s', (tester) async {
+      await tester.pumpWidget(_harness());
+      await tester.pumpAndSettle();
+
+      // Depth is only listed on multi-source dives; the harness passes no
+      // computer names, so the active source's entry stays unsuffixed.
+      expect(find.text('Depth'), findsOneWidget);
+      expect(find.text('Depth · Overlay'), findsOneWidget);
+      // Ceiling defaults to visible and the overlay analysis has a ceiling.
+      expect(find.text('Ceiling · Overlay'), findsOneWidget);
+      // TTS is off by default, so neither source lists it yet.
+      expect(find.text('TTS · Overlay'), findsNothing);
+
+      final container = tester.element(find.byType(LineChart));
+      final notifier = ProviderScope.containerOf(
+        container,
+      ).read(profileLegendProvider.notifier);
+      notifier.toggleTts();
+      await tester.pumpAndSettle();
+
+      expect(find.text('TTS · Overlay'), findsOneWidget);
+    });
+  });
 }

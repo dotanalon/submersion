@@ -2172,6 +2172,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // Build legend config based on available data
     final legendConfig = ProfileLegendConfig(
+      activeSourceName: widget.activeComputerId == null
+          ? null
+          : widget.computerNames?[widget.activeComputerId!],
+      overlays: _legendOverlays(),
       hasTemperatureData: hasTemperatureData,
       hasPressureData: hasPressureData,
       hasHeartRateData: hasHeartRateData,
@@ -4669,6 +4673,53 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// color. Appended AFTER every other bar so the depth-bar indexing
   /// contract (depth bars occupy `barIndex` `[0, _depthBarCount())`) stays
   /// valid for the tooltip's spot-to-sample mapping.
+  /// The overlays as the legend needs them: which metrics each one has data
+  /// for, so the legend lists exactly the overlay traces [_buildOverlayLines]
+  /// draws. The presence tests mirror that method's, including the ppHe and
+  /// MOD value filters that can leave a non-empty curve drawing nothing.
+  List<LegendOverlaySource> _legendOverlays() {
+    final overlays = widget.overlays;
+    if (overlays == null) return const [];
+    return [
+      for (final overlay in overlays)
+        if (overlay.points.isNotEmpty)
+          LegendOverlaySource(
+            name: overlay.name,
+            tintByMetric: overlay.tintByMetric,
+            color: overlay.color,
+            metrics: _overlayMetrics(overlay),
+          ),
+    ];
+  }
+
+  Set<LegendMetric> _overlayMetrics(ChartSourceOverlay overlay) {
+    final analysis = overlay.analysis;
+    bool has(List<Object?>? curve) => curve != null && curve.isNotEmpty;
+    return {
+      LegendMetric.depth,
+      if (overlay.points.any((p) => p.temperature != null))
+        LegendMetric.temperature,
+      if (has(analysis?.decoStopCurve)) LegendMetric.decoStops,
+      if (analysis?.ceilingCurve.any((c) => c > 0) ?? false)
+        LegendMetric.ceiling,
+      if (analysis?.ndlCurve.any((n) => n > 0) ?? false) LegendMetric.ndl,
+      if (has(analysis?.ttsCurve)) LegendMetric.tts,
+      if (analysis?.gtrCurve?.any((g) => g != null) ?? false) LegendMetric.gtr,
+      if (has(analysis?.cnsCurve)) LegendMetric.cns,
+      if (has(analysis?.otuCurve)) LegendMetric.otu,
+      if (has(analysis?.ppO2Curve)) LegendMetric.ppO2,
+      if (has(analysis?.ppN2Curve)) LegendMetric.ppN2,
+      if (analysis?.ppHeCurve?.any((p) => p > 0.001) ?? false)
+        LegendMetric.ppHe,
+      if (analysis?.modCurve?.any((m) => m > 0 && m < 200) ?? false)
+        LegendMetric.mod,
+      if (has(analysis?.densityCurve)) LegendMetric.density,
+      if (has(analysis?.gfCurve)) LegendMetric.gf,
+      if (has(analysis?.surfaceGfCurve)) LegendMetric.surfaceGf,
+      if (has(analysis?.meanDepthCurve)) LegendMetric.meanDepth,
+    };
+  }
+
   List<LineChartBarData> _buildOverlayLines(
     UnitFormatter units,
     MetricBand band,

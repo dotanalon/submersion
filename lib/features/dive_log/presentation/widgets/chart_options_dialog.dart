@@ -106,7 +106,7 @@ class ChartOptionsDialog extends StatelessWidget {
         buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_pressure,
-          color: Colors.orange,
+          color: ProfileMetricColors.pressure,
           isEnabled: legendState.showPressure,
           onTap: legendNotifier.togglePressure,
         ),
@@ -114,7 +114,7 @@ class ChartOptionsDialog extends StatelessWidget {
         buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_events,
-          color: const Color(0xFF00838F),
+          color: ProfileMetricColors.events,
           isEnabled: legendState.showEvents,
           onTap: legendNotifier.toggleEvents,
         ),
@@ -138,7 +138,7 @@ class ChartOptionsDialog extends StatelessWidget {
         buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_ascentRate,
-          color: const Color(0xFF43A047),
+          color: ProfileMetricColors.ascentRateColors,
           isEnabled: legendState.showAscentRateColors,
           onTap: legendNotifier.toggleAscentRateColors,
         ),
@@ -177,7 +177,7 @@ class ChartOptionsDialog extends StatelessWidget {
         buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_maxDepth,
-          color: const Color(0xFF880E4F),
+          color: ProfileMetricColors.maxDepth,
           isEnabled: legendState.showMaxDepthMarker,
           onTap: legendNotifier.toggleMaxDepthMarker,
         ),
@@ -185,7 +185,7 @@ class ChartOptionsDialog extends StatelessWidget {
         buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_pressureThresholds,
-          color: const Color(0xFFBF360C),
+          color: ProfileMetricColors.pressureMarkers,
           isEnabled: legendState.showPressureMarkers,
           onTap: legendNotifier.togglePressureMarkers,
         ),

@@ -4,19 +4,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/presentation/widgets/chart_zoom_controls.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/active_legend_entries.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_options_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_legend_config.dart';
 
 // Re-exported so consumers of the legend keep a single import for the widget
 // and its configuration.
 export 'package:submersion/features/dive_log/presentation/widgets/profile_legend_config.dart'
-    show ProfileLegendConfig;
+    show ProfileLegendConfig, LegendOverlaySource, LegendMetric;
 
-/// Control row above the dive profile chart.
+/// Legend row above the dive profile chart.
 ///
-/// Holds the zoom controls and a button that opens the chart options
-/// dropdown, where every metric toggle (including its checkbox) lives. The
-/// depth trace is the chart itself and is never listed as an option.
+/// Lists the metrics currently drawn on the chart as read-only entries (a
+/// dash in the line colour plus a small label), followed by the zoom controls
+/// and a button that opens the chart options dropdown. Every toggle, with its
+/// checkbox, lives in that dropdown; the entries here only reflect it. The
+/// depth trace is the chart itself and is never listed.
 class DiveProfileLegend extends ConsumerWidget {
   final ProfileLegendConfig config;
   final double zoomLevel;
@@ -41,6 +44,7 @@ class DiveProfileLegend extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final legendState = ref.watch(profileLegendProvider);
     final legendNotifier = ref.read(profileLegendProvider.notifier);
 
     // Initialize tank pressures if needed
@@ -52,13 +56,37 @@ class DiveProfileLegend extends ConsumerWidget {
       });
     }
 
-    // Depth is the chart itself, not an option, so nothing is listed here;
-    // the row is just the trailing controls.
+    final entries = activeLegendEntries(
+      context,
+      config: config,
+      state: legendState,
+    );
+
     return Padding(
       padding: EdgeInsets.only(left: leftPadding, bottom: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          // One line, scrollable sideways when a multi-source dive lists more
+          // entries than fit: the legend keeps a fixed height so it never
+          // steals room from the chart below.
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var i = 0; i < entries.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 10),
+                    _LegendEntry(
+                      label: entries[i].label,
+                      color: entries[i].color,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
           ChartZoomControls(
             zoomLevel: zoomLevel,
             minZoom: minZoom,
@@ -83,6 +111,54 @@ class DiveProfileLegend extends ConsumerWidget {
       config.hasPressureData ||
       config.hasEvents ||
       config.hasSecondaryToggles;
+}
+
+/// A read-only legend entry: a [LegendDash] in the line colour and the label.
+/// Deliberately not tappable; toggling happens in the options dropdown.
+class _LegendEntry extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _LegendEntry({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final labelSmall = Theme.of(context).textTheme.labelSmall;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        LegendDash(color: color),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          maxLines: 1,
+          style: labelSmall?.copyWith(
+            fontSize: (labelSmall.fontSize ?? 11) - 1,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The short horizontal dash that stands for a chart line in the legend, in
+/// that line's colour.
+class LegendDash extends StatelessWidget {
+  final Color color;
+
+  const LegendDash({super.key, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 16,
+      height: 3,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(1.5),
+      ),
+    );
+  }
 }
 
 /// Opens the chart options dialog, where every metric toggle lives.

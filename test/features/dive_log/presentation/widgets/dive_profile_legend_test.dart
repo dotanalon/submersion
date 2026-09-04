@@ -637,10 +637,37 @@ void main() {
     });
   });
 
-  group('no inline legend items', () {
-    testWidgets('depth is not listed and nothing renders a checkbox inline', (
-      tester,
-    ) async {
+  group('inline legend', () {
+    testWidgets('lists active metrics with a dash in the line colour and '
+        'no checkbox', (tester) async {
+      // Temperature is on by default; heart rate is off by default.
+      await _pumpLegend(
+        tester,
+        config: const ProfileLegendConfig(
+          hasTemperatureData: true,
+          hasHeartRateData: true,
+        ),
+      );
+
+      expect(find.text('Temp'), findsOneWidget);
+      expect(find.text('Heart Rate'), findsNothing);
+      expect(find.byIcon(Icons.check_box), findsNothing);
+      expect(find.byIcon(Icons.check_box_outline_blank), findsNothing);
+
+      final dash = tester.widget<Container>(
+        find.descendant(
+          of: find.byType(LegendDash),
+          matching: find.byType(Container),
+        ),
+      );
+      final decoration = dash.decoration! as BoxDecoration;
+      expect(
+        decoration.color,
+        Theme.of(tester.element(find.text('Temp'))).colorScheme.tertiary,
+      );
+    });
+
+    testWidgets('never lists depth', (tester) async {
       await _pumpLegend(
         tester,
         config: const ProfileLegendConfig(hasTemperatureData: true),
@@ -648,39 +675,98 @@ void main() {
 
       // Depth is the chart itself, not an option, so it gets no legend entry.
       expect(find.text('Depth'), findsNothing);
-      expect(find.byIcon(Icons.check_box), findsNothing);
-      expect(find.byIcon(Icons.check_box_outline_blank), findsNothing);
     });
-  });
 
-  group('multi-tank pressure toggles', () {
-    testWidgets('live in the dialog and count toward the badge, not inline', (
+    testWidgets('uses a smaller font than the dialog rows', (tester) async {
+      await _pumpLegend(
+        tester,
+        config: const ProfileLegendConfig(hasTemperatureData: true),
+      );
+
+      final inline = tester.widget<Text>(find.text('Temp'));
+      final labelSmall = Theme.of(
+        tester.element(find.text('Temp')),
+      ).textTheme.labelSmall!;
+      expect(inline.style!.fontSize, lessThan(labelSmall.fontSize!));
+    });
+
+    testWidgets('is not clickable: tapping an entry changes nothing', (
       tester,
     ) async {
       await _pumpLegend(
         tester,
-        config: const ProfileLegendConfig(
-          hasMultiTankPressure: true,
-          tanks: _testTanks,
-          tankPressures: {
-            'tank-1': [
-              TankPressurePoint(tankId: 'tank-1', timestamp: 0, pressure: 200),
-            ],
-            'tank-2': [
-              TankPressurePoint(tankId: 'tank-2', timestamp: 0, pressure: 200),
-            ],
-          },
-        ),
+        config: const ProfileLegendConfig(hasTemperatureData: true),
       );
 
-      expect(find.text('D80 (Air)'), findsNothing);
-      expect(find.text('AL80 (EAN50)'), findsNothing);
+      await tester.tap(find.text('Temp'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Temp'), findsOneWidget);
+      expect(find.byType(ExpansionTile), findsNothing);
+    });
+
+    testWidgets('follows toggles made in the dialog', (tester) async {
+      await _pumpLegend(
+        tester,
+        config: const ProfileLegendConfig(hasTemperatureData: true),
+      );
+      expect(find.text('Temp'), findsOneWidget);
 
       await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
       await tester.pumpAndSettle();
+      await tester.tap(_inDialog(find.text('Temp')));
+      await tester.pumpAndSettle();
 
-      expect(_inDialog(find.text('D80 (Air)')), findsOneWidget);
-      expect(_inDialog(find.text('AL80 (EAN50)')), findsOneWidget);
+      // Only the dialog row remains once the metric is switched off.
+      expect(find.text('Temp'), findsOneWidget);
+      expect(_inDialog(find.text('Temp')), findsOneWidget);
+      expect(find.byType(LegendDash), findsNothing);
     });
+  });
+
+  group('multi-tank pressure toggles', () {
+    testWidgets(
+      'live in the dialog while the visible tanks are listed inline',
+      (tester) async {
+        await _pumpLegend(
+          tester,
+          config: const ProfileLegendConfig(
+            hasMultiTankPressure: true,
+            tanks: _testTanks,
+            tankPressures: {
+              'tank-1': [
+                TankPressurePoint(
+                  tankId: 'tank-1',
+                  timestamp: 0,
+                  pressure: 200,
+                ),
+              ],
+              'tank-2': [
+                TankPressurePoint(
+                  tankId: 'tank-2',
+                  timestamp: 0,
+                  pressure: 200,
+                ),
+              ],
+            },
+          ),
+        );
+
+        expect(find.text('D80 (Air)'), findsOneWidget);
+        expect(find.text('AL80 (EAN50)'), findsOneWidget);
+        expect(find.byIcon(Icons.check_box), findsNothing);
+
+        await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(_inDialog(find.text('D80 (Air)')), findsOneWidget);
+        expect(_inDialog(find.text('AL80 (EAN50)')), findsOneWidget);
+
+        await tester.tap(_inDialog(find.text('AL80 (EAN50)')));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(LegendDash), findsOneWidget);
+      },
+    );
   });
 }

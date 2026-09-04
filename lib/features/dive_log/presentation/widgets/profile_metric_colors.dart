@@ -9,9 +9,19 @@ import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band
 /// it follows the theme's `colorScheme.tertiary`.
 abstract final class ProfileMetricColors {
   static const Color depth = AppColors.chartDepth;
+  static const Color pressure = Colors.orange;
   static const Color heartRate = Color(0xFFF44336); // Red 500
   static const Color sac = Color(0xFF009688); // Teal 500
   static const Color ascentRateLine = Color(0xFFCDDC39); // Lime 500
+
+  /// Legend colour for the velocity-band tinting of the depth line, which has
+  /// no single line colour of its own.
+  static const Color ascentRateColors = Color(0xFF43A047); // Green 600
+
+  // Markers and event glyphs.
+  static const Color events = Color(0xFF00838F); // Cyan 800
+  static const Color maxDepth = Color(0xFF880E4F); // Pink 900
+  static const Color pressureMarkers = Color(0xFFBF360C); // Deep Orange 900
   static const Color decoStops = decoStopBandColor;
   static const Color ceiling = Color(0xFF7B1FA2); // Purple 700
   static const Color ndl = Color(0xFFFBC02D); // Yellow 700
