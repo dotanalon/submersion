@@ -1505,6 +1505,7 @@
   "preDive_item_type_check": "Checkbox",
   "preDive_item_type_value": "Recorded value",
   "preDive_item_type_equipmentSet": "Equipment set items",
+  "preDive_item_type_equipment": "Equipment item",
   "preDive_item_valueLabel": "Value label",
   "preDive_item_valueUnit": "Unit",
   "preDive_item_valueMin": "Min (warning)",
@@ -1598,6 +1599,7 @@
   "preDive_start_template": "Checklist",
   "preDive_start_equipmentSet": "Equipment set",
   "preDive_start_noEquipmentSet": "None",
+  "preDive_start_noEquipment": "None",
   "preDive_start_begin": "Begin",
   "diveLog_listPage_bottomSheet_preDiveChecklist": "Start pre-dive checklist",
   "preDive_dashboard_title": "Pre-Dive Check",
@@ -4059,6 +4061,14 @@
   "diveLog_sources_splitDialog_confirm": "Split",
   "diveLog_sources_splitDone": "Dive split",
   "diveLog_sources_splitFailed": "Split failed",
+  "diveLog_sources_menu_separate": "Separate combined dives",
+  "diveLog_sources_separateDialog_title": "Separate combined dives?",
+  "diveLog_sources_separateDialog_body": "This dive was combined from {count} dives. Each one's profile, events, tanks and gas switches move back to its own dive. The rest of the logbook entry, including buddies, tags, equipment, media, notes and the dive number, stays on this dive.",
+  "@diveLog_sources_separateDialog_body": {"placeholders": {"count": {"type": "int"}}},
+  "diveLog_sources_separateDialog_confirm": "Separate",
+  "diveLog_sources_separateDone": "{count, plural, =1{1 dive restored} other{{count} dives restored}}",
+  "@diveLog_sources_separateDone": {"placeholders": {"count": {"type": "int"}}},
+  "diveLog_sources_separateFailed": "Could not separate this dive",
   "@diveLog_sources_minutes": {
     "placeholders": {
       "count": {
@@ -9064,10 +9074,21 @@
   "settings_appearance_diveDetails_sectionOrderVisibility_subtitle": "Choose which sections appear and their order",
   "settings_diveDetailSections_title": "Section Order & Visibility",
   "settings_diveDetailSections_resetToDefault": "Reset to Default",
-  "settings_diveDetailSections_fixedSections": "Fixed sections: Header, Dive Profile Chart",
+  "settings_diveDetailSections_fixedSections": "Fixed section: Header",
   "settings_diveDetailSections_configurableSections": "Configurable sections (drag to reorder)",
-  "diveDetailSection_decoO2_name": "Deco Status / Tissue Loading",
-  "diveDetailSection_decoO2_description": "NDL, ceiling, tissue heat map, O2 toxicity",
+  "diveDetailSection_profile_name": "Dive Profile",
+  "diveDetailSection_profile_description": "Depth/time chart, playback, range selection",
+  "diveDetailSection_decoStatus_name": "Deco Status",
+  "diveDetailSection_decoStatus_description": "NDL, ceiling, stops, O2 toxicity",
+  "diveDetailSection_tissueLoading_name": "Tissue Loading",
+  "diveDetailSection_tissueLoading_description": "Per-compartment saturation and heat map",
+  "diveLog_detail_displayOptions_tooltip": "Display options",
+  "diveLog_detail_displayOptions_layout": "Layout",
+  "diveLog_detail_displayOptions_sections": "Sections",
+  "diveLog_detail_displayOptions_showAll": "Show all sections",
+  "diveLog_detail_displayOptions_reorder": "Reorder sections...",
+  "diveDetailLayout_detailed": "Detailed",
+  "diveDetailLayout_list": "List",
   "diveDetailSection_safetyReview_name": "Safety Review",
   "diveDetailSection_safetyReview_description": "Automatic post-dive profile observations",
   "safetyReview_sectionTitle": "Safety review",
@@ -12588,6 +12609,9 @@
   "universalImport_description_supportedFormats": "Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, Garmin FIT, and Shearwater Cloud databases.",
   "universalImport_dive_decideAction": "Decide",
   "universalImport_error_unsupportedFormat": "This format is not yet supported. Please export as UDDF or CSV.",
+  "universalImport_error_duplicateCheckFailed": "Duplicate detection could not run, so nothing in this list is marked as already in your logbook. Check it before importing.",
+  "universalImport_error_noColumnsToMap": "This file has no columns to map. Go back and select the file again, or choose a different source.",
+  "universalImport_error_stepFailed": "Import could not continue: {details}",
   "universalImport_label_columnMapping": "Column Mapping",
   "universalImport_label_columnsMapped": "{mapped} of {total} columns mapped",
   "universalImport_label_consolidate": "Consolidate",
@@ -12789,6 +12813,21 @@
   },
   "@universalImport_error_unsupportedFormat": {
     "description": "Error message shown when the detected file format is not supported"
+  },
+  "@universalImport_error_duplicateCheckFailed": {
+    "description": "Warning on the review step when duplicate detection failed and the incoming rows were left unmarked"
+  },
+  "@universalImport_error_noColumnsToMap": {
+    "description": "Shown on the column mapping step when the file produced no columns to map"
+  },
+  "@universalImport_error_stepFailed": {
+    "description": "Error shown when the import wizard could not advance past the current step",
+    "placeholders": {
+      "details": {
+        "type": "Object",
+        "example": "FormatException: unexpected end of input"
+      }
+    }
   },
   "@universalImport_label_columnMapping": {
     "description": "Title for the CSV column mapping step"
@@ -20066,6 +20105,16 @@
   "divePlanner_semantics_altitudeGroup": "Altitude group: {group}",
   "diveSites_import_detail_maxDepth": "Max {depth}",
   "autoUpdate_banner_download": "Download",
+  "autoUpdate_banner_packageManagerHint": "Update with: {command}",
+  "@autoUpdate_banner_packageManagerHint": {
+    "description": "Shown instead of a Download button when Submersion was installed from a .deb or .rpm, since the system package manager owns the upgrade.",
+    "placeholders": {
+      "command": {
+        "type": "String",
+        "example": "sudo apt upgrade submersion"
+      }
+    }
+  },
   "settings_cloudSync_provider_icloud_subtitle": "Sync via Apple iCloud",
   "settings_debugLog_search_hint": "Search logs...",
   "settings_debugLog_appBar_title": "Debug Logs",

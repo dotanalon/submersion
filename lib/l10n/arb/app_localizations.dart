@@ -4049,6 +4049,12 @@ abstract class AppLocalizations {
   /// **'Equipment set items'**
   String get preDive_item_type_equipmentSet;
 
+  /// No description provided for @preDive_item_type_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment item'**
+  String get preDive_item_type_equipment;
+
   /// No description provided for @preDive_item_valueLabel.
   ///
   /// In en, this message translates to:
@@ -4378,6 +4384,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None'**
   String get preDive_start_noEquipmentSet;
+
+  /// No description provided for @preDive_start_noEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get preDive_start_noEquipment;
 
   /// No description provided for @preDive_start_begin.
   ///
@@ -12940,6 +12952,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Split failed'**
   String get diveLog_sources_splitFailed;
+
+  /// No description provided for @diveLog_sources_menu_separate.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate combined dives'**
+  String get diveLog_sources_menu_separate;
+
+  /// No description provided for @diveLog_sources_separateDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate combined dives?'**
+  String get diveLog_sources_separateDialog_title;
+
+  /// No description provided for @diveLog_sources_separateDialog_body.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive was combined from {count} dives. Each one\'s profile, events, tanks and gas switches move back to its own dive. The rest of the logbook entry, including buddies, tags, equipment, media, notes and the dive number, stays on this dive.'**
+  String diveLog_sources_separateDialog_body(int count);
+
+  /// No description provided for @diveLog_sources_separateDialog_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate'**
+  String get diveLog_sources_separateDialog_confirm;
+
+  /// No description provided for @diveLog_sources_separateDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive restored} other{{count} dives restored}}'**
+  String diveLog_sources_separateDone(int count);
+
+  /// No description provided for @diveLog_sources_separateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not separate this dive'**
+  String get diveLog_sources_separateFailed;
 
   /// No description provided for @divePlanner_action_addTank.
   ///
@@ -24803,7 +24851,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_diveDetailSections_fixedSections.
   ///
   /// In en, this message translates to:
-  /// **'Fixed sections: Header, Dive Profile Chart'**
+  /// **'Fixed section: Header'**
   String get settings_diveDetailSections_fixedSections;
 
   /// No description provided for @settings_diveDetailSections_configurableSections.
@@ -24812,17 +24860,83 @@ abstract class AppLocalizations {
   /// **'Configurable sections (drag to reorder)'**
   String get settings_diveDetailSections_configurableSections;
 
-  /// No description provided for @diveDetailSection_decoO2_name.
+  /// No description provided for @diveDetailSection_profile_name.
   ///
   /// In en, this message translates to:
-  /// **'Deco Status / Tissue Loading'**
-  String get diveDetailSection_decoO2_name;
+  /// **'Dive Profile'**
+  String get diveDetailSection_profile_name;
 
-  /// No description provided for @diveDetailSection_decoO2_description.
+  /// No description provided for @diveDetailSection_profile_description.
   ///
   /// In en, this message translates to:
-  /// **'NDL, ceiling, tissue heat map, O2 toxicity'**
-  String get diveDetailSection_decoO2_description;
+  /// **'Depth/time chart, playback, range selection'**
+  String get diveDetailSection_profile_description;
+
+  /// No description provided for @diveDetailSection_decoStatus_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco Status'**
+  String get diveDetailSection_decoStatus_name;
+
+  /// No description provided for @diveDetailSection_decoStatus_description.
+  ///
+  /// In en, this message translates to:
+  /// **'NDL, ceiling, stops, O2 toxicity'**
+  String get diveDetailSection_decoStatus_description;
+
+  /// No description provided for @diveDetailSection_tissueLoading_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue Loading'**
+  String get diveDetailSection_tissueLoading_name;
+
+  /// No description provided for @diveDetailSection_tissueLoading_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Per-compartment saturation and heat map'**
+  String get diveDetailSection_tissueLoading_description;
+
+  /// No description provided for @diveLog_detail_displayOptions_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Display options'**
+  String get diveLog_detail_displayOptions_tooltip;
+
+  /// No description provided for @diveLog_detail_displayOptions_layout.
+  ///
+  /// In en, this message translates to:
+  /// **'Layout'**
+  String get diveLog_detail_displayOptions_layout;
+
+  /// No description provided for @diveLog_detail_displayOptions_sections.
+  ///
+  /// In en, this message translates to:
+  /// **'Sections'**
+  String get diveLog_detail_displayOptions_sections;
+
+  /// No description provided for @diveLog_detail_displayOptions_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all sections'**
+  String get diveLog_detail_displayOptions_showAll;
+
+  /// No description provided for @diveLog_detail_displayOptions_reorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder sections...'**
+  String get diveLog_detail_displayOptions_reorder;
+
+  /// No description provided for @diveDetailLayout_detailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed'**
+  String get diveDetailLayout_detailed;
+
+  /// No description provided for @diveDetailLayout_list.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get diveDetailLayout_list;
 
   /// No description provided for @diveDetailSection_safetyReview_name.
   ///
@@ -34381,6 +34495,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This format is not yet supported. Please export as UDDF or CSV.'**
   String get universalImport_error_unsupportedFormat;
+
+  /// Warning on the review step when duplicate detection failed and the incoming rows were left unmarked
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate detection could not run, so nothing in this list is marked as already in your logbook. Check it before importing.'**
+  String get universalImport_error_duplicateCheckFailed;
+
+  /// Shown on the column mapping step when the file produced no columns to map
+  ///
+  /// In en, this message translates to:
+  /// **'This file has no columns to map. Go back and select the file again, or choose a different source.'**
+  String get universalImport_error_noColumnsToMap;
+
+  /// Error shown when the import wizard could not advance past the current step
+  ///
+  /// In en, this message translates to:
+  /// **'Import could not continue: {details}'**
+  String universalImport_error_stepFailed(Object details);
 
   /// Title for the CSV column mapping step
   ///
@@ -55882,6 +56014,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Download'**
   String get autoUpdate_banner_download;
+
+  /// Shown instead of a Download button when Submersion was installed from a .deb or .rpm, since the system package manager owns the upgrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Update with: {command}'**
+  String autoUpdate_banner_packageManagerHint(String command);
 
   /// Subtitle of the iCloud provider tile on the Cloud Sync page.
   ///

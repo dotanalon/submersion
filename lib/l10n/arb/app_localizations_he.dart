@@ -2335,6 +2335,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_item_type_equipmentSet => 'פריטי סט ציוד';
 
   @override
+  String get preDive_item_type_equipment => 'פריט ציוד';
+
+  @override
   String get preDive_item_valueLabel => 'תווית ערך';
 
   @override
@@ -2513,6 +2516,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get preDive_start_noEquipmentSet => 'ללא';
+
+  @override
+  String get preDive_start_noEquipment => 'ללא';
 
   @override
   String get preDive_start_begin => 'התחל';
@@ -7516,6 +7522,36 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_sources_splitFailed => 'הפיצול נכשל';
+
+  @override
+  String get diveLog_sources_menu_separate => 'הפרדת צלילות ממוזגות';
+
+  @override
+  String get diveLog_sources_separateDialog_title =>
+      'להפריד את הצלילות הממוזגות?';
+
+  @override
+  String diveLog_sources_separateDialog_body(int count) {
+    return 'הצלילה הזו מוזגה מ-$count צלילות. הפרופיל, האירועים, הבלונים והחלפות הגז של כל אחת יחזרו לצלילה שלה. שאר רשומת היומן, ובכללה השותפים, התגיות, הציוד, המדיה, ההערות ומספר הצלילה, תישאר בצלילה הזו.';
+  }
+
+  @override
+  String get diveLog_sources_separateDialog_confirm => 'הפרדה';
+
+  @override
+  String diveLog_sources_separateDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות שוחזרו',
+      one: 'צלילה אחת שוחזרה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_separateFailed =>
+      'לא ניתן היה להפריד את הצלילה הזו';
 
   @override
   String get divePlanner_action_addTank => 'הוסף מיכל';
@@ -14510,19 +14546,53 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_diveDetailSections_resetToDefault => 'איפוס לברירת מחדל';
 
   @override
-  String get settings_diveDetailSections_fixedSections =>
-      'סעיפים קבועים: כותרת, תרשים פרופיל צלילה';
+  String get settings_diveDetailSections_fixedSections => 'סעיף קבוע: כותרת';
 
   @override
   String get settings_diveDetailSections_configurableSections =>
       'סעיפים הניתנים להגדרה (גרור לסידור מחדש)';
 
   @override
-  String get diveDetailSection_decoO2_name => 'סטטוס דקו / עומס רקמות';
+  String get diveDetailSection_profile_name => 'פרופיל הצלילה';
 
   @override
-  String get diveDetailSection_decoO2_description =>
-      'NDL, תקרה, מפת חום של רקמות, רעילות O2';
+  String get diveDetailSection_profile_description =>
+      'גרף עומק/זמן, נגינה, בחירת טווח';
+
+  @override
+  String get diveDetailSection_decoStatus_name => 'סטטוס דקו';
+
+  @override
+  String get diveDetailSection_decoStatus_description =>
+      'NDL, תקרה, עצירות, רעילות O2';
+
+  @override
+  String get diveDetailSection_tissueLoading_name => 'עומס רקמות';
+
+  @override
+  String get diveDetailSection_tissueLoading_description =>
+      'רוויה לפי תא ומפת חום';
+
+  @override
+  String get diveLog_detail_displayOptions_tooltip => 'אפשרויות תצוגה';
+
+  @override
+  String get diveLog_detail_displayOptions_layout => 'פריסה';
+
+  @override
+  String get diveLog_detail_displayOptions_sections => 'מקטעים';
+
+  @override
+  String get diveLog_detail_displayOptions_showAll => 'הצג את כל המקטעים';
+
+  @override
+  String get diveLog_detail_displayOptions_reorder => 'שינוי סדר המקטעים…';
+
+  @override
+  String get diveDetailLayout_detailed => 'מפורט';
+
+  @override
+  String get diveDetailLayout_list => 'רשימה';
 
   @override
   String get diveDetailSection_safetyReview_name => 'סקירת בטיחות';
@@ -20305,6 +20375,19 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get universalImport_error_unsupportedFormat =>
       'פורמט זה אינו נתמך עדיין. נא לייצא כ-UDDF או CSV.';
+
+  @override
+  String get universalImport_error_duplicateCheckFailed =>
+      'לא ניתן היה להריץ זיהוי כפילויות, ולכן שום פריט ברשימה הזו אינו מסומן כקיים כבר ביומן. בדוק את הרשימה לפני הייבוא.';
+
+  @override
+  String get universalImport_error_noColumnsToMap =>
+      'לקובץ הזה אין עמודות למיפוי. חזור אחורה ובחר את הקובץ שוב, או בחר מקור אחר.';
+
+  @override
+  String universalImport_error_stepFailed(Object details) {
+    return 'לא ניתן להמשיך בייבוא: $details';
+  }
 
   @override
   String get universalImport_label_columnMapping => 'מיפוי עמודות';
@@ -33237,6 +33320,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get autoUpdate_banner_download => 'הורדה';
+
+  @override
+  String autoUpdate_banner_packageManagerHint(String command) {
+    return 'עדכן עם: $command';
+  }
 
   @override
   String get settings_cloudSync_provider_icloud_subtitle =>

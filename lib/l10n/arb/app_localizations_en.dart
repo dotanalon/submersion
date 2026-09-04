@@ -2360,6 +2360,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get preDive_item_type_equipmentSet => 'Equipment set items';
 
   @override
+  String get preDive_item_type_equipment => 'Equipment item';
+
+  @override
   String get preDive_item_valueLabel => 'Value label';
 
   @override
@@ -2535,6 +2538,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get preDive_start_noEquipmentSet => 'None';
+
+  @override
+  String get preDive_start_noEquipment => 'None';
 
   @override
   String get preDive_start_begin => 'Begin';
@@ -7570,6 +7576,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_sources_splitFailed => 'Split failed';
+
+  @override
+  String get diveLog_sources_menu_separate => 'Separate combined dives';
+
+  @override
+  String get diveLog_sources_separateDialog_title => 'Separate combined dives?';
+
+  @override
+  String diveLog_sources_separateDialog_body(int count) {
+    return 'This dive was combined from $count dives. Each one\'s profile, events, tanks and gas switches move back to its own dive. The rest of the logbook entry, including buddies, tags, equipment, media, notes and the dive number, stays on this dive.';
+  }
+
+  @override
+  String get diveLog_sources_separateDialog_confirm => 'Separate';
+
+  @override
+  String diveLog_sources_separateDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives restored',
+      one: '1 dive restored',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_separateFailed => 'Could not separate this dive';
 
   @override
   String get divePlanner_action_addTank => 'Add Tank';
@@ -14632,18 +14666,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_diveDetailSections_fixedSections =>
-      'Fixed sections: Header, Dive Profile Chart';
+      'Fixed section: Header';
 
   @override
   String get settings_diveDetailSections_configurableSections =>
       'Configurable sections (drag to reorder)';
 
   @override
-  String get diveDetailSection_decoO2_name => 'Deco Status / Tissue Loading';
+  String get diveDetailSection_profile_name => 'Dive Profile';
 
   @override
-  String get diveDetailSection_decoO2_description =>
-      'NDL, ceiling, tissue heat map, O2 toxicity';
+  String get diveDetailSection_profile_description =>
+      'Depth/time chart, playback, range selection';
+
+  @override
+  String get diveDetailSection_decoStatus_name => 'Deco Status';
+
+  @override
+  String get diveDetailSection_decoStatus_description =>
+      'NDL, ceiling, stops, O2 toxicity';
+
+  @override
+  String get diveDetailSection_tissueLoading_name => 'Tissue Loading';
+
+  @override
+  String get diveDetailSection_tissueLoading_description =>
+      'Per-compartment saturation and heat map';
+
+  @override
+  String get diveLog_detail_displayOptions_tooltip => 'Display options';
+
+  @override
+  String get diveLog_detail_displayOptions_layout => 'Layout';
+
+  @override
+  String get diveLog_detail_displayOptions_sections => 'Sections';
+
+  @override
+  String get diveLog_detail_displayOptions_showAll => 'Show all sections';
+
+  @override
+  String get diveLog_detail_displayOptions_reorder => 'Reorder sections...';
+
+  @override
+  String get diveDetailLayout_detailed => 'Detailed';
+
+  @override
+  String get diveDetailLayout_list => 'List';
 
   @override
   String get diveDetailSection_safetyReview_name => 'Safety Review';
@@ -20476,6 +20545,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get universalImport_error_unsupportedFormat =>
       'This format is not yet supported. Please export as UDDF or CSV.';
+
+  @override
+  String get universalImport_error_duplicateCheckFailed =>
+      'Duplicate detection could not run, so nothing in this list is marked as already in your logbook. Check it before importing.';
+
+  @override
+  String get universalImport_error_noColumnsToMap =>
+      'This file has no columns to map. Go back and select the file again, or choose a different source.';
+
+  @override
+  String universalImport_error_stepFailed(Object details) {
+    return 'Import could not continue: $details';
+  }
 
   @override
   String get universalImport_label_columnMapping => 'Column Mapping';
@@ -33403,6 +33485,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get autoUpdate_banner_download => 'Download';
+
+  @override
+  String autoUpdate_banner_packageManagerHint(String command) {
+    return 'Update with: $command';
+  }
 
   @override
   String get settings_cloudSync_provider_icloud_subtitle =>

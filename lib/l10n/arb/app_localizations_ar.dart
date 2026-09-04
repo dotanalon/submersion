@@ -2356,6 +2356,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_item_type_equipmentSet => 'عناصر طقم المعدات';
 
   @override
+  String get preDive_item_type_equipment => 'عنصر معدات';
+
+  @override
   String get preDive_item_valueLabel => 'تسمية القيمة';
 
   @override
@@ -2534,6 +2537,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get preDive_start_noEquipmentSet => 'بدون';
+
+  @override
+  String get preDive_start_noEquipment => 'بدون';
 
   @override
   String get preDive_start_begin => 'بدء';
@@ -7556,6 +7562,34 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_sources_splitFailed => 'فشل الفصل';
+
+  @override
+  String get diveLog_sources_menu_separate => 'فصل الغوصات المدمجة';
+
+  @override
+  String get diveLog_sources_separateDialog_title => 'فصل الغوصات المدمجة؟';
+
+  @override
+  String diveLog_sources_separateDialog_body(int count) {
+    return 'تم دمج هذه الغوصة من $count غوصات. يعود ملف كل غوصة وأحداثها وأسطواناتها وتبديلات الغاز إلى غوصتها الخاصة. أما بقية بيانات السجل، بما فيها رفقاء الغوص والوسوم والمعدات والوسائط والملاحظات ورقم الغوصة، فتبقى في هذه الغوصة.';
+  }
+
+  @override
+  String get diveLog_sources_separateDialog_confirm => 'فصل';
+
+  @override
+  String diveLog_sources_separateDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت استعادة $count غوصات',
+      one: 'تمت استعادة غوصة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_separateFailed => 'تعذّر فصل هذه الغوصة';
 
   @override
   String get divePlanner_action_addTank => 'إضافة أسطوانة';
@@ -14610,20 +14644,53 @@ class AppLocalizationsAr extends AppLocalizations {
       'إعادة تعيين إلى الافتراضي';
 
   @override
-  String get settings_diveDetailSections_fixedSections =>
-      'الأقسام الثابتة: الرأس، مخطط ملف الغوصة';
+  String get settings_diveDetailSections_fixedSections => 'القسم الثابت: الرأس';
 
   @override
   String get settings_diveDetailSections_configurableSections =>
       'الأقسام القابلة للتخصيص (اسحب لإعادة الترتيب)';
 
   @override
-  String get diveDetailSection_decoO2_name =>
-      'حالة تخفيف الضغط / تحميل الأنسجة';
+  String get diveDetailSection_profile_name => 'مخطط الغطسة';
 
   @override
-  String get diveDetailSection_decoO2_description =>
-      'NDL، السقف، خريطة حرارة الأنسجة، سمية O2';
+  String get diveDetailSection_profile_description =>
+      'مخطط العمق/الزمن، التشغيل، تحديد النطاق';
+
+  @override
+  String get diveDetailSection_decoStatus_name => 'حالة تخفيف الضغط';
+
+  @override
+  String get diveDetailSection_decoStatus_description =>
+      'NDL، السقف، محطات التوقف، سمية O2';
+
+  @override
+  String get diveDetailSection_tissueLoading_name => 'تحميل الأنسجة';
+
+  @override
+  String get diveDetailSection_tissueLoading_description =>
+      'التشبع لكل حجيرة وخريطة حرارية';
+
+  @override
+  String get diveLog_detail_displayOptions_tooltip => 'خيارات العرض';
+
+  @override
+  String get diveLog_detail_displayOptions_layout => 'التخطيط';
+
+  @override
+  String get diveLog_detail_displayOptions_sections => 'الأقسام';
+
+  @override
+  String get diveLog_detail_displayOptions_showAll => 'إظهار جميع الأقسام';
+
+  @override
+  String get diveLog_detail_displayOptions_reorder => 'إعادة ترتيب الأقسام…';
+
+  @override
+  String get diveDetailLayout_detailed => 'مفصّل';
+
+  @override
+  String get diveDetailLayout_list => 'قائمة';
 
   @override
   String get diveDetailSection_safetyReview_name => 'مراجعة السلامة';
@@ -20450,6 +20517,19 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_error_unsupportedFormat =>
       'هذه الصيغة غير مدعومة بعد. يرجى التصدير كـ UDDF أو CSV.';
+
+  @override
+  String get universalImport_error_duplicateCheckFailed =>
+      'تعذّر تشغيل كشف التكرارات، لذلك لم يُوسم أي عنصر في هذه القائمة بأنه موجود مسبقًا في سجلك. راجع القائمة قبل الاستيراد.';
+
+  @override
+  String get universalImport_error_noColumnsToMap =>
+      'لا يحتوي هذا الملف على أعمدة لربطها. ارجع واختر الملف مرة أخرى، أو اختر مصدرًا آخر.';
+
+  @override
+  String universalImport_error_stepFailed(Object details) {
+    return 'تعذّر متابعة الاستيراد: $details';
+  }
 
   @override
   String get universalImport_label_columnMapping => 'تعيين الأعمدة';
@@ -33546,6 +33626,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get autoUpdate_banner_download => 'تنزيل';
+
+  @override
+  String autoUpdate_banner_packageManagerHint(String command) {
+    return 'حدّث باستخدام: $command';
+  }
 
   @override
   String get settings_cloudSync_provider_icloud_subtitle =>

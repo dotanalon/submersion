@@ -2393,6 +2393,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get preDive_item_type_equipmentSet => 'Felszereléskészlet tételei';
 
   @override
+  String get preDive_item_type_equipment => 'Felszerelési tétel';
+
+  @override
   String get preDive_item_valueLabel => 'Érték címkéje';
 
   @override
@@ -2574,6 +2577,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get preDive_start_noEquipmentSet => 'Nincs';
+
+  @override
+  String get preDive_start_noEquipment => 'Nincs';
 
   @override
   String get preDive_start_begin => 'Kezdés';
@@ -7688,6 +7694,37 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_sources_splitFailed => 'A szétválasztás sikertelen';
+
+  @override
+  String get diveLog_sources_menu_separate =>
+      'Összevont merülések szétválasztása';
+
+  @override
+  String get diveLog_sources_separateDialog_title =>
+      'Szétválasztja az összevont merüléseket?';
+
+  @override
+  String diveLog_sources_separateDialog_body(int count) {
+    return 'Ez a merülés $count merülésből lett összevonva. Mindegyik profilja, eseményei, palackjai és gázváltásai visszakerülnek a saját merülésükbe. A naplóbejegyzés többi része, köztük a búvártársak, a cimkék, a felszerelés, a médiafájlok, a jegyzetek és a merülés száma, ezen a merülésen marad.';
+  }
+
+  @override
+  String get diveLog_sources_separateDialog_confirm => 'Szétválasztás';
+
+  @override
+  String diveLog_sources_separateDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés helyreállítva',
+      one: '1 merülés helyreállítva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_separateFailed =>
+      'Nem sikerült szétválasztani ezt a merülést';
 
   @override
   String get divePlanner_action_addTank => 'Palack hozzáadása';
@@ -14824,18 +14861,55 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_diveDetailSections_fixedSections =>
-      'Rögzített szekciók: Fejléc, Merülési profil grafikon';
+      'Rögzített szekció: Fejléc';
 
   @override
   String get settings_diveDetailSections_configurableSections =>
       'Konfigurálható szekciók (húzással rendezhető)';
 
   @override
-  String get diveDetailSection_decoO2_name => 'Deko állapot / Szövetterhelés';
+  String get diveDetailSection_profile_name => 'Merülési profil';
 
   @override
-  String get diveDetailSection_decoO2_description =>
-      'NDL, plafon, szövet hőtérkép, O2 toxicitás';
+  String get diveDetailSection_profile_description =>
+      'Mélység-/idődiagram, lejátszás, tartománykijelölés';
+
+  @override
+  String get diveDetailSection_decoStatus_name => 'Deko állapot';
+
+  @override
+  String get diveDetailSection_decoStatus_description =>
+      'NDL, plafon, megállók, O2-toxicitás';
+
+  @override
+  String get diveDetailSection_tissueLoading_name => 'Szövetterhelés';
+
+  @override
+  String get diveDetailSection_tissueLoading_description =>
+      'Kompartmentenkénti telítettség és hőtérkép';
+
+  @override
+  String get diveLog_detail_displayOptions_tooltip =>
+      'Megjelenítési beállítások';
+
+  @override
+  String get diveLog_detail_displayOptions_layout => 'Elrendezés';
+
+  @override
+  String get diveLog_detail_displayOptions_sections => 'Szakaszok';
+
+  @override
+  String get diveLog_detail_displayOptions_showAll =>
+      'Minden szakasz megjelenítése';
+
+  @override
+  String get diveLog_detail_displayOptions_reorder => 'Szakaszok átrendezése…';
+
+  @override
+  String get diveDetailLayout_detailed => 'Részletes';
+
+  @override
+  String get diveDetailLayout_list => 'Lista';
 
   @override
   String get diveDetailSection_safetyReview_name => 'Biztonsági áttekintés';
@@ -20764,6 +20838,19 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get universalImport_error_unsupportedFormat =>
       'Ez a formátum még nem támogatott. Exportálj UDDF vagy CSV formátumban.';
+
+  @override
+  String get universalImport_error_duplicateCheckFailed =>
+      'A duplikátumkeresés nem futott le, ezért ebben a listában semmi nincs megjelölve úgy, hogy már szerepel a naplóban. Importálás előtt ellenőrizd a listát.';
+
+  @override
+  String get universalImport_error_noColumnsToMap =>
+      'Ebben a fájlban nincsenek megfeleltethető oszlopok. Lépj vissza, és válaszd ki újra a fájlt, vagy válassz másik forrást.';
+
+  @override
+  String universalImport_error_stepFailed(Object details) {
+    return 'Az importálás nem folytatható: $details';
+  }
 
   @override
   String get universalImport_label_columnMapping => 'Oszlop leképezés';
@@ -33745,6 +33832,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get autoUpdate_banner_download => 'Letöltés';
+
+  @override
+  String autoUpdate_banner_packageManagerHint(String command) {
+    return 'Frissítés: $command';
+  }
 
   @override
   String get settings_cloudSync_provider_icloud_subtitle =>

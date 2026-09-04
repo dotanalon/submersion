@@ -29,9 +29,13 @@ const _columns = {
 };
 
 void main() {
-  test('v185 is the current schema version and is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 185);
-    expect(AppDatabase.migrationVersions, contains(185));
+  test('v188 is the current schema version and is in the ladder', () {
+    // Renumbered from v185 (itself renumbered from v184): main landed the
+    // dive_detail_layout, template-item-equipment and
+    // session-item-overdue-services rungs at 185-187 while this branch was
+    // open.
+    expect(AppDatabase.currentSchemaVersion, 188);
+    expect(AppDatabase.migrationVersions, contains(188));
   });
 
   test('a fresh database has both dive_plans ascent-rate columns', () async {
@@ -65,7 +69,7 @@ void main() {
   });
 
   test(
-    'a database stranded before v185 gains the columns via beforeOpen',
+    'a database stranded before v188 gains the columns via beforeOpen',
     () async {
       final nativeDb = NativeDatabase.memory(
         setup: (rawDb) {

@@ -2390,6 +2390,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get preDive_item_type_equipmentSet => 'Items uit uitrustingsset';
 
   @override
+  String get preDive_item_type_equipment => 'Uitrustingsonderdeel';
+
+  @override
   String get preDive_item_valueLabel => 'Waardelabel';
 
   @override
@@ -2567,6 +2570,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get preDive_start_noEquipmentSet => 'Geen';
+
+  @override
+  String get preDive_start_noEquipment => 'Geen';
 
   @override
   String get preDive_start_begin => 'Beginnen';
@@ -7650,6 +7656,35 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_sources_splitFailed => 'Splitsen mislukt';
+
+  @override
+  String get diveLog_sources_menu_separate => 'Samengevoegde duiken scheiden';
+
+  @override
+  String get diveLog_sources_separateDialog_title =>
+      'Samengevoegde duiken scheiden?';
+
+  @override
+  String diveLog_sources_separateDialog_body(int count) {
+    return 'Deze duik is samengevoegd uit $count duiken. Het profiel, de gebeurtenissen, de flessen en de gaswissels van elke duik gaan terug naar hun eigen duik. De rest van de logboekvermelding, waaronder buddy\'s, tags, uitrusting, media, notities en het duiknummer, blijft bij deze duik.';
+  }
+
+  @override
+  String get diveLog_sources_separateDialog_confirm => 'Scheiden';
+
+  @override
+  String diveLog_sources_separateDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken hersteld',
+      one: '1 duik hersteld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_separateFailed => 'Kon deze duik niet scheiden';
 
   @override
   String get divePlanner_action_addTank => 'Fles toevoegen';
@@ -14767,18 +14802,53 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_diveDetailSections_fixedSections =>
-      'Vaste secties: koptekst, duikprofielgrafiek';
+      'Vaste sectie: koptekst';
 
   @override
   String get settings_diveDetailSections_configurableSections =>
       'Configureerbare secties (sleep om te herordenen)';
 
   @override
-  String get diveDetailSection_decoO2_name => 'Deco-status / weefselbelasting';
+  String get diveDetailSection_profile_name => 'Duikprofiel';
 
   @override
-  String get diveDetailSection_decoO2_description =>
-      'NDL, plafond, weefsel-heatmap, O2-toxiciteit';
+  String get diveDetailSection_profile_description =>
+      'Diepte-/tijdgrafiek, afspelen, bereikselectie';
+
+  @override
+  String get diveDetailSection_decoStatus_name => 'Decostatus';
+
+  @override
+  String get diveDetailSection_decoStatus_description =>
+      'NDL, plafond, stops, O2-toxiciteit';
+
+  @override
+  String get diveDetailSection_tissueLoading_name => 'Weefselbelasting';
+
+  @override
+  String get diveDetailSection_tissueLoading_description =>
+      'Verzadiging per compartiment en heatmap';
+
+  @override
+  String get diveLog_detail_displayOptions_tooltip => 'Weergaveopties';
+
+  @override
+  String get diveLog_detail_displayOptions_layout => 'Lay-out';
+
+  @override
+  String get diveLog_detail_displayOptions_sections => 'Secties';
+
+  @override
+  String get diveLog_detail_displayOptions_showAll => 'Alle secties tonen';
+
+  @override
+  String get diveLog_detail_displayOptions_reorder => 'Secties herschikken…';
+
+  @override
+  String get diveDetailLayout_detailed => 'Gedetailleerd';
+
+  @override
+  String get diveDetailLayout_list => 'Lijst';
 
   @override
   String get diveDetailSection_safetyReview_name => 'Veiligheidscontrole';
@@ -20663,6 +20733,19 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get universalImport_error_unsupportedFormat =>
       'Dit formaat wordt nog niet ondersteund. Exporteer als UDDF of CSV.';
+
+  @override
+  String get universalImport_error_duplicateCheckFailed =>
+      'Duplicaatdetectie kon niet worden uitgevoerd, dus niets in deze lijst is gemarkeerd als al aanwezig in je logboek. Controleer de lijst voordat je importeert.';
+
+  @override
+  String get universalImport_error_noColumnsToMap =>
+      'Dit bestand heeft geen kolommen om toe te wijzen. Ga terug en selecteer het bestand opnieuw, of kies een andere bron.';
+
+  @override
+  String universalImport_error_stepFailed(Object details) {
+    return 'Importeren kon niet doorgaan: $details';
+  }
 
   @override
   String get universalImport_label_columnMapping => 'Kolomtoewijzing';
@@ -33670,6 +33753,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get autoUpdate_banner_download => 'Downloaden';
+
+  @override
+  String autoUpdate_banner_packageManagerHint(String command) {
+    return 'Bijwerken met: $command';
+  }
 
   @override
   String get settings_cloudSync_provider_icloud_subtitle =>

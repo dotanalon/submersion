@@ -2413,6 +2413,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Einträge aus dem Ausrüstungsset';
 
   @override
+  String get preDive_item_type_equipment => 'Ausrüstungsteil';
+
+  @override
   String get preDive_item_valueLabel => 'Wertbezeichnung';
 
   @override
@@ -2592,6 +2595,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get preDive_start_noEquipmentSet => 'Keines';
+
+  @override
+  String get preDive_start_noEquipment => 'Keines';
 
   @override
   String get preDive_start_begin => 'Beginnen';
@@ -7705,6 +7711,36 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_sources_splitFailed => 'Aufteilen fehlgeschlagen';
+
+  @override
+  String get diveLog_sources_menu_separate => 'Kombinierte Tauchgänge trennen';
+
+  @override
+  String get diveLog_sources_separateDialog_title =>
+      'Kombinierte Tauchgänge trennen?';
+
+  @override
+  String diveLog_sources_separateDialog_body(int count) {
+    return 'Dieser Tauchgang wurde aus $count Tauchgängen kombiniert. Profil, Ereignisse, Flaschen und Gaswechsel jedes einzelnen wandern zurück in seinen eigenen Tauchgang. Der Rest des Logbucheintrags, darunter Tauchpartner, Tags, Ausrüstung, Medien, Notizen und die Tauchgangsnummer, bleibt bei diesem Tauchgang.';
+  }
+
+  @override
+  String get diveLog_sources_separateDialog_confirm => 'Trennen';
+
+  @override
+  String diveLog_sources_separateDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge wiederhergestellt',
+      one: '1 Tauchgang wiederhergestellt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_separateFailed =>
+      'Dieser Tauchgang konnte nicht getrennt werden';
 
   @override
   String get divePlanner_action_addTank => 'Flasche hinzufügen';
@@ -14860,18 +14896,54 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_diveDetailSections_fixedSections =>
-      'Feste Abschnitte: Kopfzeile, Tauchprofil-Diagramm';
+      'Fester Abschnitt: Kopfzeile';
 
   @override
   String get settings_diveDetailSections_configurableSections =>
       'Konfigurierbare Abschnitte (zum Neuanordnen ziehen)';
 
   @override
-  String get diveDetailSection_decoO2_name => 'Deko-Status / Gewebsauslastung';
+  String get diveDetailSection_profile_name => 'Tauchprofil';
 
   @override
-  String get diveDetailSection_decoO2_description =>
-      'NDL, Ceiling, Gewebsauslastung, O2-Toxizität';
+  String get diveDetailSection_profile_description =>
+      'Tiefen-/Zeitdiagramm, Wiedergabe, Bereichsauswahl';
+
+  @override
+  String get diveDetailSection_decoStatus_name => 'Deko-Status';
+
+  @override
+  String get diveDetailSection_decoStatus_description =>
+      'NDL, Ceiling, Stopps, O2-Toxizität';
+
+  @override
+  String get diveDetailSection_tissueLoading_name => 'Gewebsauslastung';
+
+  @override
+  String get diveDetailSection_tissueLoading_description =>
+      'Sättigung je Kompartiment und Heatmap';
+
+  @override
+  String get diveLog_detail_displayOptions_tooltip => 'Anzeigeoptionen';
+
+  @override
+  String get diveLog_detail_displayOptions_layout => 'Layout';
+
+  @override
+  String get diveLog_detail_displayOptions_sections => 'Abschnitte';
+
+  @override
+  String get diveLog_detail_displayOptions_showAll =>
+      'Alle Abschnitte anzeigen';
+
+  @override
+  String get diveLog_detail_displayOptions_reorder => 'Abschnitte neu ordnen …';
+
+  @override
+  String get diveDetailLayout_detailed => 'Detailliert';
+
+  @override
+  String get diveDetailLayout_list => 'Liste';
 
   @override
   String get diveDetailSection_safetyReview_name => 'Sicherheitsüberprüfung';
@@ -20785,6 +20857,19 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get universalImport_error_unsupportedFormat =>
       'Dieses Format wird noch nicht unterstützt. Bitte exportieren Sie als UDDF oder CSV.';
+
+  @override
+  String get universalImport_error_duplicateCheckFailed =>
+      'Die Duplikaterkennung konnte nicht ausgeführt werden. Daher ist in dieser Liste nichts als bereits im Logbuch vorhanden markiert. Prüfen Sie sie vor dem Import.';
+
+  @override
+  String get universalImport_error_noColumnsToMap =>
+      'Diese Datei enthält keine zuzuordnenden Spalten. Gehen Sie zurück und wählen Sie die Datei erneut oder eine andere Quelle.';
+
+  @override
+  String universalImport_error_stepFailed(Object details) {
+    return 'Import konnte nicht fortgesetzt werden: $details';
+  }
 
   @override
   String get universalImport_label_columnMapping => 'Spaltenzuordnung';
@@ -33826,6 +33911,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get autoUpdate_banner_download => 'Herunterladen';
+
+  @override
+  String autoUpdate_banner_packageManagerHint(String command) {
+    return 'Aktualisieren mit: $command';
+  }
 
   @override
   String get settings_cloudSync_provider_icloud_subtitle =>

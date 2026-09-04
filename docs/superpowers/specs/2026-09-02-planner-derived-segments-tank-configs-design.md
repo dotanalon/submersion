@@ -979,7 +979,7 @@ would have been costed as travel-to-first-stop. The analyzer's
 
 ### Persistence
 
-Schema 183 -> 184: `dive_plans.intermediate_ascent_rate`,
+Schema 187 -> 188: `dive_plans.intermediate_ascent_rate`,
 `shallow_ascent_rate` and `final_ascent_rate`, all NOT NULL with the standard
 defaults, following the idempotent `_assertPlanAscentRateColumns` pattern
 (PRAGMA-guarded helper called from both the ladder rung and the `beforeOpen`
@@ -1320,13 +1320,14 @@ present - so the swap must arrive with tests that would have caught it:
   stops to leave from, stop time falling when the ascent itself decompresses,
   and setting all four bands equal reproducing the old single-rate arithmetic
   exactly.
-- `test/core/database/migration_v185_plan_ascent_rates_test.dart` - all three
+- `test/core/database/migration_v188_plan_ascent_rates_test.dart` - all three
   columns on a fresh database, NOT NULL with the standard defaults pinned by
   value (a wrong default silently rewrites every saved plan's schedule), the
-  `beforeOpen` backstop healing a database stranded before v185, and the
+  `beforeOpen` backstop healing a database stranded before v188, and the
   helper no-opping when the table is absent. Mirrors the v156 travel-gas
-  test. Renumbered from v184: main landed the merge_source_slot marker
-  (issue #1451) at that rung while this branch was open.
+  test. Renumbered from v185 (itself renumbered from v184): main landed the
+  dive_detail_layout, template-item-equipment and
+  session-item-overdue-services rungs at 185-187 while this branch was open.
 
 **Part E - the deco core**
 

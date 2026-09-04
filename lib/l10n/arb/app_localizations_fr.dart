@@ -2413,6 +2413,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Éléments de l\'ensemble d\'équipement';
 
   @override
+  String get preDive_item_type_equipment => 'Élément d\'équipement';
+
+  @override
   String get preDive_item_valueLabel => 'Libellé de la valeur';
 
   @override
@@ -2592,6 +2595,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get preDive_start_noEquipmentSet => 'Aucun';
+
+  @override
+  String get preDive_start_noEquipment => 'Aucun';
 
   @override
   String get preDive_start_begin => 'Commencer';
@@ -7742,6 +7748,36 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_sources_splitFailed => 'Échec de la scission';
+
+  @override
+  String get diveLog_sources_menu_separate => 'Séparer les plongées combinées';
+
+  @override
+  String get diveLog_sources_separateDialog_title =>
+      'Séparer les plongées combinées ?';
+
+  @override
+  String diveLog_sources_separateDialog_body(int count) {
+    return 'Cette plongée a été combinée à partir de $count plongées. Le profil, les événements, les blocs et les changements de gaz de chacune retournent dans leur propre plongée. Le reste du carnet, dont les binômes, les tags, le matériel, les médias, les notes et le numéro de plongée, reste sur cette plongée.';
+  }
+
+  @override
+  String get diveLog_sources_separateDialog_confirm => 'Séparer';
+
+  @override
+  String diveLog_sources_separateDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées restaurées',
+      one: '1 plongée restaurée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_separateFailed =>
+      'Impossible de séparer cette plongée';
 
   @override
   String get divePlanner_action_addTank => 'Ajouter une bouteille';
@@ -14927,19 +14963,55 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_diveDetailSections_fixedSections =>
-      'Sections fixes : En-tete, Graphique du profil de plongee';
+      'Section fixe : En-tete';
 
   @override
   String get settings_diveDetailSections_configurableSections =>
       'Sections configurables (glisser pour reordonner)';
 
   @override
-  String get diveDetailSection_decoO2_name =>
-      'Statut deco / Saturation des tissues';
+  String get diveDetailSection_profile_name => 'Profil de plongée';
 
   @override
-  String get diveDetailSection_decoO2_description =>
-      'NDL, plafond, carte thermique des tissues, toxicite O2';
+  String get diveDetailSection_profile_description =>
+      'Graphique profondeur/temps, lecture, sélection de plage';
+
+  @override
+  String get diveDetailSection_decoStatus_name => 'Statut déco';
+
+  @override
+  String get diveDetailSection_decoStatus_description =>
+      'NDL, plafond, paliers, toxicité O2';
+
+  @override
+  String get diveDetailSection_tissueLoading_name => 'Charge tissulaire';
+
+  @override
+  String get diveDetailSection_tissueLoading_description =>
+      'Saturation par compartiment et carte thermique';
+
+  @override
+  String get diveLog_detail_displayOptions_tooltip => 'Options d\'affichage';
+
+  @override
+  String get diveLog_detail_displayOptions_layout => 'Disposition';
+
+  @override
+  String get diveLog_detail_displayOptions_sections => 'Sections';
+
+  @override
+  String get diveLog_detail_displayOptions_showAll =>
+      'Afficher toutes les sections';
+
+  @override
+  String get diveLog_detail_displayOptions_reorder =>
+      'Réorganiser les sections…';
+
+  @override
+  String get diveDetailLayout_detailed => 'Détaillé';
+
+  @override
+  String get diveDetailLayout_list => 'Liste';
 
   @override
   String get diveDetailSection_safetyReview_name => 'Bilan de sécurité';
@@ -20914,6 +20986,19 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get universalImport_error_unsupportedFormat =>
       'Ce format n\'est pas encore pris en charge. Veuillez exporter en UDDF ou CSV.';
+
+  @override
+  String get universalImport_error_duplicateCheckFailed =>
+      'La détection des doublons n\'a pas pu s\'exécuter : rien dans cette liste n\'est signalé comme déjà présent dans votre carnet. Vérifiez-la avant d\'importer.';
+
+  @override
+  String get universalImport_error_noColumnsToMap =>
+      'Ce fichier ne contient aucune colonne à associer. Revenez en arrière et sélectionnez à nouveau le fichier, ou choisissez une autre source.';
+
+  @override
+  String universalImport_error_stepFailed(Object details) {
+    return 'L\'importation n\'a pas pu continuer : $details';
+  }
 
   @override
   String get universalImport_label_columnMapping => 'Mappage des colonnes';
@@ -33986,6 +34071,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get autoUpdate_banner_download => 'Télécharger';
+
+  @override
+  String autoUpdate_banner_packageManagerHint(String command) {
+    return 'Mettre à jour avec : $command';
+  }
 
   @override
   String get settings_cloudSync_provider_icloud_subtitle =>

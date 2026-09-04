@@ -2266,6 +2266,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get preDive_item_type_equipmentSet => '装备套装事项';
 
   @override
+  String get preDive_item_type_equipment => '装备项目';
+
+  @override
   String get preDive_item_valueLabel => '数值标签';
 
   @override
@@ -2439,6 +2442,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get preDive_start_noEquipmentSet => '无';
+
+  @override
+  String get preDive_start_noEquipment => '无';
 
   @override
   String get preDive_start_begin => '开始';
@@ -7339,6 +7345,34 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_sources_splitFailed => '拆分失败';
+
+  @override
+  String get diveLog_sources_menu_separate => '拆分合并的潜水';
+
+  @override
+  String get diveLog_sources_separateDialog_title => '要拆分合并的潜水吗？';
+
+  @override
+  String diveLog_sources_separateDialog_body(int count) {
+    return '本次潜水由 $count 次潜水合并而成。每次潜水的剖面、事件、气瓶和换气记录都会回到各自的潜水中。日志条目的其余部分，包括潜伴、标签、装备、媒体、备注和潜水编号，仍保留在本次潜水中。';
+  }
+
+  @override
+  String get diveLog_sources_separateDialog_confirm => '拆分';
+
+  @override
+  String diveLog_sources_separateDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已恢复 $count 次潜水',
+      one: '已恢复 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_separateFailed => '无法拆分这次潜水';
 
   @override
   String get divePlanner_action_addTank => '添加气瓶';
@@ -14164,17 +14198,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_diveDetailSections_resetToDefault => '恢复默认';
 
   @override
-  String get settings_diveDetailSections_fixedSections => '固定区块：头部信息、潜水轮廓图';
+  String get settings_diveDetailSections_fixedSections => '固定区块：头部信息';
 
   @override
   String get settings_diveDetailSections_configurableSections =>
       '可配置区块（拖动以重新排序）';
 
   @override
-  String get diveDetailSection_decoO2_name => '减压状态 / 组织负荷';
+  String get diveDetailSection_profile_name => '潜水曲线';
 
   @override
-  String get diveDetailSection_decoO2_description => '免减压极限、上限深度、组织热力图、氧气毒性';
+  String get diveDetailSection_profile_description => '深度/时间图表、回放、区间选择';
+
+  @override
+  String get diveDetailSection_decoStatus_name => '减压状态';
+
+  @override
+  String get diveDetailSection_decoStatus_description => '免减压极限、上限深度、减压停留、氧气毒性';
+
+  @override
+  String get diveDetailSection_tissueLoading_name => '组织负荷';
+
+  @override
+  String get diveDetailSection_tissueLoading_description => '各组织仓饱和度与热力图';
+
+  @override
+  String get diveLog_detail_displayOptions_tooltip => '显示选项';
+
+  @override
+  String get diveLog_detail_displayOptions_layout => '布局';
+
+  @override
+  String get diveLog_detail_displayOptions_sections => '分区';
+
+  @override
+  String get diveLog_detail_displayOptions_showAll => '显示所有分区';
+
+  @override
+  String get diveLog_detail_displayOptions_reorder => '重新排序分区…';
+
+  @override
+  String get diveDetailLayout_detailed => '详细';
+
+  @override
+  String get diveDetailLayout_list => '列表';
 
   @override
   String get diveDetailSection_safetyReview_name => '安全回顾';
@@ -19742,6 +19809,19 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get universalImport_error_unsupportedFormat =>
       '暂不支持此格式。请导出为 UDDF 或 CSV。';
+
+  @override
+  String get universalImport_error_duplicateCheckFailed =>
+      '重复检测未能运行，因此此列表中没有任何条目被标记为日志中已存在。导入前请先核对列表。';
+
+  @override
+  String get universalImport_error_noColumnsToMap =>
+      '此文件没有可映射的列。请返回重新选择文件，或改用其他来源。';
+
+  @override
+  String universalImport_error_stepFailed(Object details) {
+    return '导入无法继续：$details';
+  }
 
   @override
   String get universalImport_label_columnMapping => '列映射';
@@ -31927,6 +32007,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get autoUpdate_banner_download => '下载';
+
+  @override
+  String autoUpdate_banner_packageManagerHint(String command) {
+    return '更新命令：$command';
+  }
 
   @override
   String get settings_cloudSync_provider_icloud_subtitle =>
