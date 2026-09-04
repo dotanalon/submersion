@@ -153,6 +153,20 @@ class MainTests(unittest.TestCase):
             ok, _ = check_test_timings.check(test_dir, timings_path)
             self.assertTrue(ok)
 
+    def test_main_reports_malformed_json(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            test_dir = os.path.join(tmp, "test")
+            _make_test_tree(test_dir, ["a_test.dart"])
+            timings_path = os.path.join(tmp, "timings.json")
+            with open(timings_path, "w") as fh:
+                fh.write("{not valid json")
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                rc = guard.main(["prog", test_dir, timings_path])
+            self.assertEqual(rc, 1)
+            self.assertIn("ERROR parsing", buf.getvalue())
+
     def test_main_reports_missing_timings_file(self):
         with tempfile.TemporaryDirectory() as tmp:
             test_dir = os.path.join(tmp, "test")
