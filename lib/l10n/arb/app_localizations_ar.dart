@@ -10008,13 +10008,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'تخطيط مطابق لتنسيق سجل PADI';
 
   @override
-  String get enum_pdfTemplate_professional => 'احترافي';
-
-  @override
-  String get enum_pdfTemplate_professional_description =>
-      'مناطق للتوقيع والختم للتحقق';
-
-  @override
   String get enum_pdfTemplate_simple => 'بسيط';
 
   @override
@@ -19419,6 +19412,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'إضافة صور بطاقات الشهادات الممسوحة ضوئيًا إلى ملف PDF';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'تضمين مناطق التحقق';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'إضافة مربعات الختم والتوقيع للتحقق';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -19456,13 +19457,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get transfer_pdfExport_templatePadiStyleDesc =>
       'تخطيط مطابق لتنسيق سجل PADI';
-
-  @override
-  String get transfer_pdfExport_templateProfessional => 'احترافي';
-
-  @override
-  String get transfer_pdfExport_templateProfessionalDesc =>
-      'مساحات للتوقيع والختم للتحقق';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {
@@ -34570,6 +34564,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_export_progress_loadingSignatures =>
       'جارٍ تحميل التوقيعات...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'جارٍ تحميل ملفات الغوص...';
 
   @override
   String get settings_export_progress_loadingCertifications =>
