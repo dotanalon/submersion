@@ -22865,14 +22865,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'קריאת לחץ הסיום ברגע ההגעה לפני השטח, ולא בסוף ההקלטה';
 
   @override
-  String get settings_cloudImportPageSize_title => 'Cloud import page size';
+  String get settings_cloudImportPageSize_title => 'גודל עמוד בייבוא מהענן';
 
   @override
   String get settings_cloudImportPageSize_subtitle =>
-      'How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.';
+      'כמה מהצלילות האחרונות לטעון בכל פעם מ-Suunto Cloud או Garmin Connect. «טען עוד» טוען את האצווה הבאה באותו גודל.';
 
   @override
-  String get settings_cloudImportPageSize_dialogTitle => 'Dives per page';
+  String get settings_cloudImportPageSize_dialogTitle => 'צלילות לעמוד';
 
   @override
   String get settings_siteMatch_strict => 'קפדני';
@@ -35654,7 +35654,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get suuntoCloud_fetch_loadMore => 'טען עוד';
 
   @override
-  String get suuntoCloud_fetch_fetchAll => 'Fetch All';
+  String get suuntoCloud_fetch_fetchAll => 'טען הכול';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

@@ -22240,14 +22240,14 @@ class AppLocalizationsZh extends AppLocalizations {
       '以到达水面时的压力作为结束压力，而不是记录结束时的压力';
 
   @override
-  String get settings_cloudImportPageSize_title => 'Cloud import page size';
+  String get settings_cloudImportPageSize_title => '云导入分页大小';
 
   @override
   String get settings_cloudImportPageSize_subtitle =>
-      'How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.';
+      '每次从 Suunto Cloud 或 Garmin Connect 获取多少条最新潜水记录。「加载更多」会获取同样大小的下一批。';
 
   @override
-  String get settings_cloudImportPageSize_dialogTitle => 'Dives per page';
+  String get settings_cloudImportPageSize_dialogTitle => '每页潜水次数';
 
   @override
   String get settings_siteMatch_strict => '严格';
@@ -34232,7 +34232,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get suuntoCloud_fetch_loadMore => '加载更多';
 
   @override
-  String get suuntoCloud_fetch_fetchAll => 'Fetch All';
+  String get suuntoCloud_fetch_fetchAll => '加载全部';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

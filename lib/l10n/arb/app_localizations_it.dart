@@ -23452,14 +23452,16 @@ class AppLocalizationsIt extends AppLocalizations {
       'Rileva la pressione finale quando raggiungi la superficie, non a fine registrazione';
 
   @override
-  String get settings_cloudImportPageSize_title => 'Cloud import page size';
+  String get settings_cloudImportPageSize_title =>
+      'Dimensione pagina importazione cloud';
 
   @override
   String get settings_cloudImportPageSize_subtitle =>
-      'How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.';
+      'Quante delle immersioni più recenti scaricare per volta da Suunto Cloud o Garmin Connect. «Carica altro» recupera il lotto successivo della stessa dimensione.';
 
   @override
-  String get settings_cloudImportPageSize_dialogTitle => 'Dives per page';
+  String get settings_cloudImportPageSize_dialogTitle =>
+      'Immersioni per pagina';
 
   @override
   String get settings_siteMatch_strict => 'Rigoroso';
@@ -36373,7 +36375,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get suuntoCloud_fetch_loadMore => 'Carica altro';
 
   @override
-  String get suuntoCloud_fetch_fetchAll => 'Fetch All';
+  String get suuntoCloud_fetch_fetchAll => 'Carica tutto';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

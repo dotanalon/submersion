@@ -23377,14 +23377,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'A végnyomás a felszínre érkezéskor legyen leolvasva, ne a rögzítés végén';
 
   @override
-  String get settings_cloudImportPageSize_title => 'Cloud import page size';
+  String get settings_cloudImportPageSize_title => 'Felhőimport oldalmérete';
 
   @override
   String get settings_cloudImportPageSize_subtitle =>
-      'How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.';
+      'Hány legutóbbi merülést töltsön le egyszerre a Suunto Cloudból vagy a Garmin Connectből. A „Továbbiak betöltése” ugyanekkora következő köteget kér.';
 
   @override
-  String get settings_cloudImportPageSize_dialogTitle => 'Dives per page';
+  String get settings_cloudImportPageSize_dialogTitle =>
+      'Merülések oldalanként';
 
   @override
   String get settings_siteMatch_strict => 'Szigorú';
@@ -36223,7 +36224,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get suuntoCloud_fetch_loadMore => 'Továbbiak betöltése';
 
   @override
-  String get suuntoCloud_fetch_fetchAll => 'Fetch All';
+  String get suuntoCloud_fetch_fetchAll => 'Összes betöltése';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {
