@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
@@ -35,6 +36,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 
   void updateGradientFactorsForTest(int low, int high) {
     state = state.copyWith(gfLow: low, gfHigh: high);
+  }
+
+  void updatePlannerWaterForTest(PlannerWaterType type) {
+    state = state.copyWith(defaultPlannerWaterType: type);
   }
 
   @override
@@ -90,6 +95,151 @@ void main() {
       expect(
         container.read(divePlanNotifierProvider).waterType,
         WaterType.fresh,
+      );
+    });
+
+    test('a new plan starts on custom salinity when that is the default', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) =>
+                _TestSettingsNotifier(plannerWater: PlannerWaterType.custom),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final state = container.read(divePlanNotifierProvider);
+      expect(state.waterType, isNull);
+      expect(state.salinityPpt, DiveEnvironment.typicalSeaSalinityPpt);
+    });
+
+    test('an untouched plan follows later planner water settings', () {
+      final settingsNotifier = _TestSettingsNotifier();
+      final container = ProviderContainer(
+        overrides: [settingsProvider.overrideWith((ref) => settingsNotifier)],
+      );
+      addTearDown(container.dispose);
+
+      expect(
+        container.read(divePlanNotifierProvider).waterType,
+        WaterType.salt,
+      );
+
+      settingsNotifier.updatePlannerWaterForTest(PlannerWaterType.fresh);
+
+      final state = container.read(divePlanNotifierProvider);
+      expect(state.waterType, WaterType.fresh);
+      expect(state.salinityPpt, isNull);
+      expect(state.isDirty, isFalse);
+    });
+
+    test('an untouched plan adopts a later custom water default', () {
+      final settingsNotifier = _TestSettingsNotifier();
+      final container = ProviderContainer(
+        overrides: [settingsProvider.overrideWith((ref) => settingsNotifier)],
+      );
+      addTearDown(container.dispose);
+
+      container.read(divePlanNotifierProvider);
+      settingsNotifier.updatePlannerWaterForTest(PlannerWaterType.custom);
+
+      final state = container.read(divePlanNotifierProvider);
+      expect(state.waterType, isNull);
+      expect(state.salinityPpt, DiveEnvironment.typicalSeaSalinityPpt);
+      expect(state.isDirty, isFalse);
+    });
+
+    test('adopting the current water type is a no-op', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      final before = container.read(divePlanNotifierProvider);
+      notifier.adoptPlannerWaterIfPristine(PlannerWaterType.salt);
+      expect(container.read(divePlanNotifierProvider).id, before.id);
+      expect(container.read(divePlanNotifierProvider).isDirty, isFalse);
+    });
+
+    test('a hand-tuned plan ignores later planner water settings', () {
+      final settingsNotifier = _TestSettingsNotifier();
+      final container = ProviderContainer(
+        overrides: [settingsProvider.overrideWith((ref) => settingsNotifier)],
+      );
+      addTearDown(container.dispose);
+
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .updateWaterType(WaterType.fresh);
+
+      settingsNotifier.updatePlannerWaterForTest(PlannerWaterType.custom);
+
+      final state = container.read(divePlanNotifierProvider);
+      expect(state.waterType, WaterType.fresh);
+      expect(state.salinityPpt, isNull);
+    });
+
+    test('a plan with segments ignores later planner water settings', () {
+      final settingsNotifier = _TestSettingsNotifier();
+      final container = ProviderContainer(
+        overrides: [settingsProvider.overrideWith((ref) => settingsNotifier)],
+      );
+      addTearDown(container.dispose);
+
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .addSimplePlan(maxDepth: 30.0, bottomTimeMinutes: 20);
+      // addSimplePlan is a structural edit; keep water salt, then prove
+      // settings cannot rewrite it.
+      expect(
+        container.read(divePlanNotifierProvider).waterType,
+        WaterType.salt,
+      );
+
+      settingsNotifier.updatePlannerWaterForTest(PlannerWaterType.fresh);
+
+      expect(
+        container.read(divePlanNotifierProvider).waterType,
+        WaterType.salt,
+      );
+    });
+
+    test('newPlan re-reads planner water from the diver settings', () {
+      final settingsNotifier = _TestSettingsNotifier();
+      final container = ProviderContainer(
+        overrides: [settingsProvider.overrideWith((ref) => settingsNotifier)],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.updateWaterType(WaterType.fresh);
+      settingsNotifier.updatePlannerWaterForTest(PlannerWaterType.custom);
+      notifier.newPlan();
+
+      final state = container.read(divePlanNotifierProvider);
+      expect(state.waterType, isNull);
+      expect(state.salinityPpt, DiveEnvironment.typicalSeaSalinityPpt);
+    });
+
+    test('selectCustomSalinity seeds EN13319 when water type is unset', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.updateWaterType(null);
+      notifier.selectCustomSalinity();
+      expect(container.read(divePlanNotifierProvider).waterType, isNull);
+      expect(
+        container.read(divePlanNotifierProvider).salinityPpt,
+        DiveEnvironment.typicalSeaSalinityPpt,
       );
     });
 

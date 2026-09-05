@@ -47,4 +47,16 @@ void main() {
       expect(names, contains('salinity_ppt'));
     },
   );
+
+  test('the assert is a no-op when the table is absent', () async {
+    final nativeDb = NativeDatabase.memory(
+      setup: (rawDb) {
+        rawDb.execute('CREATE TABLE unrelated (id TEXT)');
+      },
+    );
+    final db = AppDatabase(nativeDb);
+    addTearDown(db.close);
+
+    await db.customSelect('SELECT 1').get();
+  });
 }
