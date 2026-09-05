@@ -50,10 +50,9 @@ void main() {
     expect(row.data['overdue_services'], isNull);
   });
 
-  test('v187 is in the ladder and at or below the current schema version', () {
-    // v187 is now a past migration; the latest-version tripwire lives in the
-    // newest migration's test (migration_v188_plan_ascent_rates_test.dart),
-    // so assert membership rather than equality.
+  test('migration list includes v187 and schema is at least 187', () {
+    // Relaxed from an exact match when v188 landed: the exact assertion is
+    // the newest rung's job, and it moves with it.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(187));
     expect(AppDatabase.migrationVersions, contains(187));
   });
