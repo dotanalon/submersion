@@ -22240,6 +22240,16 @@ class AppLocalizationsZh extends AppLocalizations {
       '以到达水面时的压力作为结束压力，而不是记录结束时的压力';
 
   @override
+  String get settings_cloudImportPageSize_title => 'Cloud import page size';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => 'Dives per page';
+
+  @override
   String get settings_siteMatch_strict => '严格';
 
   @override
@@ -34220,6 +34230,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => '加载更多';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'Fetch All';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {
