@@ -12,6 +12,8 @@ import 'package:submersion/features/cylinder_configs/presentation/providers/cyli
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -177,6 +179,13 @@ class PlanSavedTanksBar extends ConsumerWidget {
   /// The tank joins the configuration named after this bar, created on first
   /// use for the active diver, so every tank saved from the planner lives in
   /// one place on the equipment pages.
+  ///
+  /// The role is derived on the way out. Inside the planner a tank's stored
+  /// role is the diver's raw input - `bailout`, or the `backGas` placeholder
+  /// meaning "derive me" - and `TankRoleResolver` works the real role out
+  /// from the gas and the segments each time it is needed. A saved cylinder
+  /// has no plan around it to derive from, so it has to carry the resolved
+  /// role or every bottle saved from here would read back as back gas.
   Future<void> _saveTank(
     BuildContext context,
     WidgetRef ref,
@@ -205,8 +214,11 @@ class PlanSavedTanksBar extends ConsumerWidget {
           folder?.id ??
           await repository.createConfig(diverId: diverId, name: folderName);
 
+      final roles = const TankRoleResolver().rolesFor(
+        divePlanFromState(ref.read(divePlanNotifierProvider)),
+      );
       final captured = const TankConfigCapture().fromTanks(
-        tanks: [tank.copyWith(name: name)],
+        tanks: [tank.copyWith(name: name, role: roles[tank.id] ?? tank.role)],
         configId: configId,
         // The repository mints ids for empty ones.
         newId: (_) => '',

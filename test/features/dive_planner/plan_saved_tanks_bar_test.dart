@@ -3,15 +3,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/database/database.dart'
+    hide CylinderConfig, CylinderConfigItem, DiveTank;
+import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/cylinder_configs/presentation/providers/cylinder_config_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_saved_tanks_bar.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../helpers/test_app.dart';
+import '../../helpers/test_database.dart';
 
 /// The saved-tanks bar sits above the plan's tanks, closed. Opening it shows
 /// every saved cylinder as its own object, and tapping one adds it to the
@@ -150,6 +156,85 @@ void main() {
     expect(find.text('Save tank as'), findsOneWidget);
     expect(find.text('Tank name'), findsOneWidget);
     expect(find.text('Plan Name'), findsNothing);
+  });
+
+  testWidgets('a tank saved from the planner keeps its derived role, not the '
+      'back-gas placeholder', (tester) async {
+    // The planner stores TankRole.backGas as the "derive me" placeholder and
+    // lets TankRoleResolver work the real role out from the gas and the
+    // segments. A cylinder leaving the planner for the equipment pages has no
+    // plan around it any more, so the role has to be resolved before it is
+    // written or every saved bottle reads back as back gas.
+    final db = await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    final stamp = _now.millisecondsSinceEpoch;
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'd1',
+            name: 'Diver',
+            createdAt: stamp,
+            updatedAt: stamp,
+          ),
+        );
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        ],
+        child: const SizedBox(
+          width: 500,
+          height: 700,
+          child: SingleChildScrollView(child: PlanTankList()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanSavedTanksBar)),
+    );
+    // Richer than the bottom mix, so the resolver calls it a deco bottle.
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .addTank(
+          const DiveTank(
+            id: 'deco-1',
+            name: 'S80 EAN50',
+            volume: 11.1,
+            workingPressure: 207,
+            startPressure: 200,
+            gasMix: GasMix(o2: 50, he: 0),
+            role: TankRole.backGas,
+            order: 1,
+          ),
+        );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Saved tanks'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save a tank'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(PopupMenuItem<DiveTank>),
+        matching: find.textContaining('S80 EAN50'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final saved = (await CylinderConfigRepository().getAllConfigs(
+      diverId: 'd1',
+      includeItems: true,
+    )).expand((config) => config.items).toList();
+    expect(saved, hasLength(1));
+    expect(saved.single.label, 'S80 EAN50');
+    expect(saved.single.tankRole, TankRole.deco);
   });
 
   testWidgets('with nothing saved it explains how to save', (tester) async {
