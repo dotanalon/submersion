@@ -233,4 +233,35 @@ void main() {
       expect(SegmentPhase.level.isDepthChange, isFalse);
     });
   });
+
+  group('ResolvedLeg equality', () {
+    final segment = _seg(30, 3);
+
+    ResolvedLeg leg({double startDepth = 0.0, int runtimeSeconds = 180}) =>
+        ResolvedLeg(
+          segment: segment,
+          startDepth: startDepth,
+          phase: SegmentPhase.descent,
+          runtimeSeconds: runtimeSeconds,
+        );
+
+    test('legs with the same segment and geometry are equal', () {
+      expect(leg(), equals(leg()));
+      expect(leg().hashCode, leg().hashCode);
+    });
+
+    test('a different startDepth breaks equality', () {
+      expect(leg(), isNot(equals(leg(startDepth: 10.0))));
+    });
+
+    test('a different runtimeSeconds breaks equality', () {
+      expect(leg(), isNot(equals(leg(runtimeSeconds: 240))));
+    });
+
+    test('resolving the same plan twice yields equal legs', () {
+      final plan = [_seg(30, 3), _seg(30, 20), _seg(6, 3)];
+
+      expect(_chain.resolve(plan), equals(_chain.resolve(plan)));
+    });
+  });
 }

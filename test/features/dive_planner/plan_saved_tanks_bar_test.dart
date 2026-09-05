@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -66,6 +67,86 @@ final _saved = CylinderConfig(
   createdAt: _now,
   updatedAt: _now,
 );
+
+/// A repository that answers from memory and records what the bar writes,
+/// so the save flow can be checked without a database.
+class _FakeConfigRepository implements CylinderConfigRepository {
+  _FakeConfigRepository({this.configs = const [], this.saveError});
+
+  final List<CylinderConfig> configs;
+
+  /// Thrown from [saveItems] when set, to drive the bar's error path.
+  final Object? saveError;
+
+  int createConfigCalls = 0;
+  String? savedConfigId;
+  List<CylinderConfigItem>? savedItems;
+
+  @override
+  Future<List<CylinderConfig>> getAllConfigs({
+    String? diverId,
+    bool includeItems = false,
+  }) async => configs;
+
+  @override
+  Future<String> createConfig({
+    String? diverId,
+    String? equipmentId,
+    required String name,
+    String description = '',
+    int sortOrder = 0,
+  }) async {
+    createConfigCalls++;
+    return 'new-cfg';
+  }
+
+  @override
+  Future<void> saveItems(
+    String configId,
+    List<CylinderConfigItem> desired,
+  ) async {
+    if (saveError != null) throw saveError!;
+    savedConfigId = configId;
+    savedItems = desired;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// The bar alone, backed by [repository] for the save flow.
+Widget _barHarness(_FakeConfigRepository repository) => testApp(
+  overrides: [
+    settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+    cylinderConfigsProvider.overrideWith((ref) async => repository.configs),
+    cylinderConfigRepositoryProvider.overrideWithValue(repository),
+    validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+  ],
+  child: const SizedBox(width: 500, child: PlanSavedTanksBar()),
+);
+
+/// Open the bar, pick the plan's only tank from the save menu and accept the
+/// default name in the dialog.
+Future<void> _saveOnlyPlanTank(WidgetTester tester) async {
+  final container = ProviderScope.containerOf(
+    tester.element(find.byType(PlanSavedTanksBar)),
+  );
+  final planTank = container.read(divePlanNotifierProvider).tanks.single;
+
+  await tester.tap(find.textContaining('Saved tanks'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Save a tank'));
+  await tester.pumpAndSettle();
+  await tester.tap(
+    find.descendant(
+      of: find.byType(PopupMenuItem<DiveTank>),
+      matching: find.textContaining(planTank.gasMix.name),
+    ),
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Save'));
+  await tester.pumpAndSettle();
+}
 
 Widget _harness(List<CylinderConfig> configs) => testApp(
   overrides: [
@@ -245,5 +326,117 @@ void main() {
     await tester.tap(find.text('Saved tanks'));
     await tester.pumpAndSettle();
     expect(find.textContaining('No saved tanks yet'), findsOneWidget);
+  });
+  testWidgets('Manage opens the cylinder configurations page', (tester) async {
+    String? pushedPath;
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(
+            body: SizedBox(width: 500, child: PlanSavedTanksBar()),
+          ),
+        ),
+        GoRoute(
+          path: '/equipment/cylinder-configs',
+          builder: (context, state) {
+            pushedPath = state.uri.toString();
+            return const Scaffold(body: SizedBox());
+          },
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          cylinderConfigsProvider.overrideWith((ref) async => [_saved]),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Saved tanks (2)'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Manage'));
+    await tester.pumpAndSettle();
+
+    expect(pushedPath, '/equipment/cylinder-configs');
+    expect(find.byType(PlanSavedTanksBar), findsNothing);
+  });
+
+  testWidgets('saving into an existing Saved tanks folder appends to it '
+      'instead of creating another', (tester) async {
+    final folder = CylinderConfig(
+      id: 'folder',
+      name: 'Saved tanks',
+      items: [_item('i1', 'D12', volume: 24)],
+      createdAt: _now,
+      updatedAt: _now,
+    );
+    final repository = _FakeConfigRepository(configs: [folder]);
+    await tester.pumpWidget(_barHarness(repository));
+    await tester.pumpAndSettle();
+
+    await _saveOnlyPlanTank(tester);
+
+    expect(repository.createConfigCalls, 0);
+    expect(repository.savedConfigId, 'folder');
+    final labels = repository.savedItems!.map((item) => item.label).toList();
+    expect(labels, ['D12', 'Primary']);
+    expect(repository.savedItems!.first.id, 'i1');
+    expect(find.text('Tank saved'), findsOneWidget);
+  });
+
+  testWidgets('a repository failure while saving surfaces as a snackbar', (
+    tester,
+  ) async {
+    final repository = _FakeConfigRepository(
+      saveError: StateError('disk full'),
+    );
+    await tester.pumpWidget(_barHarness(repository));
+    await tester.pumpAndSettle();
+
+    await _saveOnlyPlanTank(tester);
+
+    // No folder existed, so one was created before the write failed.
+    expect(repository.createConfigCalls, 1);
+    expect(repository.savedItems, isNull);
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.textContaining('disk full'), findsOneWidget);
+    expect(find.text('Tank saved'), findsNothing);
+  });
+
+  testWidgets('with no plan tanks the save menu is greyed out and inert', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_barHarness(_FakeConfigRepository()));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanSavedTanksBar)),
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.loadPlan(
+      container.read(divePlanNotifierProvider).copyWith(tanks: const []),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Saved tanks'));
+    await tester.pumpAndSettle();
+
+    final menu = tester.widget<PopupMenuButton<DiveTank>>(
+      find.byType(PopupMenuButton<DiveTank>),
+    );
+    expect(menu.enabled, isFalse);
+    final icon = tester.widget<Icon>(find.byIcon(Icons.save_outlined));
+    final theme = Theme.of(tester.element(find.byType(PlanSavedTanksBar)));
+    expect(icon.color!.a, closeTo(0.38, 0.01));
+    expect(icon.color, isNot(theme.colorScheme.primary));
+
+    await tester.tap(find.text('Save a tank'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PopupMenuItem<DiveTank>), findsNothing);
   });
 }

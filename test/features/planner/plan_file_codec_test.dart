@@ -204,4 +204,64 @@ void main() {
       throwsFormatException,
     );
   });
+
+  group('segment diveModeOverride decoding', () {
+    /// A minimal v2 file with one segment; [override] is written verbatim as
+    /// the segment's `diveModeOverride` (omitted when null).
+    String fileWithOverride(Object? override) => jsonEncode({
+      'format': subplanFormat,
+      'version': subplanVersion,
+      'plan': {
+        'name': 'x',
+        'mode': 'ccr',
+        'gfLow': 40,
+        'gfHigh': 80,
+        'tanks': [
+          {'key': 'back', 'o2': 21, 'he': 0, 'role': 'backGas', 'order': 0},
+        ],
+        'segments': [
+          {
+            'targetDepth': 30,
+            'durationSeconds': 1200,
+            'tankKey': 'back',
+            'o2': 21,
+            'he': 0,
+            'order': 0,
+            'diveModeOverride': ?override,
+          },
+        ],
+      },
+    });
+
+    test('a known PlanMode name is mapped onto the enum', () {
+      final plan = subplanFromJson(fileWithOverride('ccr'));
+
+      expect(plan.segments.single.diveModeOverride, domain.PlanMode.ccr);
+    });
+
+    test('an OC bailout segment inside a CCR plan keeps its override', () {
+      final plan = subplanFromJson(fileWithOverride('oc'));
+
+      expect(plan.mode, domain.PlanMode.ccr);
+      expect(plan.segments.single.diveModeOverride, domain.PlanMode.oc);
+    });
+
+    test('an unknown mode name decodes to null', () {
+      final plan = subplanFromJson(fileWithOverride('rebreather'));
+
+      expect(plan.segments.single.diveModeOverride, isNull);
+    });
+
+    test('a non-string value decodes to null', () {
+      final plan = subplanFromJson(fileWithOverride(1));
+
+      expect(plan.segments.single.diveModeOverride, isNull);
+    });
+
+    test('an absent override decodes to null', () {
+      final plan = subplanFromJson(fileWithOverride(null));
+
+      expect(plan.segments.single.diveModeOverride, isNull);
+    });
+  });
 }

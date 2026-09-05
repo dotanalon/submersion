@@ -148,6 +148,32 @@ void main() {
     expect(find.text('Descent 12m → 30m'), findsOneWidget);
   });
 
+  testWidgets('a shallower target with zero duration reads as an ascent '
+      'without a rate', (tester) async {
+    await tester.pumpWidget(harness(startDepth: 30));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '6');
+    await tester.enterText(find.byType(TextField).at(1), '0');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ascent 30m → 6m'), findsOneWidget);
+    expect(find.textContaining('/min'), findsNothing);
+  });
+
+  testWidgets('a shallower target with an empty duration reads as an ascent '
+      'without a rate', (tester) async {
+    await tester.pumpWidget(harness(startDepth: 30));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '6');
+    await tester.enterText(find.byType(TextField).at(1), '');
+    await tester.pumpAndSettle();
+
+    // An unparseable duration counts as 0, so the leg has no rate.
+    expect(find.text('Ascent 30m → 6m'), findsOneWidget);
+  });
+
   testWidgets('saving writes the target depth and duration', (tester) async {
     PlanSegment? saved;
     await tester.pumpWidget(dialogHarness(onSave: (s) => saved = s));
