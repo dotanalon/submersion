@@ -58,6 +58,27 @@ Map<String, TankRole> _roles(domain.DivePlan plan) => _resolver.rolesFor(plan);
 
 void main() {
   group('open circuit', () {
+    test('a stale bailout role is re-derived, not honoured', () {
+      // The bailout flag is a loop-only override: the tank editor does not
+      // even offer it on an OC plan. A cylinder can still arrive carrying
+      // one - picked from a saved configuration, or left over from a plan
+      // that was switched from CCR to OC - and honouring it there would file
+      // a deco bottle as bailout, which ContingencyService.isLosable does not
+      // match, so the lost-gas contingency would silently skip it.
+      final roles = _roles(
+        _plan(
+          tanks: [
+            _tank('back'),
+            _tank('deco', o2: 50, role: TankRole.bailout),
+          ],
+          segments: [_seg('s1', 40, 20, 'back', 0)],
+        ),
+      );
+
+      expect(roles['back'], TankRole.backGas);
+      expect(roles['deco'], TankRole.deco);
+    });
+
     test('the tank the deepest leg breathes is the back gas', () {
       final plan = _plan(
         tanks: [_tank('bottom'), _tank('deco', o2: 50)],
@@ -187,20 +208,24 @@ void main() {
       expect(roles['dil'], TankRole.diluent);
     });
 
-    test(
-      'an explicit bailout flag is honoured on an open-circuit plan too',
-      () {
-        final plan = _plan(
-          tanks: [
-            _tank('bottom'),
-            _tank('flagged', role: TankRole.bailout),
-          ],
-          segments: [_seg('s1', 30, 20, 'bottom', 0)],
-        );
+    test('the override does not carry over to an open-circuit plan', () {
+      // The override exists because a loop plan cannot tell an O2 supply from
+      // a bailout bottle by the numbers. Open circuit has no such ambiguity
+      // and the tank editor does not offer the flag there, so a flag that
+      // arrives on an OC plan is stale - a cylinder picked from a saved
+      // configuration, or a plan switched from CCR to OC. Honouring it would
+      // file the cylinder as bailout, which ContingencyService.isLosable does
+      // not match, and the lost-gas contingency would skip it in silence.
+      final plan = _plan(
+        tanks: [
+          _tank('bottom'),
+          _tank('flagged', role: TankRole.bailout),
+        ],
+        segments: [_seg('s1', 30, 20, 'bottom', 0)],
+      );
 
-        expect(_roles(plan)['flagged'], TankRole.bailout);
-      },
-    );
+      expect(_roles(plan)['flagged'], TankRole.stage);
+    });
   });
 
   group('apply', () {

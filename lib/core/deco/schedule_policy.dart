@@ -24,7 +24,18 @@ enum AscentPhase {
   betweenStops,
 
   /// The last decompression stop to the surface.
-  fromLastStop,
+  fromLastStop;
+
+  /// The phase of a leg that lands on the surface, given the phase the walk
+  /// over the stops has reached.
+  ///
+  /// Off the last stop once any stop has actually been held; still the
+  /// working ascent when none was, because a dive that owes nothing never
+  /// leaves the [toFirstStop] leg it started on.
+  static AscentPhase surfacingAfter(AscentPhase walked) =>
+      walked == AscentPhase.toFirstStop
+      ? AscentPhase.toFirstStop
+      : AscentPhase.fromLastStop;
 }
 
 /// How a decompression schedule is generated, independent of the tissue
@@ -163,11 +174,7 @@ class SchedulePolicy {
       seconds += ascentSeconds(
         fromDepth: depth,
         toDepth: 0,
-        // Off the last stop, unless there were no stops - then it is still
-        // the working ascent that started on the bottom.
-        phase: phase == AscentPhase.toFirstStop
-            ? AscentPhase.toFirstStop
-            : AscentPhase.fromLastStop,
+        phase: AscentPhase.surfacingAfter(phase),
       );
     }
     return seconds;

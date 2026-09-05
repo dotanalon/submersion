@@ -125,6 +125,42 @@ void main() {
   });
 
   group('deco plan', () {
+    test(
+      'a grid level that clears on arrival is flown at the working rate',
+      () {
+        // 36 m for 16 min puts the first grid level deeper than 9 m, but it
+        // clears on arrival: the only stop actually held is at 6 m. A diver who
+        // has not stopped yet is still on the working ascent off the bottom,
+        // so no leg of this dive is ever timed at the intermediate rate and
+        // changing that rate cannot change the schedule.
+        //
+        // Loading those passed-through levels at the between-stops rate is what
+        // this pins against: at 1 m/min the tissues spent three minutes on a
+        // 3 m leg the diver flies in twenty seconds, and the off-gassing bought
+        // there deleted the 6 m stop's second minute outright.
+        final crawl = _engine.compute(
+          _plan(
+            bottomDepth: 36,
+            bottomMinutes: 16,
+            intermediateAscentRate: 1.0,
+          ),
+        );
+        final quick = _engine.compute(
+          _plan(
+            bottomDepth: 36,
+            bottomMinutes: 16,
+            intermediateAscentRate: 9.0,
+          ),
+        );
+
+        expect(quick.stops.map((s) => s.depthMeters), [6.0]);
+        expect(
+          crawl.stops.map((s) => (s.depthMeters, s.durationSeconds)),
+          quick.stops.map((s) => (s.depthMeters, s.durationSeconds)),
+        );
+      },
+    );
+
     test('travel between stops slows as the stops get shallower', () {
       final out = _engine.compute(_plan(bottomDepth: 50, bottomMinutes: 30));
       final depths = out.stops.map((s) => s.depthMeters).toList();

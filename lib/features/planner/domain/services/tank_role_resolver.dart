@@ -17,8 +17,13 @@ import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 /// cylinder is either the oxygen supply or a bailout/deco bottle, and the
 /// numbers cannot tell those apart - calling a bailout bottle the O2 supply
 /// would quietly drop it out of the bailout calculation. So `bailout` stays an
-/// explicit choice: a stored role of [TankRole.bailout] is honoured as the
-/// diver's override and never re-derived.
+/// explicit choice: on a loop plan a stored role of [TankRole.bailout] is
+/// honoured as the diver's override and never re-derived.
+///
+/// Only on a loop plan. Open circuit has no such ambiguity, and the tank
+/// editor does not even offer the flag there, so a stored bailout role on an
+/// OC plan is left over from somewhere else and is re-derived like any
+/// other.
 ///
 /// Nothing here is persisted. Callers apply it to their own copy of the plan
 /// so the stored role remains the diver's raw input (bailout or nothing),
@@ -66,10 +71,17 @@ class TankRoleResolver {
     required double bottomO2,
     required Set<String> breathed,
   }) {
-    // The diver's only explicit choice, and only meaningful on a loop plan.
-    if (tank.role == TankRole.bailout) return TankRole.bailout;
-
     if (isLoop) {
+      // The diver's only explicit choice, and honoured only here: on a loop
+      // plan a 100% cylinder is either the oxygen supply or a bailout bottle
+      // and the numbers cannot tell them apart. An open-circuit plan has no
+      // such ambiguity, so a stored bailout role there is stale input - a
+      // cylinder carried over from a loop plan, or picked from a saved
+      // configuration - and is re-derived like any other. Honouring it would
+      // hide the bottle from the lost-gas contingency, which only looks at
+      // deco, stage and travel gas.
+      if (tank.role == TankRole.bailout) return TankRole.bailout;
+
       // Pure O2 that nothing breathes directly is the oxygen supply; the gas
       // the segments actually breathe is the diluent; anything else carried
       // on a loop dive is open-circuit bailout.

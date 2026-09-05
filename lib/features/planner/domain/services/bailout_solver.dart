@@ -245,9 +245,7 @@ class BailoutSolver {
       final legSeconds = policy.ascentSeconds(
         fromDepth: depth,
         toDepth: 0,
-        phase: phase == AscentPhase.toFirstStop
-            ? AscentPhase.toFirstStop
-            : AscentPhase.fromLastStop,
+        phase: AscentPhase.surfacingAfter(phase),
       );
       liters +=
           sac * (legSeconds / 60.0) * environment.pressureAtDepth(depth / 2.0);

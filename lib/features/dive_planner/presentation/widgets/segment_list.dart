@@ -22,6 +22,10 @@ class SegmentList extends ConsumerWidget {
     final theme = Theme.of(context);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+    // Resolved once per build, not once per row. The state's list order is
+    // the authoring order (stateFromDivePlan sorts, and the notifier keeps
+    // `order` in step with the list), which is what SegmentChain chains.
+    final legs = const SegmentChain().resolve(planState.segments);
 
     return Card(
       child: Padding(
@@ -67,7 +71,6 @@ class SegmentList extends ConsumerWidget {
                       .reorderSegments(oldIndex, newIndex);
                 },
                 itemBuilder: (context, index) {
-                  final legs = const SegmentChain().resolve(planState.segments);
                   final leg = legs[index];
                   final segment = leg.segment;
                   return _SegmentTile(

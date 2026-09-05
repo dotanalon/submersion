@@ -515,7 +515,7 @@ class PlanEngine {
       final legSeconds = policy.ascentSeconds(
         fromDepth: depth,
         toDepth: 0,
-        phase: _surfacingPhase(phase),
+        phase: AscentPhase.surfacingAfter(phase),
       );
       sampleLeg(depth, 0, legSeconds, ascentBreathingAt);
     }
@@ -660,7 +660,7 @@ class PlanEngine {
       final legSeconds = policy.ascentSeconds(
         fromDepth: depth,
         toDepth: 0,
-        phase: _surfacingPhase(phase),
+        phase: AscentPhase.surfacingAfter(phase),
       );
       final gas = ascentPlan.gasForDepth(depth);
       charge(
@@ -997,14 +997,6 @@ class PlanEngine {
     );
   }
 
-  /// The phase of the final leg to the surface: off the last stop, unless
-  /// the walk over the stops never started, in which case the dive owes
-  /// nothing and the whole ascent is still the working one.
-  static AscentPhase _surfacingPhase(AscentPhase walked) =>
-      walked == AscentPhase.toFirstStop
-      ? AscentPhase.toFirstStop
-      : AscentPhase.fromLastStop;
-
   /// The schedule policy a plan describes.
   ///
   /// Derived rather than passed around: the ascent legs of a computed
@@ -1198,7 +1190,7 @@ class PlanEngine {
       final travel = _policyFor(plan).ascentSeconds(
         fromDepth: depth,
         toDepth: 0,
-        phase: _surfacingPhase(phase),
+        phase: AscentPhase.surfacingAfter(phase),
       );
       addTravel(depth, 0, travel, end + travel);
     }

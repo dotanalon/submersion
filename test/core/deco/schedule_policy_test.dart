@@ -20,6 +20,25 @@ AscentGasPlan _airPlusO2() => OptimalOcAscentGas(
 );
 
 void main() {
+  group('AscentPhase.surfacingAfter', () {
+    test('is the working ascent when no stop was ever held', () {
+      // A dive that owes nothing never leaves the leg it started on, so the
+      // slow final rate - which describes crawling off a last stop - must not
+      // apply to it.
+      expect(
+        AscentPhase.surfacingAfter(AscentPhase.toFirstStop),
+        AscentPhase.toFirstStop,
+      );
+    });
+
+    test('is the final stretch once the stop walk has begun', () {
+      expect(
+        AscentPhase.surfacingAfter(AscentPhase.betweenStops),
+        AscentPhase.fromLastStop,
+      );
+    });
+  });
+
   test('null policy reproduces legacy schedule exactly', () {
     final a = _loadedAlgo();
     final b = _loadedAlgo();

@@ -412,6 +412,13 @@ class BuhlmannAlgorithm {
     // arrival contributes no leg of its own and no rate change of its own.
     // The whole-minute snap has to run on that same clock, or the rows it
     // exists to line up land on odd seconds anyway.
+    //
+    // [clockPhase] is the single source of truth for which ascent rate is in
+    // force, so the tissue simulation below reads it too. A diver who has not
+    // stopped yet is still on the working ascent off the bottom, however many
+    // grid levels they have passed through: loading those legs at the
+    // between-stops rate made the tissues fly an ascent minutes longer than
+    // the one the schedule printed.
     var clockSeconds = 0;
     var clockDepth = currentDepth;
     var clockPhase = AscentPhase.toFirstStop;
@@ -422,7 +429,7 @@ class BuhlmannAlgorithm {
       final switched =
           stopGas.fN2 != previousGas.fN2 || stopGas.fHe != previousGas.fHe;
 
-      int stopTime = _calculateStopTime(currentStopDepth, plan, p);
+      int stopTime = _calculateStopTime(currentStopDepth, plan, p, clockPhase);
       if (switched && p.gasSwitchStopSeconds > 0) {
         stopTime = math.max(stopTime, p.gasSwitchStopSeconds);
       }
@@ -469,13 +476,7 @@ class BuhlmannAlgorithm {
 
       final nextStop = _nextLevel(currentStopDepth, p);
       if (nextStop > 0) {
-        _simulateAscent(
-          currentStopDepth,
-          nextStop,
-          plan,
-          p,
-          phase: AscentPhase.betweenStops,
-        );
+        _simulateAscent(currentStopDepth, nextStop, plan, p, phase: clockPhase);
       }
       currentStopDepth = nextStop;
     }
@@ -545,6 +546,7 @@ class BuhlmannAlgorithm {
     double stopDepth,
     AscentGasPlan ascentGas,
     SchedulePolicy policy,
+    AscentPhase walked,
   ) {
     final nextStopDepth = _nextLevel(stopDepth, policy);
     int stopTime = 0;
@@ -570,7 +572,13 @@ class BuhlmannAlgorithm {
       // 6.6 m was told to ascend to 6 m.
       //
       // Leaving mid-break is fine: the cleared check is gas-independent.
-      if (_trialAscentClears(stopDepth, nextStopDepth, ascentGas, policy)) {
+      if (_trialAscentClears(
+        stopDepth,
+        nextStopDepth,
+        ascentGas,
+        policy,
+        walked,
+      )) {
         break;
       }
 
@@ -618,10 +626,16 @@ class BuhlmannAlgorithm {
     double nextStopDepth,
     AscentGasPlan ascentGas,
     SchedulePolicy policy,
+    AscentPhase walked,
   ) {
+    // The rate the diver would leave at, which is the rate the leg they are
+    // being asked about is flown at: [walked] is still the working ascent
+    // until a stop has actually been held, so a level that clears on arrival
+    // is not credited with the slower between-stops off-gassing of a leg the
+    // diver never flies that slowly.
     final phase = nextStopDepth > 0
-        ? AscentPhase.betweenStops
-        : AscentPhase.fromLastStop;
+        ? walked
+        : AscentPhase.surfacingAfter(walked);
     final legSeconds = policy.ascentSeconds(
       fromDepth: stopDepth,
       toDepth: nextStopDepth,
@@ -885,9 +899,11 @@ class BuhlmannAlgorithm {
       );
       safetyStop = 0;
     } else {
-      // No deco obligation: TTS is just the direct ascent to the surface -
-      // still split at the last-stop depth, so a plan without stops does not
-      // silently skip the slow final stretch.
+      // No deco obligation: TTS is the direct ascent to the surface at the
+      // working rate, one AscentPhase.toFirstStop leg. The slower deco rates
+      // describe climbing the stop grid and leaving the last stop, and this
+      // diver does neither - see AscentPhase.surfacingAfter, which draws the
+      // same line for the surfacing leg of a schedule that held no stop.
       tts = (policy ?? _defaultPolicy()).ascentSeconds(
         fromDepth: currentDepth,
         toDepth: 0,
