@@ -3630,7 +3630,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get decoCalculator_waterType => 'סוג מים';
 
   @override
-  String get decoCalculator_waterType_custom => 'Custom';
+  String get decoCalculator_waterType_custom => 'מותאם אישית';
 
   @override
   String get decoCalculator_waterType_standard => 'רגיל';
@@ -7710,7 +7710,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_label_sacRate => 'RMV:';
 
   @override
-  String get divePlanner_label_salinity => 'Salinity';
+  String get divePlanner_label_salinity => 'מליחות';
 
   @override
   String get divePlanner_label_status => 'סטטוס';
@@ -17277,7 +17277,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_units_gasModel => 'חישובי גז';
 
   @override
-  String get settings_units_waterType => 'Water type';
+  String get settings_units_waterType => 'סוג מים';
 
   @override
   String get settings_units_gasModel_real => 'גז ממשי';
@@ -17301,7 +17301,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_units_dialog_gasModel => 'חישובי גז';
 
   @override
-  String get settings_units_dialog_waterType => 'Default water type';
+  String get settings_units_dialog_waterType => 'סוג מים ברירת מחדל';
 
   @override
   String get settings_units_dialog_temperatureUnit => 'יחידת טמפרטורה';

@@ -3731,7 +3731,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get decoCalculator_waterType => 'Tipo di acqua';
 
   @override
-  String get decoCalculator_waterType_custom => 'Custom';
+  String get decoCalculator_waterType_custom => 'Personalizzato';
 
   @override
   String get decoCalculator_waterType_standard => 'Standard';
@@ -7908,7 +7908,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get divePlanner_label_sacRate => 'RMV:';
 
   @override
-  String get divePlanner_label_salinity => 'Salinity';
+  String get divePlanner_label_salinity => 'Salinità';
 
   @override
   String get divePlanner_label_status => 'Stato';
@@ -17725,7 +17725,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_units_gasModel => 'Calcoli del gas';
 
   @override
-  String get settings_units_waterType => 'Water type';
+  String get settings_units_waterType => 'Tipo di acqua';
 
   @override
   String get settings_units_gasModel_real => 'Gas reale';
@@ -17749,7 +17749,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_units_dialog_gasModel => 'Calcoli del gas';
 
   @override
-  String get settings_units_dialog_waterType => 'Default water type';
+  String get settings_units_dialog_waterType => 'Tipo di acqua predefinito';
 
   @override
   String get settings_units_dialog_temperatureUnit => 'Unità di temperatura';
