@@ -32,6 +32,28 @@ Widget _harness(Widget child) => testApp(
 );
 
 void main() {
+  group('planWaterOptionFor', () {
+    test('maps salt, fresh, custom salinity, leftover brackish, and null', () {
+      expect(
+        planWaterOptionFor(waterType: WaterType.salt),
+        PlannerWaterType.salt,
+      );
+      expect(
+        planWaterOptionFor(waterType: WaterType.fresh),
+        PlannerWaterType.fresh,
+      );
+      expect(planWaterOptionFor(), PlannerWaterType.salt);
+      expect(
+        planWaterOptionFor(waterType: WaterType.brackish),
+        PlannerWaterType.custom,
+      );
+      expect(
+        planWaterOptionFor(waterType: WaterType.salt, salinityPpt: 20),
+        PlannerWaterType.custom,
+      );
+    });
+  });
+
   testWidgets('deco section renders both GF sliders at the diver settings', (
     tester,
   ) async {
@@ -177,6 +199,35 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(divePlanNotifierProvider).waterType, WaterType.fresh);
+
+    await tester.tap(find.byType(DropdownButtonFormField<PlannerWaterType>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Salt Water').last);
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).waterType, WaterType.salt);
+  });
+
+  testWidgets('leftover brackish plans show as custom with an empty salinity', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness(const PlanEnvironmentSection()));
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanEnvironmentSection)),
+    );
+    final current = container.read(divePlanNotifierProvider);
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .loadPlan(current.copyWith(waterType: WaterType.brackish));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Custom'), findsOneWidget);
+    expect(find.text('Salinity'), findsOneWidget);
+    expect(container.read(divePlanNotifierProvider).salinityPpt, isNull);
   });
 
   testWidgets('custom water type reveals a salinity field', (tester) async {
@@ -203,6 +254,22 @@ void main() {
     await tester.enterText(find.byType(TextField).last, '20');
     await tester.pumpAndSettle();
     expect(container.read(divePlanNotifierProvider).salinityPpt, 20.0);
+
+    await tester.enterText(find.byType(TextField).last, '');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).salinityPpt, 20.0);
+
+    await tester.enterText(find.byType(TextField).last, 'abc');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).salinityPpt, 20.0);
+
+    await tester.enterText(find.byType(TextField).last, '99');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).salinityPpt, 80.0);
+
+    container.read(divePlanNotifierProvider.notifier).updateSalinityPpt(12);
+    await tester.pumpAndSettle();
+    expect(find.text('12'), findsWidgets);
   });
 
   testWidgets('no overflow at narrow widths', (tester) async {

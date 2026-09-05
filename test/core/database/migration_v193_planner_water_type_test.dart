@@ -25,4 +25,41 @@ void main() {
       expect(column.read<String?>('dflt_value'), contains('salt'));
     },
   );
+
+  test(
+    'a database stranded before v193 gains the column via beforeOpen',
+    () async {
+      final nativeDb = NativeDatabase.memory(
+        setup: (rawDb) {
+          rawDb.execute('''
+          CREATE TABLE diver_settings (
+            id TEXT NOT NULL PRIMARY KEY,
+            created_at INTEGER,
+            updated_at INTEGER
+          )
+        ''');
+        },
+      );
+      final db = AppDatabase(nativeDb);
+      addTearDown(db.close);
+
+      final cols = await db
+          .customSelect("PRAGMA table_info('diver_settings')")
+          .get();
+      final names = cols.map((c) => c.read<String>('name')).toSet();
+      expect(names, contains('default_planner_water_type'));
+    },
+  );
+
+  test('the assert is a no-op when the table is absent', () async {
+    final nativeDb = NativeDatabase.memory(
+      setup: (rawDb) {
+        rawDb.execute('CREATE TABLE unrelated (id TEXT)');
+      },
+    );
+    final db = AppDatabase(nativeDb);
+    addTearDown(db.close);
+
+    await db.customSelect('SELECT 1').get();
+  });
 }

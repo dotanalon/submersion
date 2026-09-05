@@ -14,12 +14,13 @@ PlannerWaterType planWaterOptionFor({
   WaterType? waterType,
   double? salinityPpt,
 }) {
-  if (salinityPpt != null || waterType == WaterType.brackish) {
+  if (salinityPpt != null) {
     return PlannerWaterType.custom;
   }
   return switch (waterType) {
     WaterType.fresh => PlannerWaterType.fresh,
-    WaterType.salt || WaterType.brackish || null => PlannerWaterType.salt,
+    WaterType.brackish => PlannerWaterType.custom,
+    WaterType.salt || null => PlannerWaterType.salt,
   };
 }
 

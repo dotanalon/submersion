@@ -65,4 +65,42 @@ void main() {
     expect(find.text('Fresh Water'), findsOneWidget);
     expect(find.text('Salt Water'), findsNothing);
   });
+
+  testWidgets('the units row shows custom when that is the default', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        const AppSettings().copyWith(
+          defaultPlannerWaterType: PlannerWaterType.custom,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('Water type'), 50.0);
+    await tester.pumpAndSettle();
+
+    // Units also has a "Custom" visibility-scale option, so this label is
+    // not unique on the page. Salt Water must be gone from the water-type row.
+    expect(find.text('Custom'), findsWidgets);
+    expect(find.text('Salt Water'), findsNothing);
+  });
+
+  testWidgets('picking custom updates the row', (tester) async {
+    await tester.pumpWidget(host(const AppSettings()));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('Water type'), 50.0);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Water type'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Custom').last);
+    await tester.pumpAndSettle();
+
+    expect(notifier.saved, [PlannerWaterType.custom]);
+    expect(find.text('Custom'), findsWidgets);
+    expect(find.text('Salt Water'), findsNothing);
+  });
 }
