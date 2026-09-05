@@ -3,9 +3,7 @@
 /// The first fetch, and each Load More, asks for this many of the newest
 /// remaining dives. Fetch All walks the same cursor until the account's
 /// history is exhausted and then hides the paging controls.
-class CloudImportPaging {
-  CloudImportPaging._();
-
+abstract final class CloudImportPaging {
   /// Default number of latest dives to fetch per page.
   static const int defaultPageSize = 15;
 
