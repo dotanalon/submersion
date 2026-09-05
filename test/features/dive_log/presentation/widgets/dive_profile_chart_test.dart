@@ -1877,6 +1877,60 @@ void main() {
       expect(find.byType(DiveProfileChart), findsOneWidget);
     });
 
+    testWidgets('hides a gas-switch marker once its cylinder is toggled off', (
+      tester,
+    ) async {
+      final profile = makeRichProfile();
+      GasSwitchWithTank switchTo(String tankId, int timestamp, double o2) =>
+          GasSwitchWithTank(
+            gasSwitch: GasSwitch(
+              id: 'gs-$tankId',
+              diveId: 'dive-1',
+              timestamp: timestamp,
+              tankId: tankId,
+              createdAt: DateTime(2026, 1, 1),
+            ),
+            tankName: tankId,
+            gasMix: 'EAN${(o2 * 100).round()}',
+            o2Fraction: o2,
+          );
+      final gasSwitches = [
+        switchTo('tank-1', 120, 0.32),
+        switchTo('tank-2', 240, 0.50),
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(profile: profile, gasSwitches: gasSwitches),
+      );
+      await tester.pumpAndSettle();
+
+      // Gas-switch markers are the only bars drawn as a single transparent,
+      // zero-width spot carrying a dot painter.
+      int markerCount() => tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .where(
+            (b) =>
+                b.color == Colors.transparent &&
+                b.barWidth == 0 &&
+                b.spots.length == 1 &&
+                b.dotData.show,
+          )
+          .length;
+      expect(markerCount(), 2);
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      container
+          .read(profileLegendProvider.notifier)
+          .toggleTankPressure('tank-1');
+      await tester.pumpAndSettle();
+
+      expect(markerCount(), 1);
+    });
+
     testWidgets('renders with playback timestamp cursor', (tester) async {
       final profile = makeRichProfile();
 

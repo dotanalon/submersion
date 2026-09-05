@@ -220,7 +220,9 @@ class ChartOptionsDialog extends StatelessWidget {
       );
     }
 
-    // Tanks section (for gas-switch dives without multi-tank pressure traces)
+    // Tanks section (for gas-switch dives without multi-tank pressure traces).
+    // Same checkbox rows as every other section: unchecking a cylinder hides
+    // its gas-switch markers on the chart.
     if (config.hasTankListSection && config.tanks != null) {
       final sortedTanks = [...config.tanks!]
         ..sort((a, b) => a.order.compareTo(b.order));
@@ -232,10 +234,12 @@ class ChartOptionsDialog extends StatelessWidget {
         final label = tankLegendLabel(context, tank, fallbackIndex: i + 1);
 
         tankItems.add(
-          buildStaticItem(
+          buildToggleItem(
             context,
             label: label,
             color: color,
+            isEnabled: legendState.showTankPressure[tank.id] ?? true,
+            onTap: () => legendNotifier.toggleTankPressure(tank.id),
             sourceColor: config.tankSourceColors?[tank.id],
           ),
         );

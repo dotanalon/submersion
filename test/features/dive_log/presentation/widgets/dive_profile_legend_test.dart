@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 
@@ -268,6 +269,52 @@ void main() {
         expect(_inDialog(find.text('D80 (Air)')), findsOneWidget);
         expect(_inDialog(find.text('AL80 (EAN50)')), findsOneWidget);
         expect(find.text('Tank Pressures'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Cylinders rows use the same checkbox toggle as every other row and '
+      'flip that tank\'s visibility',
+      (tester) async {
+        await _pumpLegend(
+          tester,
+          config: const ProfileLegendConfig(
+            hasGasSwitches: true,
+            tanks: _testTanks,
+          ),
+        );
+        await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        final label = _inDialog(find.text('D80 (Air)'));
+        expect(label, findsOneWidget);
+        // No static dot/dash legend chrome: the row is a checkbox like the rest.
+        expect(_inDialog(find.byIcon(Icons.circle)), findsNothing);
+        final row = find
+            .ancestor(of: label, matching: find.byType(InkWell))
+            .first;
+        expect(
+          find.descendant(of: row, matching: find.byIcon(Icons.check_box)),
+          findsOneWidget,
+        );
+
+        await tester.tap(label);
+        await tester.pumpAndSettle();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DiveProfileLegend)),
+        );
+        expect(
+          container.read(profileLegendProvider).showTankPressure['tank-1'],
+          isFalse,
+        );
+        expect(
+          find.descendant(
+            of: row,
+            matching: find.byIcon(Icons.check_box_outline_blank),
+          ),
+          findsOneWidget,
+        );
       },
     );
 

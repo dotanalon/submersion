@@ -145,48 +145,6 @@ void main() {
     });
   });
 
-  group('buildStaticItem', () {
-    testWidgets('draws a plain circle icon when sourceColor is null', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _wrap(
-          (context) =>
-              buildStaticItem(context, label: 'Tank 1', color: Colors.green),
-        ),
-      );
-
-      expect(find.byIcon(Icons.circle), findsOneWidget);
-    });
-
-    testWidgets('draws a bordered circle in the source colour when '
-        'sourceColor is given', (tester) async {
-      await tester.pumpWidget(
-        _wrap(
-          (context) => buildStaticItem(
-            context,
-            label: 'Tank 1',
-            color: Colors.green,
-            sourceColor: Colors.purple,
-          ),
-        ),
-      );
-
-      expect(find.byIcon(Icons.circle), findsNothing);
-
-      final container = tester.widget<Container>(
-        find
-            .descendant(of: find.byType(Row), matching: find.byType(Container))
-            .first,
-      );
-      final decoration = container.decoration! as BoxDecoration;
-      expect(decoration.shape, BoxShape.circle);
-      final border = decoration.border! as Border;
-      expect(border.top.color, Colors.purple);
-      expect(border.top.width, 2);
-    });
-  });
-
   group('buildToggleWithSource', () {
     testWidgets('dims the label when disabled', (tester) async {
       await tester.pumpWidget(

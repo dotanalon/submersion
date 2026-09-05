@@ -5593,7 +5593,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       return [];
     }
 
-    return gasSwitches.map((gs) {
+    // A cylinder unchecked in the options dialog hides its switch markers,
+    // the same way an unchecked tank hides its pressure trace.
+    final visibleSwitches = gasSwitches.where(
+      (gs) => _showTankPressure[gs.gasSwitch.tankId] ?? true,
+    );
+
+    return visibleSwitches.map((gs) {
       final color = GasColors.forMixFraction(gs.o2Fraction, gs.heFraction);
 
       // Find the depth at this timestamp from profile
