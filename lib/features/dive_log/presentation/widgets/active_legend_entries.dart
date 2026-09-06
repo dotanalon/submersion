@@ -27,13 +27,12 @@ class ActiveLegendEntry {
 /// ([state]). Colours come from [ProfileMetricColors] so the dash beside each
 /// label matches both the chart line and the dialog swatch.
 ///
-/// On a multi-source dive (see [ProfileLegendConfig.overlays]) every metric an
-/// overlaid computer can draw gets one entry per computer, suffixed with the
-/// computer's name and coloured like that computer's trace (see
-/// [overlayTint]). Depth is listed only then: on a single-source dive it is
-/// the chart itself, but with two computers the two depth traces need telling
-/// apart. The gas strip and display behaviours have no single line colour and
-/// are never listed.
+/// Depth always leads the list, since it is the trace the chart is built
+/// around. On a multi-source dive (see [ProfileLegendConfig.overlays]) every
+/// metric an overlaid computer can draw gets one entry per computer, suffixed
+/// with the computer's name and coloured like that computer's trace (see
+/// [overlayTint]), so the two depth traces can be told apart. The gas strip
+/// and display behaviours have no single line colour and are never listed.
 List<ActiveLegendEntry> activeLegendEntries(
   BuildContext context, {
   required ProfileLegendConfig config,
@@ -82,10 +81,13 @@ List<ActiveLegendEntry> activeLegendEntries(
     }
   }
 
-  // Depth: only worth listing once there is more than one depth trace.
+  // Depth leads the legend and is always listed: it is the trace the chart is
+  // built around, so naming its colour is what lets every other entry be read
+  // against it. On a multi-source dive each computer's depth trace gets its
+  // own suffixed entry.
   addPerSource(
     LegendMetric.depth,
-    multiSource,
+    true,
     true,
     l10n.diveLog_legend_label_depth,
     ProfileMetricColors.depth,

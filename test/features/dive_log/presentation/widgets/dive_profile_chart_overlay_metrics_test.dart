@@ -85,6 +85,7 @@ ProfileAnalysis _fullOverlayAnalysis() {
 Widget _harness({
   bool tooltipBelow = true,
   void Function(List<TooltipRow>? rows)? onTooltipData,
+  double width = 400,
 }) {
   return ProviderScope(
     child: MaterialApp(
@@ -93,7 +94,7 @@ Widget _harness({
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: SizedBox(
-          width: 400,
+          width: width,
           height: 300,
           child: DiveProfileChart(
             profile: _profile(),
@@ -281,7 +282,17 @@ void main() {
   group('DiveProfileChart overlay metrics - inline legend', () {
     testWidgets('lists the overlay\'s traces per computer beside the active '
         'source\'s', (tester) async {
-      await tester.pumpWidget(_harness());
+      // The legend only renders entries it has measured room for, and the
+      // per-computer labels are long - doubly so under the test font, where
+      // every glyph is a full em square. Widen the harness so this test
+      // exercises which entries are produced, not how many survive
+      // truncation at the default 400px.
+      tester.view.physicalSize = const Size(2400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(_harness(width: 1800));
       await tester.pumpAndSettle();
 
       // Depth is only listed on multi-source dives; the harness passes no

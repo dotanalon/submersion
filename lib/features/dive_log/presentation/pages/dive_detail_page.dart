@@ -2083,59 +2083,35 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 ),
                 Row(
                   children: [
+                    // A toggle, so it reads as one of the row's icons with
+                    // an on state rather than a pill that shoulders them
+                    // aside. The label it used to carry is the tooltip.
                     if (!playbackState.isActive)
-                      rangeState.isEnabled
-                          ? FilledButton.icon(
-                              onPressed: () {
-                                ref
-                                    .read(
-                                      rangeSelectionProvider(dive.id).notifier,
-                                    )
-                                    .disableRangeMode();
-                              },
-                              icon: const Icon(Icons.straighten, size: 14),
-                              label: Text(
-                                context
-                                    .l10n
-                                    .diveLog_detail_button_rangeAnalysis,
-                              ),
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                textStyle: Theme.of(
+                      IconButton(
+                        icon: const Icon(Icons.straighten),
+                        tooltip:
+                            context.l10n.diveLog_detail_button_rangeAnalysis,
+                        visualDensity: VisualDensity.compact,
+                        isSelected: rangeState.isEnabled,
+                        style: IconButton.styleFrom(
+                          backgroundColor: rangeState.isEnabled
+                              ? Theme.of(context).colorScheme.secondaryContainer
+                              : null,
+                          foregroundColor: rangeState.isEnabled
+                              ? Theme.of(
                                   context,
-                                ).textTheme.labelSmall,
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            )
-                          : OutlinedButton.icon(
-                              onPressed: () {
-                                ref
-                                    .read(
-                                      rangeSelectionProvider(dive.id).notifier,
-                                    )
-                                    .enableRangeMode();
-                              },
-                              icon: const Icon(Icons.straighten, size: 14),
-                              label: Text(
-                                context
-                                    .l10n
-                                    .diveLog_detail_button_rangeAnalysis,
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                textStyle: Theme.of(
-                                  context,
-                                ).textTheme.labelSmall,
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            ),
-                    const SizedBox(width: 8),
+                                ).colorScheme.onSecondaryContainer
+                              : null,
+                        ),
+                        onPressed: () {
+                          final notifier = ref.read(
+                            rangeSelectionProvider(dive.id).notifier,
+                          );
+                          rangeState.isEnabled
+                              ? notifier.disableRangeMode()
+                              : notifier.enableRangeMode();
+                        },
+                      ),
                     // A Builder so the share anchor resolves to this button
                     // rather than the whole profile card; it contributes no
                     // render object, so the lookup descends to the IconButton.
@@ -2163,14 +2139,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.fullscreen),
-                      tooltip:
-                          context.l10n.diveLog_detail_tooltip_viewFullscreen,
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () =>
-                          _showFullscreenProfile(context, ref, dive),
-                    ),
-                    IconButton(
                       icon: const Icon(Icons.view_in_ar),
                       tooltip: context.l10n.dive3d_previewTitle,
                       visualDensity: VisualDensity.compact,
@@ -2189,6 +2157,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                           builder: (_) => SpatialSitePage(diveId: dive.id),
                         ),
                       ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.fullscreen),
+                      tooltip:
+                          context.l10n.diveLog_detail_tooltip_viewFullscreen,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () =>
+                          _showFullscreenProfile(context, ref, dive),
                     ),
                   ],
                 ),

@@ -21,7 +21,12 @@ abstract final class ProfileMetricColors {
   // Markers and event glyphs.
   static const Color events = Color(0xFF00838F); // Cyan 800
   static const Color maxDepth = Color(0xFF880E4F); // Pink 900
-  static const Color pressureMarkers = Color(0xFFBF360C); // Deep Orange 900
+  /// Must stay equal to the first entry of the tank palette in
+  /// [ProfileMarker.getColor], which is what the chart actually draws these
+  /// markers in. (Thresholds are coloured per tank there, so on a multi-tank
+  /// dive this swatch matches the first tank; the tanks are listed
+  /// separately with their own colours.) Guarded by a test.
+  static const Color pressureMarkers = Colors.orange;
   static const Color decoStops = decoStopBandColor;
   static const Color ceiling = Color(0xFF7B1FA2); // Purple 700
   static const Color ndl = Color(0xFFFBC02D); // Yellow 700

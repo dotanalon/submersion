@@ -704,6 +704,42 @@ void main() {
       );
     }
 
+    testWidgets('profile header ends with fullscreen, after the 3D actions', (
+      tester,
+    ) async {
+      final dive = makeDiveWithTanksAndProfile();
+      await _pumpDetailPage(tester, dive);
+
+      double x(IconData icon) => tester.getCenter(find.byIcon(icon).first).dx;
+
+      // Fullscreen is the last action in the row: it is the one that takes
+      // over the screen, so it reads as the end of the escalation.
+      expect(x(Icons.fullscreen), greaterThan(x(Icons.terrain)));
+      expect(x(Icons.fullscreen), greaterThan(x(Icons.view_in_ar)));
+      expect(x(Icons.fullscreen), greaterThan(x(Icons.share)));
+    });
+
+    testWidgets('range analysis is an icon toggle, not a labelled pill', (
+      tester,
+    ) async {
+      final dive = makeDiveWithTanksAndProfile();
+      await _pumpDetailPage(tester, dive);
+
+      // It sits in the icon row rather than shouldering it aside with a pill.
+      expect(find.byIcon(Icons.straighten), findsOneWidget);
+      expect(find.widgetWithIcon(FilledButton, Icons.straighten), findsNothing);
+      expect(
+        find.widgetWithIcon(OutlinedButton, Icons.straighten),
+        findsNothing,
+      );
+
+      // And it leads the row, before the share action.
+      expect(
+        tester.getCenter(find.byIcon(Icons.straighten).first).dx,
+        lessThan(tester.getCenter(find.byIcon(Icons.share).first).dx),
+      );
+    });
+
     testWidgets('renders without crash when dive has tanks and a profile', (
       tester,
     ) async {

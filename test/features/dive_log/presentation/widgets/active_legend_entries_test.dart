@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
+
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_legend_entries.dart';
@@ -63,7 +65,7 @@ void main() {
         ),
       );
 
-      expect(entries.map((e) => e.label), ['Temp', 'Ceiling', 'TTS']);
+      expect(entries.map((e) => e.label), ['Depth', 'Temp', 'Ceiling', 'TTS']);
     });
 
     testWidgets('ignores switched-on metrics the dive has no data for', (
@@ -75,7 +77,8 @@ void main() {
         state: const ProfileLegendState(showTts: true, showGtr: true),
       );
 
-      expect(entries, isEmpty);
+      // Depth is always drawn, so it is always listed; nothing else qualifies.
+      expect(entries.map((e) => e.label), ['Depth']);
     });
 
     testWidgets('colours each entry like its line on the chart', (
@@ -144,7 +147,7 @@ void main() {
         ),
       );
 
-      expect(entries.map((e) => e.label), ['D80 (Air)']);
+      expect(entries.map((e) => e.label), ['Depth', 'D80 (Air)']);
     });
 
     testWidgets('treats a tank with no recorded preference as visible', (
@@ -160,10 +163,11 @@ void main() {
         state: const ProfileLegendState(),
       );
 
-      expect(entries, hasLength(2));
+      // Depth plus the two tanks.
+      expect(entries, hasLength(3));
     });
 
-    testWidgets('leaves out depth, the gas strip and display behaviour', (
+    testWidgets('leaves out the gas strip and display behaviour', (
       tester,
     ) async {
       final entries = await _entries(
@@ -175,7 +179,25 @@ void main() {
         ),
       );
 
-      expect(entries, isEmpty);
+      // Neither has a single line colour, so neither earns a dash. Depth is
+      // the only entry left.
+      expect(entries.map((e) => e.label), ['Depth']);
+    });
+  });
+
+  group('metric colours match what the chart draws', () {
+    test('the pressure-threshold swatch is the marker colour', () {
+      // The chart calls ProfileMarker.getColor() with no tank colours, so
+      // thresholds are drawn in the first entry of its default tank palette.
+      // The legend swatch previously used Deep Orange 900 and matched
+      // nothing on the chart.
+      const marker = ProfileMarker(
+        type: ProfileMarkerType.pressureOneThird,
+        timestamp: 0,
+        depth: 0,
+        tankIndex: 0,
+      );
+      expect(ProfileMetricColors.pressureMarkers, marker.getColor());
     });
   });
 
