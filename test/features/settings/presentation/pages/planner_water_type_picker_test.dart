@@ -30,7 +30,11 @@ void main() {
     notifier = _RecordingSettingsNotifier(settings);
     return ProviderScope(
       overrides: [settingsProvider.overrideWith((ref) => notifier)],
+      // Pinned to English: every finder below matches on a UI string, so
+      // platform-locale resolution would make the test non-deterministic
+      // (see test/helpers/test_app.dart).
       child: const MaterialApp(
+        locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: SettingsSectionDetailPage(sectionId: 'units'),

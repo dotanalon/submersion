@@ -543,7 +543,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
-  /// Update water type for decompression density. Null is EN13319 standard.
+  /// Update water type for decompression density. Null clears the choice and
+  /// leaves the plan on the planner's salt-water fallback.
   /// Clears a custom salinity so a preset is not mixed with an override.
   void updateWaterType(WaterType? waterType) {
     state = state.copyWith(
@@ -837,7 +838,8 @@ final planResultsProvider = Provider<PlanResult>((ref) {
     reservePressure: state.reservePressure,
     initialTissueState: state.initialTissueState,
     // Altitude 0 keeps the legacy sea-level surface pressure. Null water
-    // type is salt, matching the planner default.
+    // type is salt, matching the planner default - though a custom salinity,
+    // when set, overrides either one (see DiveEnvironment's precedence).
     environment: DiveEnvironment.forConditions(
       altitudeMeters: (state.altitude ?? 0) > 0 ? state.altitude : null,
       waterType: state.waterType ?? WaterType.salt,

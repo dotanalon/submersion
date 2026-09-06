@@ -533,7 +533,8 @@ class DivePlanState extends Equatable {
   /// Altitude above sea level in meters (for altitude diving).
   final double? altitude;
 
-  /// Water type for decompression (density). Null = EN13319 standard water.
+  /// Water type for decompression (density). Null falls back to salt water,
+  /// the planner default - not EN13319 - and is overridden by [salinityPpt].
   final WaterType? waterType;
 
   /// Custom salinity in ppt. When set, this wins over [waterType] for deco

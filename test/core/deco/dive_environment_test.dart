@@ -73,6 +73,17 @@ void main() {
       );
     });
 
+    test('negative salinity clamps to fresh water', () {
+      expect(
+        DiveEnvironment.densityFromSalinityPpt(-5),
+        DiveEnvironment.freshWaterDensity,
+      );
+      expect(
+        DiveEnvironment.forConditions(salinityPpt: -5).waterDensityKgM3,
+        DiveEnvironment.freshWaterDensity,
+      );
+    });
+
     test('forConditions: salinity ppt wins over water type', () {
       final env = DiveEnvironment.forConditions(
         waterType: WaterType.fresh,

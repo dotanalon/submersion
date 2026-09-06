@@ -34,7 +34,8 @@ class DivePlan extends Equatable {
   final WaterType? waterType;
 
   /// Custom salinity in ppt. When set, this wins over [waterType] for deco
-  /// density. Null with a null [waterType] is EN13319 standard water.
+  /// density - including when [waterType] is null. With both null the planner
+  /// falls back to salt water, its default for a new plan.
   final double? salinityPpt;
 
   /// Planned start time; null = "now" at planning. Drives repetitive tissue

@@ -41,9 +41,18 @@ class DiveEnvironment extends Equatable {
 
   /// Density from practical salinity, pinned to this engine's fresh
   /// (0 ppt → 1000 kg/m3) and salt (35 ppt → 1025 kg/m3) constants.
+  ///
+  /// Salinity is clamped at 0 ppt: a corrupted or imported plan carrying a
+  /// negative value would otherwise produce a density below fresh water and
+  /// cascade into unrealistic pressures and deco.
   static double densityFromSalinityPpt(double ppt) =>
       freshWaterDensity +
-      (saltWaterDensity - freshWaterDensity) * (ppt / typicalSeaSalinityPpt);
+      (saltWaterDensity - freshWaterDensity) *
+          (clampSalinityPpt(ppt) / typicalSeaSalinityPpt);
+
+  /// Salinity floored at fresh water. NaN is treated as absent salinity and
+  /// also floors, for the same reason.
+  static double clampSalinityPpt(double ppt) => ppt > 0 ? ppt : 0.0;
 
   /// Inverse of [densityFromSalinityPpt].
   static double salinityPptFromDensity(double densityKgM3) =>

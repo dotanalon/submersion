@@ -97,11 +97,15 @@ final planBuoyancyTwinProvider = Provider<BuoyancyTwinOutcome?>((ref) {
       ),
   ];
 
+  // Same density precedence as the TwinInput environment below: a custom
+  // salinity wins over the water type, so the rig's water term and the deco
+  // environment never disagree about what the diver is floating in.
   final rig = BuoyancyTwinAssembler.composeRigTerms(
     items: items,
     tanks: tanks,
     model: model,
     waterType: state.waterType ?? WaterType.salt,
+    salinityPpt: state.salinityPpt,
     bodyWeightKg: latestWeight?.weightKg,
   );
 
