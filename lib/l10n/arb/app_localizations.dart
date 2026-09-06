@@ -26328,10 +26328,10 @@ abstract class AppLocalizations {
   /// **'System default'**
   String get settings_appearance_theme_system;
 
-  /// Title of the settings page for customizing bottom navigation primary slots.
+  /// Title of the settings page for arranging the phone bottom bar and the wide-screen navigation rail.
   ///
   /// In en, this message translates to:
-  /// **'Navigation bar'**
+  /// **'Navigation layout'**
   String get settings_navCustomization_title;
 
   /// Help text at the top of the navigation customization page.
@@ -26339,6 +26339,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drag items to reorder. The top three appear in your bottom navigation bar.'**
   String get settings_navCustomization_description;
+
+  /// Help text shown when arranging the wide-screen navigation rail.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag items to reorder the sidebar. Home always stays at the top.'**
+  String get settings_navCustomization_descriptionDesktop;
+
+  /// Segmented-button label for editing the phone navigation order.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get settings_navCustomization_scopePhone;
+
+  /// Segmented-button label for editing the desktop navigation rail order.
+  ///
+  /// In en, this message translates to:
+  /// **'Desktop'**
+  String get settings_navCustomization_scopeDesktop;
 
   /// Non-interactive divider row between primary and overflow destinations.
   ///
@@ -40604,7 +40622,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_about_bathymetryCredit.
   ///
   /// In en, this message translates to:
-  /// **'Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022'**
+  /// **'Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM'**
   String get settings_about_bathymetryCredit;
 
   /// No description provided for @dive3d_metric_depth.
@@ -57727,7 +57745,7 @@ abstract class AppLocalizations {
   /// No description provided for @startup_versionMismatch_title.
   ///
   /// In en, this message translates to:
-  /// **'Update Required'**
+  /// **'Your Data Is Newer Than This App'**
   String get startup_versionMismatch_title;
 
   /// Explains a database written by a newer app build. Object, not int, so schema numbers are never group-separated.
@@ -57739,10 +57757,16 @@ abstract class AppLocalizations {
     Object appVersion,
   );
 
+  /// No description provided for @startup_versionMismatch_causes.
+  ///
+  /// In en, this message translates to:
+  /// **'This usually means a beta build upgraded your data, a backup was restored from a newer build, or the file is shared with a device on a different update channel. A newer stable release may not exist yet.'**
+  String get startup_versionMismatch_causes;
+
   /// No description provided for @startup_versionMismatch_instructions.
   ///
   /// In en, this message translates to:
-  /// **'Please update Submersion to the latest version. Your data is safe and has not been modified. If a backup was taken before the upgrade, it is in your Backups folder and can be restored after updating.'**
+  /// **'Your data is safe and has not been modified. Reopen it with the build that wrote it, or with any later build. If a backup was taken before the upgrade, it is in your Backups folder and can be restored once you are running a build that opens it.'**
   String get startup_versionMismatch_instructions;
 
   /// No description provided for @startup_versionMismatch_storeInstructions.
@@ -57754,13 +57778,25 @@ abstract class AppLocalizations {
   /// No description provided for @startup_versionMismatch_download.
   ///
   /// In en, this message translates to:
-  /// **'Download Latest Version'**
+  /// **'Check for a Newer Stable Release'**
   String get startup_versionMismatch_download;
+
+  /// No description provided for @startup_versionMismatch_betaAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Get the Beta Build'**
+  String get startup_versionMismatch_betaAction;
+
+  /// No description provided for @startup_versionMismatch_betaNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Beta builds are pre-release. Choose this only if a beta build wrote your data.'**
+  String get startup_versionMismatch_betaNote;
 
   /// No description provided for @startup_versionMismatch_manualLink.
   ///
   /// In en, this message translates to:
-  /// **'If that does not open a browser, visit:'**
+  /// **'If those buttons do not open a browser, visit:'**
   String get startup_versionMismatch_manualLink;
 
   /// No description provided for @universalImport_compare_downloaded.

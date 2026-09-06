@@ -15861,11 +15861,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_appearance_theme_system => 'Predefinito di sistema';
 
   @override
-  String get settings_navCustomization_title => 'Navigation bar';
+  String get settings_navCustomization_title => 'Layout di navigazione';
 
   @override
   String get settings_navCustomization_description =>
       'Drag items to reorder. The top three appear in your bottom navigation bar.';
+
+  @override
+  String get settings_navCustomization_descriptionDesktop =>
+      'Trascina gli elementi per riordinare la barra laterale. Home resta sempre in alto.';
+
+  @override
+  String get settings_navCustomization_scopePhone => 'Telefono';
+
+  @override
+  String get settings_navCustomization_scopeDesktop => 'Desktop';
 
   @override
   String get settings_navCustomization_dividerLabel =>
@@ -24718,7 +24728,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_about_bathymetryCredit =>
-      'Dati batimetrici: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022';
+      'Dati batimetrici: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM';
 
   @override
   String get dive3d_metric_depth => 'Profondità';
@@ -35059,7 +35069,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get common_action_retry => 'Riprova';
 
   @override
-  String get startup_versionMismatch_title => 'Aggiornamento necessario';
+  String get startup_versionMismatch_title =>
+      'I tuoi dati sono più recenti di questa app';
 
   @override
   String startup_versionMismatch_body(
@@ -35070,19 +35081,31 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get startup_versionMismatch_causes =>
+      'Di solito significa che una build beta ha aggiornato i tuoi dati, che è stato ripristinato un backup da una build più recente, oppure che il file è condiviso con un dispositivo su un altro canale di aggiornamento. Una versione stabile più recente potrebbe non esistere ancora.';
+
+  @override
   String get startup_versionMismatch_instructions =>
-      'Aggiorna Submersion all’ultima versione. I tuoi dati sono al sicuro e non sono stati modificati. Se prima dell’aggiornamento è stato eseguito un backup, si trova nella cartella Backups e può essere ripristinato dopo l’aggiornamento.';
+      'I tuoi dati sono al sicuro e non sono stati modificati. Riaprili con la build che li ha scritti, o con una build successiva. Se prima dell’aggiornamento è stato eseguito un backup, si trova nella cartella Backups e può essere ripristinato quando usi una build in grado di aprire il file.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
       'Questa app è stata installata da un app store ed è più vecchia della versione che ha creato i tuoi dati. I tuoi dati sono al sicuro e non sono stati modificati. Aggiorna Submersion quando la nuova versione appare nello store, poi riaprila.';
 
   @override
-  String get startup_versionMismatch_download => 'Scarica l’ultima versione';
+  String get startup_versionMismatch_download =>
+      'Cerca una versione stabile più recente';
+
+  @override
+  String get startup_versionMismatch_betaAction => 'Scarica la build beta';
+
+  @override
+  String get startup_versionMismatch_betaNote =>
+      'Le build beta sono anteprime. Scegli questa opzione solo se una build beta ha scritto i tuoi dati.';
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Se non si apre un browser, visita:';
+      'Se questi pulsanti non aprono un browser, visita:';
 
   @override
   String get universalImport_compare_downloaded => 'Scaricata';

@@ -15738,11 +15738,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_appearance_theme_system => 'Systeemstandaard';
 
   @override
-  String get settings_navCustomization_title => 'Navigation bar';
+  String get settings_navCustomization_title => 'Navigatie-indeling';
 
   @override
   String get settings_navCustomization_description =>
       'Drag items to reorder. The top three appear in your bottom navigation bar.';
+
+  @override
+  String get settings_navCustomization_descriptionDesktop =>
+      'Sleep items om de zijbalk opnieuw te ordenen. Home blijft altijd bovenaan.';
+
+  @override
+  String get settings_navCustomization_scopePhone => 'Telefoon';
+
+  @override
+  String get settings_navCustomization_scopeDesktop => 'Desktop';
 
   @override
   String get settings_navCustomization_dividerLabel =>
@@ -24521,7 +24531,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_about_bathymetryCredit =>
-      'Bathymetriegegevens: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022';
+      'Bathymetriegegevens: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM';
 
   @override
   String get dive3d_metric_depth => 'Diepte';
@@ -34812,7 +34822,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get common_action_retry => 'Opnieuw proberen';
 
   @override
-  String get startup_versionMismatch_title => 'Update vereist';
+  String get startup_versionMismatch_title =>
+      'Je gegevens zijn nieuwer dan deze app';
 
   @override
   String startup_versionMismatch_body(
@@ -34823,19 +34834,31 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get startup_versionMismatch_causes =>
+      'Dit betekent meestal dat een bètaversie je gegevens heeft bijgewerkt, dat er een back-up uit een nieuwere versie is teruggezet, of dat het bestand wordt gedeeld met een apparaat op een ander updatekanaal. Een nieuwere stabiele versie bestaat mogelijk nog niet.';
+
+  @override
   String get startup_versionMismatch_instructions =>
-      'Werk Submersion bij naar de nieuwste versie. Je gegevens zijn veilig en zijn niet gewijzigd. Als er vóór de upgrade een back-up is gemaakt, staat die in je map Backups en kan die na het bijwerken worden teruggezet.';
+      'Je gegevens zijn veilig en zijn niet gewijzigd. Open ze met de versie die ze heeft geschreven, of met een latere versie. Als er vóór de upgrade een back-up is gemaakt, staat die in je map Backups en kan die worden teruggezet zodra je een versie gebruikt die het bestand kan openen.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
       'Deze app is geïnstalleerd vanuit een appstore en is ouder dan de versie die uw gegevens heeft gemaakt. Uw gegevens zijn veilig en niet gewijzigd. Werk Submersion bij zodra de nieuwe versie in de store verschijnt en open de app daarna opnieuw.';
 
   @override
-  String get startup_versionMismatch_download => 'Nieuwste versie downloaden';
+  String get startup_versionMismatch_download =>
+      'Zoeken naar een nieuwere stabiele versie';
+
+  @override
+  String get startup_versionMismatch_betaAction => 'Bètaversie downloaden';
+
+  @override
+  String get startup_versionMismatch_betaNote =>
+      'Bètaversies zijn voorlopige releases. Kies dit alleen als een bètaversie je gegevens heeft geschreven.';
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Als dat geen browser opent, ga naar:';
+      'Als die knoppen geen browser openen, ga naar:';
 
   @override
   String get universalImport_compare_downloaded => 'Gedownload';
