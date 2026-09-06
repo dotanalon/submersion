@@ -24,6 +24,7 @@ void main() {
 
       await tester.pumpWidget(
         testApp(
+          locale: const Locale('en'),
           child: Builder(
             builder: (context) => ElevatedButton(
               onPressed: () async {
