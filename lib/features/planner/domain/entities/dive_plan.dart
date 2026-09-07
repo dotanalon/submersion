@@ -68,6 +68,12 @@ class DivePlan extends Equatable {
   final int gasSwitchStopSeconds;
   final AirBreakPolicy? airBreaks;
 
+  /// Diver-authored minimum hold time in seconds, keyed by whole-metre stop
+  /// depth. Passed straight through to [SchedulePolicy.minStopSecondsByDepth]
+  /// so the engine's own stop-time computation honours it, rather than
+  /// baking a fixed stop into the plan's segments.
+  final Map<int, int> stopMinimums;
+
   // Gas planning
   final double sacBottom;
   final double? sacDeco;
@@ -127,6 +133,7 @@ class DivePlan extends Equatable {
     this.lastStopDepth = 3.0,
     this.gasSwitchStopSeconds = 0,
     this.airBreaks,
+    this.stopMinimums = const {},
     this.sacBottom = 15.0,
     this.sacDeco,
     this.sacStressed,
@@ -200,6 +207,7 @@ class DivePlan extends Equatable {
     int? gasSwitchStopSeconds,
     AirBreakPolicy? airBreaks,
     bool clearAirBreaks = false,
+    Map<int, int>? stopMinimums,
     double? sacBottom,
     double? sacDeco,
     bool clearSacDeco = false,
@@ -257,6 +265,7 @@ class DivePlan extends Equatable {
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
       gasSwitchStopSeconds: gasSwitchStopSeconds ?? this.gasSwitchStopSeconds,
       airBreaks: clearAirBreaks ? null : (airBreaks ?? this.airBreaks),
+      stopMinimums: stopMinimums ?? this.stopMinimums,
       sacBottom: sacBottom ?? this.sacBottom,
       sacDeco: clearSacDeco ? null : (sacDeco ?? this.sacDeco),
       sacStressed: clearSacStressed ? null : (sacStressed ?? this.sacStressed),
@@ -322,6 +331,7 @@ class DivePlan extends Equatable {
     gasSwitchStopSeconds,
     airBreaks?.o2Seconds,
     airBreaks?.breakSeconds,
+    stopMinimums,
     sacBottom,
     sacDeco,
     sacStressed,

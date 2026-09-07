@@ -55,6 +55,7 @@ domain.DivePlan _fullPlan() {
     deviationDepthDelta: 6.0,
     deviationTimeMinutes: 5,
     turnPressureRule: domain.TurnPressureRule.thirds,
+    stopMinimums: const {6: 300, 3: 600},
     tanks: const [tank1, tank2],
     segments: [
       PlanSegment.travel(
@@ -119,6 +120,7 @@ void main() {
       expect(loaded.reservePressure, 55.0);
       expect(loaded.surfaceInterval, const Duration(hours: 2));
       expect(loaded.turnPressureRule, domain.TurnPressureRule.thirds);
+      expect(loaded.stopMinimums, {6: 300, 3: 600});
       expect(loaded.tanks, hasLength(2));
       expect(loaded.tanks.first.gasMix.he, 45);
       expect(loaded.tanks.first.material, TankMaterial.steel);

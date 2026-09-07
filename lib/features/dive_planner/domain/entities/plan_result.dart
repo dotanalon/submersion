@@ -566,6 +566,12 @@ class DivePlanState extends Equatable {
   /// Reserve pressure in bar.
   final double reservePressure;
 
+  /// Diver-authored minimum hold time in seconds, keyed by whole-metre stop
+  /// depth. Mirrors [DivePlan.stopMinimums]; wired into the engine via
+  /// [SchedulePolicy.minStopSecondsByDepth] rather than baking a fixed stop
+  /// into [segments].
+  final Map<int, int> stopMinimums;
+
   /// Equipment attached to the plan (Gear & Weights, v104).
   final List<String> equipmentIds;
 
@@ -636,6 +642,7 @@ class DivePlanState extends Equatable {
     this.turnPressureRule,
     this.turnPressureFraction,
     this.reservePressure = kDefaultReservePressureBar,
+    this.stopMinimums = const {},
     this.equipmentIds = const [],
     this.gearProvenance = const [],
     this.plannedWeightKg,
@@ -710,6 +717,7 @@ class DivePlanState extends Equatable {
     double? turnPressureFraction,
     bool clearTurnPressureRule = false,
     double? reservePressure,
+    Map<int, int>? stopMinimums,
     List<String>? equipmentIds,
     List<GearProvenance>? gearProvenance,
     double? plannedWeightKg,
@@ -778,6 +786,7 @@ class DivePlanState extends Equatable {
           ? null
           : (turnPressureFraction ?? this.turnPressureFraction),
       reservePressure: reservePressure ?? this.reservePressure,
+      stopMinimums: stopMinimums ?? this.stopMinimums,
       equipmentIds: equipmentIds ?? this.equipmentIds,
       gearProvenance: gearProvenance ?? this.gearProvenance,
       plannedWeightKg: clearPlannedWeight
@@ -826,6 +835,7 @@ class DivePlanState extends Equatable {
     turnPressureRule,
     turnPressureFraction,
     reservePressure,
+    stopMinimums,
     equipmentIds,
     gearProvenance,
     plannedWeightKg,

@@ -23827,5 +23827,58 @@
   "equipment_arrange_reset": "Reset to defaults",
   "equipment_arrange_saveFailed": "Could not save the arrangement",
   "settings_appearance_gearArrangement": "Gear arrangement",
-  "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive"
+  "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive",
+  "diveLog_detail_tooltip_whatIf": "Replan this dive",
+  "diveLog_detail_menu_whatIf": "Replan this dive",
+  "plannerCanvas_sourceCompare_title": "vs. original dive",
+  "plannerCanvas_issue_repeated": "{message} ({count} legs)",
+  "@plannerCanvas_issue_repeated": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerCanvas_stopMinimum_dialogTitle": "Minimum stop time at {depth}",
+  "@plannerCanvas_stopMinimum_dialogTitle": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_stopMinimum_minutesLabel": "Minutes",
+  "plannerCanvas_stopMinimum_apply": "Apply",
+  "plannerCanvas_stopMinimum_clear": "Clear minimum",
+  "diveLog_whatIf_title": "Replan this dive",
+  "diveLog_whatIf_detailLabel": "Detail",
+  "diveLog_whatIf_engineNote": "The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.",
+  "diveLog_whatIf_seedTissues": "Seed tissues from previous dive",
+  "diveLog_whatIf_openInPlanner": "Open in planner",
+  "diveLog_whatIf_planName": "Replan: {title}",
+  "@diveLog_whatIf_planName": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_compare_runtime": "Runtime",
+  "plannerCanvas_compare_maxDepth": "Max depth",
+  "plannerCanvas_compare_deco": "Deco time",
+  "plannerCanvas_compare_gas": "Gas ({tank})",
+  "@plannerCanvas_compare_gas": {
+    "placeholders": {
+      "tank": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_compare_cns": "CNS",
+  "plannerCanvas_compare_planned": "Plan",
+  "plannerCanvas_compare_actual": "Actual",
+  "plannerCanvas_compare_showOnChart": "Show on chart"
 }

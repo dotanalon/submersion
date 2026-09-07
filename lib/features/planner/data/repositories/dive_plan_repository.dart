@@ -474,6 +474,15 @@ class DivePlanRepository {
             ? jsonEncode(plan.plannedWeightPlacement)
             : null,
       ),
+      stopMinimumsJson: Value(
+        plan.stopMinimums.isNotEmpty
+            ? jsonEncode(
+                plan.stopMinimums.map(
+                  (depth, seconds) => MapEntry(depth.toString(), seconds),
+                ),
+              )
+            : null,
+      ),
       summaryMaxDepth: summary != null
           ? Value(summary.maxDepth)
           : const Value.absent(),
@@ -627,6 +636,11 @@ class DivePlanRepository {
           ? (jsonDecode(row.plannedWeightPlacement!) as Map<String, dynamic>)
                 .map((k, v) => MapEntry(k, (v as num).toDouble()))
           : null,
+      stopMinimums: row.stopMinimumsJson != null
+          ? (jsonDecode(row.stopMinimumsJson!) as Map<String, dynamic>).map(
+              (k, v) => MapEntry(int.parse(k), (v as num).toInt()),
+            )
+          : const {},
       tanks: tankRows
           .map(
             (t) => DiveTank(

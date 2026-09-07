@@ -630,6 +630,11 @@ class DivePlans extends Table {
   RealColumn get plannedWeightKg => real().nullable()();
   TextColumn get plannedWeightPlacement => text().nullable()();
 
+  /// Diver-authored minimum stop hold times (replan-this-dive feature). JSON
+  /// object keyed by whole-metre stop depth (string, JSON object keys must
+  /// be strings) -> seconds; null = no minimums set.
+  TextColumn get stopMinimumsJson => text().nullable()();
+
   /// Denormalized list-display summary (no engine run per list row).
   RealColumn get summaryMaxDepth => real().nullable()();
   IntColumn get summaryRuntimeSeconds => integer().nullable()();
@@ -4071,7 +4076,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 210;
+  static const int currentSchemaVersion = 211;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4641,6 +4646,12 @@ class AppDatabase extends _$AppDatabase {
     // parent, so a stale copy from a peer cannot overwrite a newer edit.
     // 209 is claimed by #1639, still open.
     210,
+    // v211: dive_plans.stop_minimums_json (replan-this-dive minimum stop
+    // durations). Additive nullable column, no backfill. Renumbered from 201
+    // and then from the 209 main reserved for this branch: main shipped 210
+    // while this branch was open, and a rung at or below the shipped version
+    // never runs its onUpgrade step.
+    211,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -7868,6 +7879,19 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'ALTER TABLE diver_settings ADD COLUMN group_trips_in_dive_list '
       'INTEGER NOT NULL DEFAULT 0',
+    );
+  }
+
+  /// v208: dive_plans.stop_minimums_json (replan-this-dive minimum stop
+  /// durations). Additive, nullable column, no backfill: an existing plan
+  /// reads back with no minimums set, exactly its prior behavior.
+  Future<void> _assertPlanStopMinimumsColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dive_plans')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('stop_minimums_json')) return;
+    await customStatement(
+      'ALTER TABLE dive_plans ADD COLUMN stop_minimums_json TEXT',
     );
   }
 
@@ -11824,6 +11848,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertChildHlcColumns();
         }
         if (from < 210) await reportProgress();
+        // v211: dive_plans.stop_minimums_json (replan-this-dive minimum stop
+        // durations). Additive nullable column, no backfill. Renumbered from
+        // 201 and then from 209: main shipped 210 while this branch was open.
+        if (from < 211) {
+          await _assertPlanStopMinimumsColumn();
+        }
+        if (from < 211) await reportProgress();
       },
       beforeOpen: (details) async {
         // v210 backstop: the dive_tanks equipment link sets null on delete.
@@ -12052,6 +12083,11 @@ class AppDatabase extends _$AppDatabase {
 
         // v204 backstop: re-assert diver_settings.group_trips_in_dive_list.
         await _assertGroupTripsInDiveListColumn();
+
+        // v208 backstop: re-assert the dive_plans stop-minimums column. A
+        // database that arrives by restore or sync-adopt never runs
+        // onUpgrade, and reading a plan without it throws.
+        await _assertPlanStopMinimumsColumn();
 
         // v157 backstop: re-assert the default service price columns (issue
         // #829; same parallel-branch version-collision self-heal).
