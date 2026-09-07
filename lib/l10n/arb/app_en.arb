@@ -4997,6 +4997,9 @@
     }
   },
   "divePlanner_hint_tankName": "Enter tank name",
+  "divePlanner_label_airBreaks": "Air breaks",
+  "divePlanner_label_airBreaksBreak": "Break (min)",
+  "divePlanner_label_airBreaksOnO2": "On O2 (min)",
   "divePlanner_label_altitude": "Altitude:",
   "divePlanner_label_belowMinReserve": "Below Min Reserve",
   "divePlanner_label_ceiling": "Ceiling",

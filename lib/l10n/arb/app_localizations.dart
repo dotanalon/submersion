@@ -13749,6 +13749,24 @@ abstract class AppLocalizations {
   /// **'Enter tank name'**
   String get divePlanner_hint_tankName;
 
+  /// No description provided for @divePlanner_label_airBreaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Air breaks'**
+  String get divePlanner_label_airBreaks;
+
+  /// No description provided for @divePlanner_label_airBreaksBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Break (min)'**
+  String get divePlanner_label_airBreaksBreak;
+
+  /// No description provided for @divePlanner_label_airBreaksOnO2.
+  ///
+  /// In en, this message translates to:
+  /// **'On O2 (min)'**
+  String get divePlanner_label_airBreaksOnO2;
+
   /// No description provided for @divePlanner_label_altitude.
   ///
   /// In en, this message translates to:

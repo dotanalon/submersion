@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
@@ -516,6 +517,10 @@ class DivePlanState extends Equatable {
   /// Descent rate in meters per minute.
   final double descentRate;
 
+  /// Air-break (back-gas break) policy for long O2 deco stops; null = no
+  /// air breaks.
+  final AirBreakPolicy? airBreaks;
+
   /// Surface interval before this dive (for repetitive diving).
   final Duration? surfaceInterval;
 
@@ -624,6 +629,7 @@ class DivePlanState extends Equatable {
     this.finalAscentRate = 1.0,
     this.lastStopDepth = 3.0,
     this.descentRate = 18.0,
+    this.airBreaks,
     this.surfaceInterval,
     this.initialTissueState,
     this.sourceDiveId,
@@ -697,6 +703,7 @@ class DivePlanState extends Equatable {
     double? finalAscentRate,
     double? lastStopDepth,
     double? descentRate,
+    AirBreakPolicy? airBreaks,
     Duration? surfaceInterval,
     List<TissueCompartment>? initialTissueState,
     String? sourceDiveId,
@@ -736,6 +743,7 @@ class DivePlanState extends Equatable {
     bool clearWaterType = false,
     bool clearSalinityPpt = false,
     bool clearSetpoints = false,
+    bool clearAirBreaks = false,
   }) {
     return DivePlanState(
       id: id ?? this.id,
@@ -752,6 +760,7 @@ class DivePlanState extends Equatable {
       finalAscentRate: finalAscentRate ?? this.finalAscentRate,
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
       descentRate: descentRate ?? this.descentRate,
+      airBreaks: clearAirBreaks ? null : (airBreaks ?? this.airBreaks),
       surfaceInterval: clearSurfaceInterval
           ? null
           : (surfaceInterval ?? this.surfaceInterval),
@@ -817,6 +826,8 @@ class DivePlanState extends Equatable {
     finalAscentRate,
     lastStopDepth,
     descentRate,
+    airBreaks?.o2Seconds,
+    airBreaks?.breakSeconds,
     surfaceInterval,
     initialTissueState,
     sourceDiveId,
