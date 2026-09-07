@@ -241,8 +241,13 @@ class PlanOutcome {
   final int runtimeSeconds;
   final double maxDepth;
 
-  /// NDL (seconds, -1 = in deco) and TTS at the bottom reference point.
+  /// NDL (seconds, -1 = in deco) at the deepest authored leg.
   final int ndlAtBottom;
+
+  /// Time to surface in seconds from the end of the last authored segment:
+  /// travel to the first stop, every stop, the travel between them and the
+  /// final ascent. Always equals [runtimeSeconds] minus the authored
+  /// runtime, so it can never disagree with the printed schedule.
   final int ttsAtBottom;
 
   final List<PlanStop> stops;

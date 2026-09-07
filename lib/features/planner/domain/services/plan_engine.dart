@@ -152,10 +152,6 @@ class PlanEngine {
     return OpenCircuit(fO2: gas.o2 / 100.0, fHe: gas.he / 100.0);
   }
 
-  /// Legs ending deeper than this fraction of max depth are working legs for
-  /// the purpose of TTS and deco time; flat legs above it are stops.
-  static const double _workingDepthFraction = 0.5;
-
   PlanOutcome compute(domain.DivePlan inputPlan, {TissueState? startState}) {
     // Cylinder roles are derived from the mixes and the segments that breathe
     // them rather than declared by the diver, so resolve them before any of
@@ -223,8 +219,6 @@ class PlanEngine {
     var otu = 0.0;
     var maxPpO2 = 0.0;
     int? ndlAtBottom;
-    int? ttsAtBottom;
-    int? lastWorkingEndRuntime;
     var authoredDecoSeconds = 0;
     final maxDepth = plan.maxDepth;
     final segmentOutcomes = <SegmentOutcome>[];
@@ -305,18 +299,8 @@ class PlanEngine {
       // declared bottom type, which this depth test already subsumed.
       if (leg.endDepth >= maxDepth - 0.1) {
         ndlAtBottom = ndl;
-        ttsAtBottom = tts;
       }
-      // A leg that is not ascending and ends in the deeper half of the dive
-      // is still working, even when the chain reads it as a stop because
-      // nothing deeper follows (a shallower second level, a wander before
-      // the ascent). Flat legs in the shallower half are the deco stops.
-      final isWorking =
-          leg.phase != SegmentPhase.ascent &&
-          leg.endDepth > maxDepth * _workingDepthFraction;
-      if (isWorking) {
-        lastWorkingEndRuntime = runtime;
-      } else if (leg.phase == SegmentPhase.stop) {
+      if (leg.phase == SegmentPhase.stop) {
         authoredDecoSeconds += leg.durationSeconds;
       }
 
@@ -415,26 +399,21 @@ class PlanEngine {
     final totalRuntime = scheduleRows.isEmpty
         ? runtime + schedule.ttsSeconds
         : scheduleRows.last.runtimeSeconds;
-    // TTS is the time the plan actually takes from the moment the final
-    // ascent begins (the end of the last working leg) to surfacing: the
-    // authored travel to the first stop, every authored stop, and whatever
-    // the model still owes at the end. With nothing authored after the
-    // working legs that is exactly the model's schedule. It is never the
-    // hypothetical direct ascent from the deepest point that ignores the
-    // stops the diver has written down.
-    // When the last authored leg is itself the working end this is exactly
-    // the model's schedule from that depth, which is still not the direct
-    // ascent from the deepest point when a shallower working level follows
-    // the bottom.
-    final plannedTts = lastWorkingEndRuntime != null
-        ? totalRuntime - lastWorkingEndRuntime
-        : null;
+    // TTS is one thing only: the time from the end of the last authored
+    // segment to the surface, exactly as the schedule below prints it -
+    // travel to the first stop at the plan's ascent rate, every stop, the
+    // travel between them and the final ascent. The authored segments are
+    // what the diver has decided to do; TTS is what the model still owes
+    // once they are done. It is never re-derived from the deepest leg or
+    // from any guess about where "the bottom" ended, so it cannot disagree
+    // with the table.
+    final tts = totalRuntime - runtime;
 
     return PlanOutcome(
       runtimeSeconds: totalRuntime,
       maxDepth: maxDepth,
       ndlAtBottom: ndlAtBottom ?? 0,
-      ttsAtBottom: plannedTts ?? ttsAtBottom ?? schedule.ttsSeconds,
+      ttsAtBottom: tts,
       authoredDecoSeconds: authoredDecoSeconds,
       stops: stops,
       schedule: scheduleRows,
