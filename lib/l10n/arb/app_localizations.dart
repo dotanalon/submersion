@@ -13893,6 +13893,54 @@ abstract class AppLocalizations {
   /// **'Salinity'**
   String get divePlanner_label_salinity;
 
+  /// No description provided for @divePlanner_gasOptions_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas options'**
+  String get divePlanner_gasOptions_title;
+
+  /// No description provided for @divePlanner_gasOptions_sacDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco SAC'**
+  String get divePlanner_gasOptions_sacDeco;
+
+  /// No description provided for @divePlanner_gasOptions_sacFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC factor'**
+  String get divePlanner_gasOptions_sacFactor;
+
+  /// No description provided for @divePlanner_gasOptions_problemSolvingMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem solving time'**
+  String get divePlanner_gasOptions_problemSolvingMinutes;
+
+  /// No description provided for @divePlanner_gasOptions_ppO2Bottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom ppO₂'**
+  String get divePlanner_gasOptions_ppO2Bottom;
+
+  /// No description provided for @divePlanner_gasOptions_ppO2Deco.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco ppO₂'**
+  String get divePlanner_gasOptions_ppO2Deco;
+
+  /// No description provided for @divePlanner_gasOptions_bestMixEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Best mix END'**
+  String get divePlanner_gasOptions_bestMixEnd;
+
+  /// No description provided for @divePlanner_gasOptions_o2Narcotic.
+  ///
+  /// In en, this message translates to:
+  /// **'Treat O₂ as narcotic for this plan'**
+  String get divePlanner_gasOptions_o2Narcotic;
+
   /// No description provided for @divePlanner_label_status.
   ///
   /// In en, this message translates to:

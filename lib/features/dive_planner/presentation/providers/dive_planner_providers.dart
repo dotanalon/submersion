@@ -638,6 +638,40 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
+  /// Update the Subsurface-style Gas options; only supplied values change.
+  /// [sacDeco], [ppO2Bottom], [ppO2Deco], and [o2Narcotic] are nullable
+  /// overrides of the app-wide settings (or, for [sacDeco], of the 0.8x-of-
+  /// bottom fallback) - pass the matching `clear*` flag to fall back again.
+  void updateGasOptions({
+    double? sacDeco,
+    bool clearSacDeco = false,
+    double? sacFactor,
+    int? problemSolvingMinutes,
+    double? ppO2Bottom,
+    bool clearPpO2Bottom = false,
+    double? ppO2Deco,
+    bool clearPpO2Deco = false,
+    double? bestMixEndMeters,
+    bool? o2Narcotic,
+    bool clearO2Narcotic = false,
+  }) {
+    state = state.copyWith(
+      sacDeco: sacDeco,
+      clearSacDeco: clearSacDeco,
+      sacFactor: sacFactor,
+      problemSolvingMinutes: problemSolvingMinutes,
+      ppO2Bottom: ppO2Bottom,
+      clearPpO2Bottom: clearPpO2Bottom,
+      ppO2Deco: ppO2Deco,
+      clearPpO2Deco: clearPpO2Deco,
+      bestMixEndMeters: bestMixEndMeters,
+      o2Narcotic: o2Narcotic,
+      clearO2Narcotic: clearO2Narcotic,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   /// Switch between open circuit and CCR.
   void updateMode(domain.PlanMode mode) {
     state = state.copyWith(

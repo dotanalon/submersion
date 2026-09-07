@@ -51,6 +51,12 @@ domain.DivePlan _fullPlan() {
     sacBottom: 16.0,
     sacDeco: 13.0,
     reservePressure: 55.0,
+    sacFactor: 2.5,
+    problemSolvingMinutes: 3,
+    ppO2Bottom: 1.3,
+    ppO2Deco: 1.5,
+    bestMixEndMeters: 28.0,
+    o2Narcotic: false,
     surfaceInterval: const Duration(hours: 2),
     deviationDepthDelta: 6.0,
     deviationTimeMinutes: 5,
@@ -118,6 +124,12 @@ void main() {
       expect(loaded.sacDeco, 13.0);
       expect(loaded.sacStressed, isNull);
       expect(loaded.reservePressure, 55.0);
+      expect(loaded.sacFactor, 2.5);
+      expect(loaded.problemSolvingMinutes, 3);
+      expect(loaded.ppO2Bottom, 1.3);
+      expect(loaded.ppO2Deco, 1.5);
+      expect(loaded.bestMixEndMeters, 28.0);
+      expect(loaded.o2Narcotic, false);
       expect(loaded.surfaceInterval, const Duration(hours: 2));
       expect(loaded.turnPressureRule, domain.TurnPressureRule.thirds);
       expect(loaded.stopMinimums, {6: 300, 3: 600});

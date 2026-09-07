@@ -7,13 +7,15 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_options_section.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Gas settings for the Setup accordion: RMV (with one-tap logged average)
-/// and reserve pressure. Bottom/deco RMV split and RMV factor land here in
-/// later phases (spec G25).
+/// Gas settings for the Setup accordion: Bottom RMV (with one-tap logged
+/// average), reserve pressure, and the Subsurface-style Gas options
+/// ([PlanGasOptionsSection]: Deco SAC, SAC factor, problem solving time,
+/// bottom/deco ppO2, best-mix END, O2 narcotic).
 class PlanGasSection extends ConsumerWidget {
   const PlanGasSection({super.key});
 
@@ -77,6 +79,7 @@ class PlanGasSection extends ConsumerWidget {
               .read(divePlanNotifierProvider.notifier)
               .updateReservePressure(value),
         ),
+        const PlanGasOptionsSection(),
       ],
     );
   }

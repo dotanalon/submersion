@@ -635,6 +635,16 @@ class DivePlans extends Table {
   /// be strings) -> seconds; null = no minimums set.
   TextColumn get stopMinimumsJson => text().nullable()();
 
+  /// Gas options (Subsurface parity). See [DivePlan.sacFactor] and siblings
+  /// for the semantics of each field.
+  RealColumn get sacFactor => real().withDefault(const Constant(2.0))();
+  IntColumn get problemSolvingMinutes =>
+      integer().withDefault(const Constant(2))();
+  RealColumn get ppO2Bottom => real().nullable()();
+  RealColumn get ppO2Deco => real().nullable()();
+  RealColumn get bestMixEndMeters => real().withDefault(const Constant(30.0))();
+  BoolColumn get o2Narcotic => boolean().nullable()();
+
   /// Denormalized list-display summary (no engine run per list row).
   RealColumn get summaryMaxDepth => real().nullable()();
   IntColumn get summaryRuntimeSeconds => integer().nullable()();
@@ -4076,7 +4086,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 211;
+  static const int currentSchemaVersion = 212;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4652,6 +4662,10 @@ class AppDatabase extends _$AppDatabase {
     // while this branch was open, and a rung at or below the shipped version
     // never runs its onUpgrade step.
     211,
+    // v212: dive_plans gas-options columns (sac_factor, problem_solving_
+    // minutes, pp_o2_bottom, pp_o2_deco, best_mix_end_meters, o2_narcotic).
+    // Renumbered from 202 for the same collisions; stop-minimums took 211.
+    212,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -7893,6 +7907,51 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'ALTER TABLE dive_plans ADD COLUMN stop_minimums_json TEXT',
     );
+  }
+
+  /// v209: dive_plans gas-options columns (Subsurface parity: SAC factor,
+  /// problem solving time, bottom/deco ppO2 overrides, best-mix END, O2
+  /// narcotic override). Additive; the two non-nullable columns backfill
+  /// existing rows with the same defaults [DivePlan] already assumes when a
+  /// column is missing, so a plan's minimum-gas figure and END limit are
+  /// unchanged by the migration itself.
+  Future<void> _assertPlanGasOptionColumns() async {
+    final cols = await customSelect("PRAGMA table_info('dive_plans')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('sac_factor')) {
+      await customStatement(
+        'ALTER TABLE dive_plans ADD COLUMN sac_factor REAL NOT NULL '
+        'DEFAULT 2.0',
+      );
+    }
+    if (!names.contains('problem_solving_minutes')) {
+      await customStatement(
+        'ALTER TABLE dive_plans ADD COLUMN problem_solving_minutes INTEGER '
+        'NOT NULL DEFAULT 2',
+      );
+    }
+    if (!names.contains('pp_o2_bottom')) {
+      await customStatement(
+        'ALTER TABLE dive_plans ADD COLUMN pp_o2_bottom REAL',
+      );
+    }
+    if (!names.contains('pp_o2_deco')) {
+      await customStatement(
+        'ALTER TABLE dive_plans ADD COLUMN pp_o2_deco REAL',
+      );
+    }
+    if (!names.contains('best_mix_end_meters')) {
+      await customStatement(
+        'ALTER TABLE dive_plans ADD COLUMN best_mix_end_meters REAL NOT '
+        'NULL DEFAULT 30.0',
+      );
+    }
+    if (!names.contains('o2_narcotic')) {
+      await customStatement(
+        'ALTER TABLE dive_plans ADD COLUMN o2_narcotic BOOLEAN',
+      );
+    }
   }
 
   /// Owning-source FK on dive_profiles (issue #1149). PRAGMA-guarded so a
@@ -11855,6 +11914,14 @@ class AppDatabase extends _$AppDatabase {
           await _assertPlanStopMinimumsColumn();
         }
         if (from < 211) await reportProgress();
+        // v212: dive_plans gas-options columns (SAC factor, problem solving
+        // time, ppO2 bottom/deco overrides, best-mix END, O2 narcotic
+        // override). Additive, defaults preserve prior behavior. Renumbered
+        // from 202: stop-minimums took 211.
+        if (from < 212) {
+          await _assertPlanGasOptionColumns();
+        }
+        if (from < 212) await reportProgress();
       },
       beforeOpen: (details) async {
         // v210 backstop: the dive_tanks equipment link sets null on delete.
@@ -12088,6 +12155,11 @@ class AppDatabase extends _$AppDatabase {
         // database that arrives by restore or sync-adopt never runs
         // onUpgrade, and reading a plan without it throws.
         await _assertPlanStopMinimumsColumn();
+
+        // v209 backstop: re-assert the dive_plans gas-options columns. A
+        // database that arrives by restore or sync-adopt never runs
+        // onUpgrade, and reading a plan without them throws.
+        await _assertPlanGasOptionColumns();
 
         // v157 backstop: re-assert the default service price columns (issue
         // #829; same parallel-branch version-collision self-heal).

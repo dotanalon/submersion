@@ -8363,6 +8363,32 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_label_salinity => 'Salinidad';
 
   @override
+  String get divePlanner_gasOptions_title => 'Gas options';
+
+  @override
+  String get divePlanner_gasOptions_sacDeco => 'Deco SAC';
+
+  @override
+  String get divePlanner_gasOptions_sacFactor => 'SAC factor';
+
+  @override
+  String get divePlanner_gasOptions_problemSolvingMinutes =>
+      'Problem solving time';
+
+  @override
+  String get divePlanner_gasOptions_ppO2Bottom => 'Bottom ppO₂';
+
+  @override
+  String get divePlanner_gasOptions_ppO2Deco => 'Deco ppO₂';
+
+  @override
+  String get divePlanner_gasOptions_bestMixEnd => 'Best mix END';
+
+  @override
+  String get divePlanner_gasOptions_o2Narcotic =>
+      'Treat O₂ as narcotic for this plan';
+
+  @override
   String get divePlanner_label_status => 'Estado';
 
   @override

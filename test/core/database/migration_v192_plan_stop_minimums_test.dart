@@ -4,11 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v208 is the current schema version and is in the ladder', () {
+  test('v208 is at or below the current schema version and in the ladder', () {
     // Renumbered again: trip grouping (204) and the gear-junction updated_at
     // (207) landed on main while this branch was open, and 205 and 206 are
-    // claimed by the condition-intelligence branches.
-    expect(AppDatabase.currentSchemaVersion, 208);
+    // claimed by the condition-intelligence branches. Relaxed now that the
+    // gas-options rung sits on top; the newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(208));
     expect(AppDatabase.migrationVersions, contains(208));
   });
 
