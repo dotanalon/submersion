@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/source_dive_deco_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -20,6 +21,9 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
     if (dive == null) return const SizedBox.shrink();
 
     final outcome = ref.watch(activePlanOutcomeProvider);
+    final actualDecoSeconds = ref
+        .watch(sourceDiveDecoSecondsProvider)
+        .valueOrNull;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final theme = Theme.of(context);
 
@@ -39,9 +43,10 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
       _CompareRow(
         label: context.l10n.plannerCanvas_compare_deco,
         planned: '${(outcome.totalDecoSeconds / 60).round()}′',
-        // Logged deco obligation isn't tracked as a single dive field, so
-        // there is nothing reliable to diff it against.
-        actual: '--',
+        // Time the diver actually held stops, from the analysed profile.
+        actual: actualDecoSeconds == null
+            ? '--'
+            : '${(actualDecoSeconds / 60).round()}′',
       ),
       for (final tank in dive.tanks)
         if (tank.pressureUsed != null && tank.volume != null)
