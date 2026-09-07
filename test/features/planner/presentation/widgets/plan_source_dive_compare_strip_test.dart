@@ -5,6 +5,7 @@ import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/source_dive_deco_provider.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_source_dive_compare_strip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -48,6 +49,7 @@ void main() {
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           sourceDiveForPlanProvider.overrideWith((ref) async => null),
+          sourceDiveDecoSecondsProvider.overrideWith((ref) async => null),
         ],
         child: const PlanSourceDiveCompareStrip(),
       ),
@@ -83,6 +85,7 @@ void main() {
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           sourceDiveForPlanProvider.overrideWith((ref) async => dive),
+          sourceDiveDecoSecondsProvider.overrideWith((ref) async => 1500),
           activePlanOutcomeProvider.overrideWithValue(_outcome()),
         ],
         child: const PlanSourceDiveCompareStrip(),
@@ -93,5 +96,6 @@ void main() {
     expect(find.text('vs. original dive'), findsOneWidget);
     expect(find.textContaining('30′'), findsOneWidget); // planned runtime
     expect(find.textContaining('32′'), findsOneWidget); // actual runtime
+    expect(find.text('25′'), findsOneWidget); // actual deco held at stops
   });
 }
