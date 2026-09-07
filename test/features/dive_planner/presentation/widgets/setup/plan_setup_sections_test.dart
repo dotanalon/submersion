@@ -146,7 +146,12 @@ void main() {
   ) async {
     await tester.pumpWidget(_harness(const PlanGasSection()));
     await tester.pumpAndSettle();
-    final field = find.byType(TextField).last;
+    // The reserve field sits above the gas options block, so find it by its
+    // semantics label rather than by position.
+    final field = find.descendant(
+      of: find.bySemanticsLabel(RegExp('Reserve pressure')),
+      matching: find.byType(TextField),
+    );
     await tester.enterText(field, '0');
     await tester.pumpAndSettle();
     expect(find.text('Must be greater than 0'), findsOneWidget);
