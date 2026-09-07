@@ -1,7 +1,7 @@
 /// Air-break policy for long oxygen stops: after [o2Seconds] on a pure-O2
 /// stop gas, breathe the break gas for [breakSeconds], then repeat.
 class AirBreakPolicy {
-  const AirBreakPolicy({this.o2Seconds = 20 * 60, this.breakSeconds = 5 * 60});
+  const AirBreakPolicy({this.o2Seconds = 12 * 60, this.breakSeconds = 6 * 60});
 
   final int o2Seconds;
   final int breakSeconds;

@@ -683,12 +683,26 @@ class PlanEngine {
             (legSeconds / 60.0) *
             environment.pressureAtDepth(legAvg),
       );
+      final stopPressure = environment.pressureAtDepth(stop.depthMeters);
+      final primarySeconds = stop.durationSeconds - stop.airBreakSeconds;
       charge(
         stop.tankId,
-        plan.sacDecoEffective *
-            (stop.durationSeconds / 60.0) *
-            environment.pressureAtDepth(stop.depthMeters),
+        plan.sacDecoEffective * (primarySeconds / 60.0) * stopPressure,
       );
+      if (stop.airBreakSeconds > 0) {
+        final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
+        final breakTankId = breakGas != null
+            ? _tankForGas(
+                plan.tanks,
+                1.0 - breakGas.fN2 - breakGas.fHe,
+                breakGas.fHe,
+              )
+            : stop.tankId;
+        charge(
+          breakTankId,
+          plan.sacDecoEffective * (stop.airBreakSeconds / 60.0) * stopPressure,
+        );
+      }
       depth = stop.depthMeters;
       phase = AscentPhase.betweenStops;
     }

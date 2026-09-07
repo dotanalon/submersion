@@ -7,9 +7,10 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 /// [domain.DivePlan] aggregate.
 ///
 /// The UI state carries a subset of the aggregate; [existing] preserves
-/// fields the state does not know about (air breaks) across an edit-save
-/// cycle so a plan touched by the UI does not lose them. Mode, setpoints,
-/// contingency config, water type, and dive links travel WITH the state.
+/// fields the state does not know about across an edit-save cycle so a
+/// plan touched by the UI does not lose them. Mode, setpoints,
+/// contingency config, water type, dive links, and air breaks travel WITH
+/// the state.
 domain.DivePlan divePlanFromState(
   DivePlanState state, {
   domain.DivePlan? existing,
@@ -64,6 +65,8 @@ domain.DivePlan divePlanFromState(
     finalAscentRate: state.finalAscentRate,
     lastStopDepth: state.lastStopDepth,
     descentRate: state.descentRate,
+    airBreaks: state.airBreaks,
+    clearAirBreaks: state.airBreaks == null,
     reservePressure: state.reservePressure,
     stopMinimums: state.stopMinimums,
     surfaceInterval: state.surfaceInterval,
@@ -119,6 +122,7 @@ DivePlanState stateFromDivePlan(domain.DivePlan plan) {
     finalAscentRate: plan.finalAscentRate,
     lastStopDepth: plan.lastStopDepth,
     descentRate: plan.descentRate,
+    airBreaks: plan.airBreaks,
     reservePressure: plan.reservePressure,
     stopMinimums: plan.stopMinimums,
     surfaceInterval: plan.surfaceInterval,

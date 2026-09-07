@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -612,6 +613,17 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       salinityPpt: salinityPpt,
       clearSalinityPpt: salinityPpt == null,
       clearWaterType: true,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Set the air-break (back-gas break) policy for long O2 deco stops; null
+  /// disables air breaks.
+  void setAirBreaks(AirBreakPolicy? policy) {
+    state = state.copyWith(
+      airBreaks: policy,
+      clearAirBreaks: policy == null,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
