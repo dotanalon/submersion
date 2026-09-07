@@ -79,6 +79,33 @@ class PlanEngineConfig {
     this.cnsMethod = CnsCalculationMethod.shearwater,
     this.gasModel = GasModel.real,
   });
+
+  /// Merges this app-wide config with [plan]'s per-plan gas-option
+  /// overrides. A set plan value always wins; an unset (null) one falls back
+  /// to this config unchanged.
+  ///
+  /// `sacFactor` and `bestMixEndMeters` have no global-settings source today
+  /// (they are plain defaulted fields, not nullable overrides), so they
+  /// always replace [buddyFactor] and [endLimitMeters] for this plan.
+  PlanEngineConfig resolvedFor(domain.DivePlan plan) {
+    return PlanEngineConfig(
+      ppO2Working: plan.ppO2Bottom ?? ppO2Working,
+      ppO2Deco: plan.ppO2Deco ?? ppO2Deco,
+      cnsWarningThreshold: cnsWarningThreshold,
+      o2Narcotic: plan.o2Narcotic ?? o2Narcotic,
+      endLimitMeters: plan.bestMixEndMeters,
+      otuLimit: otuLimit,
+      o2MetabolicRateLpm: o2MetabolicRateLpm,
+      loopVolumeLiters: loopVolumeLiters,
+      buddyFactor: plan.sacFactor,
+      scrInjectionRateLpm: scrInjectionRateLpm,
+      pscrO2ConsumptionMlMin: pscrO2ConsumptionMlMin,
+      pscrSacMlMin: pscrSacMlMin,
+      pscrRatio: pscrRatio,
+      cnsMethod: cnsMethod,
+      gasModel: gasModel,
+    );
+  }
 }
 
 /// Turns a [domain.DivePlan] into a [PlanOutcome] on the Phase 1 engine
@@ -152,7 +179,21 @@ class PlanEngine {
     return OpenCircuit(fO2: gas.o2 / 100.0, fHe: gas.he / 100.0);
   }
 
+  /// Computes the schedule for [inputPlan], first resolving this engine's
+  /// [config] against the plan's own gas-option overrides (ppO2Bottom,
+  /// ppO2Deco, o2Narcotic, sacFactor, bestMixEndMeters) so every call site
+  /// that constructs a `PlanEngine` picks those overrides up automatically.
   PlanOutcome compute(domain.DivePlan inputPlan, {TissueState? startState}) {
+    final resolvedConfig = config.resolvedFor(inputPlan);
+    return PlanEngine(
+      config: resolvedConfig,
+    )._computeInternal(inputPlan, startState: startState);
+  }
+
+  PlanOutcome _computeInternal(
+    domain.DivePlan inputPlan, {
+    TissueState? startState,
+  }) {
     // Cylinder roles are derived from the mixes and the segments that breathe
     // them rather than declared by the diver, so resolve them before any of
     // the role-dependent maths below (turn pressure, rock bottom, deco-gas
@@ -751,8 +792,14 @@ class PlanEngine {
   }
 
   /// Rock-bottom minimum gas: a stressed, buddy-shared emergency exit from
-  /// the plan's max depth — one minute at depth plus a direct ascent at the
-  /// plan rate — expressed as bar on this tank (bottom tanks, OC only).
+  /// the plan's max depth — [domain.DivePlan.problemSolvingMinutes] at depth
+  /// plus a direct ascent at the plan rate — expressed as bar on this tank
+  /// (bottom tanks, OC only).
+  ///
+  /// The stressed rate is [domain.DivePlan.sacStressedEffective] (an
+  /// explicit override, or bottom SAC x2.5 by default); [config]'s
+  /// `buddyFactor` is resolved from the plan's own `sacFactor` by [compute]
+  /// before this runs, so it always reflects that plan's Gas options.
   double? _minGasFor(
     domain.DivePlan plan,
     DiveTank tank,
@@ -771,7 +818,9 @@ class PlanEngine {
         ).ascentTravelSeconds(fromDepth: maxDepth, stopDepths: const []) /
         60.0;
     final liters =
-        sac * environment.pressureAtDepth(maxDepth) +
+        sac *
+            plan.problemSolvingMinutes *
+            environment.pressureAtDepth(maxDepth) +
         sac * ascentMinutes * environment.pressureAtDepth(maxDepth / 2.0);
     final volume = tank.volume ?? 11.0;
     return volume > 0 ? liters / volume : null;
