@@ -290,12 +290,18 @@ class PlanOutcome {
     required this.endTissue,
     required this.tissueTimeline,
     required this.ceilingTrace,
+    this.authoredDecoSeconds = 0,
   });
+
+  /// Time spent on stops the diver authored as segments (a stop leg in the
+  /// resolved chain), as opposed to the [stops] the engine scheduled after
+  /// the last segment.
+  final int authoredDecoSeconds;
 
   /// No critical issue present.
   bool get isDiveable =>
       !issues.any((i) => i.severity == PlanIssueSeverity.critical);
 
   int get totalDecoSeconds =>
-      stops.fold(0, (sum, s) => sum + s.durationSeconds);
+      authoredDecoSeconds + stops.fold(0, (sum, s) => sum + s.durationSeconds);
 }

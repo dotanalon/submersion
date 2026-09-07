@@ -12,6 +12,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_canvas_p
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Localized, unit-aware message for a plan issue. Reuses the existing
@@ -156,8 +157,8 @@ class PlanResultsSheet extends ConsumerWidget {
             ),
           )
         else
-          for (final issue in outcome.issues)
-            _IssueRow(issue: issue, units: units),
+          for (final group in groupPlanIssues(outcome.issues))
+            _IssueRow(group: group, units: units),
       ],
     );
   }
@@ -316,17 +317,18 @@ class PlanResultsSheet extends ConsumerWidget {
   );
 }
 
-class _RuntimeTable extends StatelessWidget {
+class _RuntimeTable extends ConsumerWidget {
   const _RuntimeTable({required this.outcome, required this.units});
 
   final PlanOutcome outcome;
   final UnitFormatter units;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final lines = scheduleLines(outcome.schedule);
+    final stopMinimums = ref.watch(divePlanNotifierProvider).stopMinimums;
     final noDeco = Text(
       l10n.plannerCanvas_results_noDeco,
       style: theme.textTheme.bodyMedium,
@@ -374,28 +376,142 @@ class _RuntimeTable extends StatelessWidget {
         ),
         const Divider(height: 12),
         for (final line in lines)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 3),
-            child: Row(
-              children: [
-                glyph(scheduleRowGlyph(line.row.kind)),
-                cell(units.formatDepth(line.row.depthMeters, decimals: 0)),
-                cell(_durationText(line)),
-                cell('${line.runtimeMinutes}′'),
-                cell(
-                  line.row.gasSwitch
-                      ? GasMix(
-                          o2: line.row.gasFO2 * 100,
-                          he: line.row.gasFHe * 100,
-                        ).name
-                      : '',
-                  style: switchStyle,
-                  flex: 2,
-                ),
-              ],
-            ),
+          _buildLineRow(
+            context,
+            ref,
+            line,
+            stopMinimums,
+            cell,
+            glyph,
+            switchStyle,
           ),
       ],
+    );
+  }
+
+  Widget _buildLineRow(
+    BuildContext context,
+    WidgetRef ref,
+    ScheduleLine line,
+    Map<int, int> stopMinimums,
+    Widget Function(String, {TextStyle? style, int flex}) cell,
+    Widget Function(String) glyph,
+    TextStyle? switchStyle,
+  ) {
+    final isStop = line.row.kind == PlanScheduleRowKind.stop;
+    final stopDepth = line.row.depthMeters.round();
+    final hasMinimum = isStop && stopMinimums.containsKey(stopDepth);
+    final theme = Theme.of(context);
+
+    final row = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          glyph(scheduleRowGlyph(line.row.kind)),
+          cell(units.formatDepth(line.row.depthMeters, decimals: 0)),
+          cell(
+            _durationText(line),
+            style: hasMinimum
+                ? theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  )
+                : null,
+          ),
+          cell('${line.runtimeMinutes}′'),
+          if (hasMinimum)
+            const Padding(
+              padding: EdgeInsets.only(right: 4),
+              child: Icon(Icons.push_pin, size: 14),
+            ),
+          cell(
+            line.row.gasSwitch
+                ? GasMix(
+                    o2: line.row.gasFO2 * 100,
+                    he: line.row.gasFHe * 100,
+                  ).name
+                : '',
+            style: switchStyle,
+            flex: 2,
+          ),
+        ],
+      ),
+    );
+
+    if (!isStop) return row;
+
+    return InkWell(
+      onTap: () => _showStopMinimumDialog(
+        context,
+        ref,
+        stopDepth: stopDepth,
+        currentMinutes: (line.row.durationSeconds / 60).round(),
+        currentMinimumSeconds: stopMinimums[stopDepth],
+      ),
+      child: row,
+    );
+  }
+
+  Future<void> _showStopMinimumDialog(
+    BuildContext context,
+    WidgetRef ref, {
+    required int stopDepth,
+    required int currentMinutes,
+    required int? currentMinimumSeconds,
+  }) async {
+    final l10n = context.l10n;
+    final controller = TextEditingController(
+      text:
+          (currentMinimumSeconds != null
+                  ? (currentMinimumSeconds / 60).round()
+                  : currentMinutes)
+              .toString(),
+    );
+    final depthLabel = units.formatDepth(stopDepth.toDouble(), decimals: 0);
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(l10n.plannerCanvas_stopMinimum_dialogTitle(depthLabel)),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: l10n.plannerCanvas_stopMinimum_minutesLabel,
+            ),
+          ),
+          actions: [
+            if (currentMinimumSeconds != null)
+              TextButton(
+                onPressed: () {
+                  ref
+                      .read(divePlanNotifierProvider.notifier)
+                      .setStopMinimum(stopDepth, null);
+                  Navigator.of(dialogContext).pop();
+                },
+                child: Text(l10n.plannerCanvas_stopMinimum_clear),
+              ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                MaterialLocalizations.of(dialogContext).cancelButtonLabel,
+              ),
+            ),
+            FilledButton(
+              onPressed: () {
+                final minutes = int.tryParse(controller.text);
+                if (minutes != null && minutes >= 0) {
+                  ref
+                      .read(divePlanNotifierProvider.notifier)
+                      .setStopMinimum(stopDepth, minutes * 60);
+                }
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text(l10n.plannerCanvas_stopMinimum_apply),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -486,19 +602,23 @@ class _GasRow extends StatelessWidget {
 }
 
 class _IssueRow extends StatelessWidget {
-  const _IssueRow({required this.issue, required this.units});
+  const _IssueRow({required this.group, required this.units});
 
-  final PlanIssue issue;
+  final GroupedPlanIssue group;
   final UnitFormatter units;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final issue = group.issue;
     final color = planIssueSeverityColor(theme.colorScheme, issue.severity);
+    final message = planIssueMessage(context, issue, units);
     return PlanWarningRow(
       icon: _issueIcon(issue.severity),
       color: color,
-      message: planIssueMessage(context, issue, units),
+      message: group.count > 1
+          ? context.l10n.plannerCanvas_issue_repeated(message, group.count)
+          : message,
     );
   }
 }
