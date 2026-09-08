@@ -4,9 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v193 is the current schema version and is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 193);
-    expect(AppDatabase.migrationVersions, contains(193));
+  test('v198 is the current schema version and is in the ladder', () {
+    // Renumbered from 193: main landed the transmitter-serial and
+    // media_species.hlc rungs at 194 and 195 while this branch was open, 196
+    // is held by another open branch, and a rung at or below the shipped
+    // version never runs its onUpgrade step. This is the newest rung, so it
+    // owns the exact assertion; relax it to greaterThanOrEqualTo when the
+    // next one lands.
+    expect(AppDatabase.currentSchemaVersion, 198);
+    expect(AppDatabase.migrationVersions, contains(198));
   });
 
   test(
@@ -27,7 +33,7 @@ void main() {
   );
 
   test(
-    'a database stranded before v193 gains the column via beforeOpen',
+    'a database stranded before v198 gains the column via beforeOpen',
     () async {
       final nativeDb = NativeDatabase.memory(
         setup: (rawDb) {

@@ -2240,6 +2240,38 @@ class AppLocalizationsPt extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => 'Salvar como modelo...';
 
   @override
+  String get checklists_menu_clearAll => 'Limpar lista...';
+
+  @override
+  String get checklists_clear_title => 'Limpar lista';
+
+  @override
+  String checklists_clear_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Eliminar os $count itens desta lista? Os modelos não são afetados.',
+      one: 'Eliminar o único item desta lista? Os modelos não são afetados.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_clear_confirm => 'Limpar';
+
+  @override
+  String checklists_clear_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens removidos',
+      one: '1 item removido',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checklists_applySheet_title => 'Aplicar modelo';
 
   @override
@@ -5943,6 +5975,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_legend_label_events => 'Eventos';
 
   @override
+  String get diveLog_legend_label_computedEvents => 'Eventos calculados';
+
+  @override
   String get diveLog_legend_label_gasDensity => 'Densidade do Gas';
 
   @override
@@ -6951,10 +6986,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_o2tox_label_maxPpO2Depth => 'Profundidade do ppO2 Maximo';
 
   @override
-  String get diveLog_o2tox_label_timeAbove14 => 'Tempo acima de 1.4 bar';
-
-  @override
-  String get diveLog_o2tox_label_timeAbove16 => 'Tempo acima de 1.6 bar';
+  String diveLog_o2tox_label_timeAboveLimit(String limit) {
+    return 'Tempo acima de $limit bar';
+  }
 
   @override
   String get diveLog_o2tox_ofDailyLimit => 'do limite diario';
@@ -9958,6 +9992,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_certificationAgency_cmas => 'CMAS';
 
   @override
+  String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
   String get enum_certificationAgency_gue => 'GUE';
 
   @override
@@ -10043,6 +10080,102 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_certificationLevel_wreck => 'Naufragio';
+
+  @override
+  String get enum_certificationLevel_masterDiver => 'Mergulhador Master';
+
+  @override
+  String get enum_certificationLevel_assistantInstructor =>
+      'Instrutor assistente';
+
+  @override
+  String get enum_certificationLevel_extendedRange => 'Extended Range';
+
+  @override
+  String get enum_certificationLevel_advancedTrimix => 'Trimix avançado';
+
+  @override
+  String get enum_certificationLevel_cmas1StarDiver => 'Mergulhador 1★';
+
+  @override
+  String get enum_certificationLevel_cmas2StarDiver => 'Mergulhador 2★';
+
+  @override
+  String get enum_certificationLevel_cmas3StarDiver => 'Mergulhador 3★';
+
+  @override
+  String get enum_certificationLevel_cmas4StarDiver => 'Mergulhador 4★';
+
+  @override
+  String get enum_certificationLevel_cmas3StarDiverAssistantInstructor =>
+      'Mergulhador 3★ - Instrutor assistente';
+
+  @override
+  String get enum_certificationLevel_cmas4StarDiverAssistantInstructor =>
+      'Mergulhador 4★ - Instrutor assistente';
+
+  @override
+  String get enum_certificationLevel_cmas1StarInstructor => 'Instrutor 1★';
+
+  @override
+  String get enum_certificationLevel_cmas2StarInstructor => 'Instrutor 2★';
+
+  @override
+  String get enum_certificationLevel_cmas3StarInstructor => 'Instrutor 3★';
+
+  @override
+  String get enum_certificationLevel_bsacOceanDiver => 'Ocean Diver';
+
+  @override
+  String get enum_certificationLevel_bsacSportsDiver => 'Sports Diver';
+
+  @override
+  String get enum_certificationLevel_bsacDiveLeader => 'Dive Leader';
+
+  @override
+  String get enum_certificationLevel_bsacAdvancedDiver => 'Advanced Diver';
+
+  @override
+  String get enum_certificationLevel_bsacFirstClassDiver => 'First Class Diver';
+
+  @override
+  String get enum_certificationLevel_bsacOpenWaterInstructor =>
+      'Open Water Instructor';
+
+  @override
+  String get enum_certificationLevel_bsacAdvancedInstructor =>
+      'Advanced Instructor';
+
+  @override
+  String get enum_certificationLevel_bsacNationalInstructor =>
+      'National Instructor';
+
+  @override
+  String get enum_certificationLevel_gueFundamentals => 'Fundamentals';
+
+  @override
+  String get enum_certificationLevel_gueRec1 => 'Rec 1';
+
+  @override
+  String get enum_certificationLevel_gueRec2 => 'Rec 2';
+
+  @override
+  String get enum_certificationLevel_gueRec3 => 'Rec 3';
+
+  @override
+  String get enum_certificationLevel_gueTech1 => 'Tech 1';
+
+  @override
+  String get enum_certificationLevel_gueTech2 => 'Tech 2';
+
+  @override
+  String get enum_certificationLevel_gueCave1 => 'Cave 1';
+
+  @override
+  String get enum_certificationLevel_gueCave2 => 'Cave 2';
+
+  @override
+  String get enum_certificationLevel_gueDpv => 'DPV';
 
   @override
   String get enum_currentDirection_east => 'Leste';
@@ -10247,6 +10380,27 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_equipmentType_wetsuit => 'Roupa de Neoprene';
+
+  @override
+  String get enum_equipmentType_snorkel => 'Tubo';
+
+  @override
+  String get enum_equipmentType_transmitter => 'Transmissor';
+
+  @override
+  String get enum_equipmentType_instrument => 'Instrumento / Manómetro';
+
+  @override
+  String get enum_equipmentType_compass => 'Bússola';
+
+  @override
+  String get enum_equipmentType_rebreather => 'Rebreather';
+
+  @override
+  String get enum_equipmentType_tool => 'Ferramenta';
+
+  @override
+  String get enum_equipmentType_rashGuard => 'Licra';
 
   @override
   String get enum_eventSeverity_alert => 'Alerta';
@@ -10637,6 +10791,54 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stage';
+
+  @override
+  String get enum_tideState_rising => 'Enchente';
+
+  @override
+  String get enum_tideState_falling => 'Vazante';
+
+  @override
+  String get enum_tideState_slackHigh => 'Preia-mar (estofo)';
+
+  @override
+  String get enum_tideState_slackLow => 'Baixa-mar (estofo)';
+
+  @override
+  String get enum_timeFormat_twelveHour => '12 horas';
+
+  @override
+  String get enum_timeFormat_twentyFourHour => '24 horas';
+
+  @override
+  String get enum_matchConfidence_exact => 'Exato';
+
+  @override
+  String get enum_matchConfidence_interpolated => 'Interpolado';
+
+  @override
+  String get enum_matchConfidence_estimated => 'Estimado';
+
+  @override
+  String get enum_matchConfidence_noProfile => 'Sem perfil';
+
+  @override
+  String get enum_matchConfidence_manual => 'Manual';
+
+  @override
+  String get enum_logCategory_app => 'Aplicação';
+
+  @override
+  String get enum_logCategory_bluetooth => 'Bluetooth';
+
+  @override
+  String get enum_logCategory_serial => 'Série';
+
+  @override
+  String get enum_logCategory_libdc => 'libdc';
+
+  @override
+  String get enum_logCategory_database => 'Base de dados';
 
   @override
   String get enum_visibility_excellent => 'Excelente (>30m / >100ft)';
@@ -16774,6 +16976,35 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_decompression_header_oxygenToxicity =>
       'Toxicidade do oxigênio';
+
+  @override
+  String get settings_decompression_ppO2LimitsTitle => 'Limites de ppO2';
+
+  @override
+  String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
+    return 'Trabalho $working bar · Máx $max bar';
+  }
+
+  @override
+  String get settings_decompression_ppO2Dialog_title => 'Limites de ppO2';
+
+  @override
+  String get settings_decompression_ppO2Dialog_info =>
+      'Os limites de ppO2 usados para a MOD, o planeamento de gás e os avisos de toxicidade do oxigénio. Defina-os de acordo com os limites configurados no seu computador de mergulho.';
+
+  @override
+  String get settings_decompression_ppO2Dialog_working => 'ppO2 de trabalho';
+
+  @override
+  String get settings_decompression_ppO2Dialog_workingHint =>
+      'Gás de fundo, parte ativa do mergulho';
+
+  @override
+  String get settings_decompression_ppO2Dialog_max => 'ppO2 máxima';
+
+  @override
+  String get settings_decompression_ppO2Dialog_maxHint =>
+      'Descompressão e contingência';
 
   @override
   String settings_decompression_preset_selectLabel(Object presetName) {
@@ -26240,6 +26471,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get dataQuality_inbox_title => 'Qualidade dos dados';
+
+  @override
+  String get dataQuality_dive_unknown => 'Detalhes do mergulho indisponíveis';
+
+  @override
+  String dataQuality_dive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String dataQuality_dive_pairedWith(String dive) {
+    return 'Associado a $dive';
+  }
+
+  @override
+  String dataQuality_dive_recordedBy(String computer) {
+    return 'Registado por $computer';
+  }
 
   @override
   String get dataQuality_badge_tooltip => 'Revisão da qualidade dos dados';
@@ -36794,4 +37043,63 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveComputer_detail_duplicateBannerAction => 'Mesclar';
+
+  @override
+  String get startup_versionMismatch_restore_title =>
+      'Restaurar a cópia anterior à atualização';
+
+  @override
+  String get startup_versionMismatch_restore_body =>
+      'Existe neste dispositivo uma cópia de segurança do teu registo de mergulhos feita antes da atualização, e esta versão consegue abri-la.';
+
+  @override
+  String get startup_versionMismatch_restore_warning =>
+      'Tudo o que registaste depois da atualização existe apenas no ficheiro mais recente. Esse ficheiro fica guardado como cópia fixada, por isso instalar de novo a versão mais recente recupera-o.';
+
+  @override
+  String backup_history_preDowngradeSubtitle(String size) {
+    return 'Base de dados mais recente, guardada ao recuar - $size';
+  }
+
+  @override
+  String backup_history_manualSubtitle(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount locais',
+      one: '1 local',
+    );
+    return '$_temp0, $_temp1 - $size';
+  }
+
+  @override
+  String backup_history_manualSubtitleAuto(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount locais',
+      one: '1 local',
+    );
+    return '$_temp0, $_temp1 - $size (automático)';
+  }
 }

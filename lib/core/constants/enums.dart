@@ -139,6 +139,7 @@ enum CertificationAgency {
   cmas('CMAS'),
   iantd('IANTD'),
   psai('PSAI'),
+  ffessm('FFESSM'),
   other('Other');
 
   final String displayName;
@@ -157,6 +158,7 @@ enum CertificationAgency {
     CertificationAgency.cmas => const Color(0xFF00695c),
     CertificationAgency.iantd => const Color(0xFF283593),
     CertificationAgency.psai => const Color(0xFF2e7d32),
+    CertificationAgency.ffessm => const Color(0xFF00529b),
     CertificationAgency.other => const Color(0xFF00838f),
   };
 
@@ -173,6 +175,7 @@ enum CertificationAgency {
     CertificationAgency.cmas => const Color(0xFF26a69a),
     CertificationAgency.iantd => const Color(0xFF5c6bc0),
     CertificationAgency.psai => const Color(0xFF66bb6a),
+    CertificationAgency.ffessm => const Color(0xFF1e88e5),
     CertificationAgency.other => const Color(0xFF26c6da),
   };
 }
@@ -240,6 +243,73 @@ enum CertificationLevel {
   gueCave1('Cave 1'),
   gueCave2('Cave 2'),
   gueDpv('DPV'),
+  // FFESSM — Fédération française d'études et de sports sous-marins (issue #690).
+  // French brevets are proper nouns, kept untranslated like the CMAS/BSAC/GUE
+  // ratings above. This is the scuba cursus of the FFESSM Manuel de Formation
+  // Technique (août 2023): youth track, modular PE/PA aptitudes, Niveaux,
+  // E-grade teaching ladder, Tek (mixed gas / rebreather), safety and a few
+  // technical qualifications. A diver routinely holds an aptitude or a Tek
+  // brevet without the "matching" Niveau (e.g. N1 + PA-20 + PE-40), so those
+  // are first-class values in the specialties group, not ladder rungs.
+  // Youth cursus (Plongée Jeunes)
+  ffessmPlongeurBronze('Plongeur de Bronze'),
+  ffessmPlongeurArgent('Plongeur d\'Argent'),
+  ffessmPlongeurOr('Plongeur d\'Or'),
+  // Niveaux (N4 and N5 also belong to the cadre cursus)
+  ffessmN1('N1 - Plongeur Niveau 1 (PE20)'),
+  ffessmN2('N2 - Plongeur Niveau 2 (PA20, PE40)'),
+  ffessmN3('N3 - Plongeur Niveau 3 (PA60)'),
+  ffessmN4('N4 - Guide de Palanquée'),
+  ffessmN5('N5 - Directeur de Plongée'),
+  // Teaching ladder
+  ffessmInitiateur('E1 - Initiateur'),
+  ffessmE2('E2 - Encadrant'),
+  ffessmMf1('MF1 - Moniteur Fédéral 1er degré (E3)'),
+  ffessmMf2('MF2 - Moniteur Fédéral 2e degré (E4)'),
+  // Modular aptitudes — PE = Plongeur Encadré (supervised), PA = Plongeur
+  // Autonome (autonomous). PE-20 is N1 and PA-60 is N3, so those two are not
+  // separately issued. The six below are (MFT Généralités p.3).
+  ffessmPe12('PE12 - Plongeur encadré 12 m'),
+  ffessmPe40('PE40 - Plongeur encadré 40 m'),
+  ffessmPe60('PE60 - Plongeur encadré 60 m'),
+  ffessmPa12('PA12 - Plongeur autonome 12 m'),
+  ffessmPa20('PA20 - Plongeur autonome 20 m'),
+  ffessmPa40('PA40 - Plongeur autonome 40 m'),
+  // Tek — nitrox, trimix, rebreather. FFESSM names its own.
+  ffessmNitrox('Plongeur Nitrox'),
+  ffessmNitroxConfirme('Plongeur Nitrox confirmé'),
+  ffessmMoniteurNitroxConfirme('Moniteur Nitrox confirmé'),
+  ffessmTrimixElementaire('Plongeur Trimix élémentaire'),
+  ffessmTrimix('Plongeur Trimix'),
+  ffessmMoniteurTrimix('Moniteur Trimix'),
+  ffessmRecycleurScr('SCR - Plongeur recycleur circuit semi-fermé'),
+  ffessmRecycleurCcr('CCR - Plongeur recycleur circuit fermé'),
+  ffessmMoniteurRecycleurCcr('CCR - Moniteur recycleur circuit fermé'),
+  // Safety
+  ffessmRifap('RIFAP - RIFA Plongée'),
+  ffessmAnteor('ANTEOR'),
+  // Technical qualifications
+  ffessmVetementEtanche('Qualification Vêtement étanche'),
+  ffessmSidemount('Sidemount de loisir'),
+  ffessmTiv('TIV - Technicien d\'Inspection Visuelle'),
+  ffessmFormateurTiv('Formateur de TIV'),
+  // Scuba-diving activity commissions (biology, cave, underwater imaging).
+  // Non-scuba disciplines (apnea, finswimming, hockey, spearfishing...) stay
+  // out — see #690.
+  ffessmBio1('PB1 - Plongeur Bio Niveau 1'),
+  ffessmBio2('PB2 - Plongeur Bio Niveau 2'),
+  ffessmFormateurBio1('FB1 - Formateur Bio Niveau 1'),
+  ffessmFormateurBio2('FB2 - Formateur Bio Niveau 2'),
+  ffessmFormateurBio3('FB3 - Formateur Bio Niveau 3'),
+  ffessmSouterrain1('PS1 - Plongeur Souterrain Niveau 1'),
+  ffessmSouterrain2('PS2 - Plongeur Souterrain Niveau 2'),
+  ffessmSouterrain3('PS3 - Plongeur Souterrain Niveau 3'),
+  ffessmPhoto1('Photographe sous-marin Niveau 1'),
+  ffessmPhoto2('Photographe sous-marin Niveau 2'),
+  ffessmPhoto3('Photographe sous-marin Niveau 3'),
+  ffessmVideo1('Vidéaste sous-marin Niveau 1'),
+  ffessmVideo2('Vidéaste sous-marin Niveau 2'),
+  ffessmVideo3('Vidéaste sous-marin Niveau 3'),
   other('Other');
 
   final String displayName;
@@ -257,7 +327,9 @@ enum CertificationLevel {
     CertificationLevel.cmas3StarInstructor ||
     CertificationLevel.bsacOpenWaterInstructor ||
     CertificationLevel.bsacAdvancedInstructor ||
-    CertificationLevel.bsacNationalInstructor => true,
+    CertificationLevel.bsacNationalInstructor ||
+    CertificationLevel.ffessmMf1 ||
+    CertificationLevel.ffessmMf2 => true,
     _ => false,
   };
 }

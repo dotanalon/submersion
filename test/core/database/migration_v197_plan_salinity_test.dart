@@ -4,9 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v192 is the current schema version and is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(192));
-    expect(AppDatabase.migrationVersions, contains(192));
+  test('v197 is in the ladder', () {
+    // Renumbered from 192: main landed the transmitter-serial and
+    // media_species.hlc rungs at 194 and 195 while this branch was open, and
+    // 196 is held by another open branch.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(197));
+    expect(AppDatabase.migrationVersions, contains(197));
   });
 
   test('a fresh database has dive_plans.salinity_ppt as nullable', () async {
@@ -21,7 +24,7 @@ void main() {
   });
 
   test(
-    'a database stranded before v192 gains salinity_ppt via beforeOpen',
+    'a database stranded before v197 gains salinity_ppt via beforeOpen',
     () async {
       final nativeDb = NativeDatabase.memory(
         setup: (rawDb) {
