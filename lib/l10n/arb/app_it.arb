@@ -1077,6 +1077,43 @@
     }
   },
   "preDive_dashboard_start": "Avvia controllo pre-immersione",
+  "preDive_templates_view": "Visualizza",
+  "preDive_edit_titleView": "Visualizza checklist pre-immersione",
+  "preDive_edit_builtInNotice": "Checklist predefinita. Duplicala per ottenere una copia modificabile.",
+  "dashboard_checklists_title": "Checklist",
+  "dashboard_checklists_preDiveLabel": "Pre-immersione",
+  "dashboard_checklists_tripLabel": "Viaggio: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "Iniziata {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "Completata {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "Interrotta {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "Checklist pre-immersione",
   "settings_manage_preDiveChecklists": "Checklist pre-immersione",
   "settings_manage_preDiveChecklists_subtitle": "Buddy check, liste di montaggio CCR, preparazione attrezzatura",
@@ -2001,6 +2038,15 @@
   "diveLog_edit_tripSuggested": "Suggerito: {name}",
   "diveLog_edit_tripUse": "Usa",
   "diveLog_edit_useSet": "Usa set",
+  "diveLog_edit_weightPreset_use": "Usa preset",
+  "diveLog_edit_weightPreset_save": "Salva come preset",
+  "diveLog_edit_weightPreset_pickerTitle": "Applica un preset di zavorra",
+  "diveLog_edit_weightPreset_empty": "Non hai ancora salvato nessun preset di zavorra.",
+  "diveLog_edit_weightPreset_summary": "{count, plural, =1{1 peso · {total}} other{{count} pesi · {total}}}",
+  "diveLog_edit_weightPreset_applied": "Preset di zavorra applicato. Regola le voci se necessario.",
+  "diveLog_edit_weightPreset_saveTitle": "Salva la zavorra come preset",
+  "diveLog_edit_weightPreset_nameLabel": "Nome del preset",
+  "diveLog_edit_weightPreset_saved": "Preset di zavorra “{name}” salvato",
   "diveLog_edit_weightTotal": "Totale: {total}",
   "diveLog_emptyFiltered_clearFilters": "Cancella filtri",
   "diveLog_emptyFiltered_subtitle": "Prova a modificare o cancellare i filtri",
@@ -5070,6 +5116,14 @@
   "settings_manage_tags_subtitle": "Gestisci, unisci ed elimina tag",
   "settings_manage_tankPresets": "Preset bombole",
   "settings_manage_tankPresets_subtitle": "Gestisci configurazioni bombole personalizzate",
+  "settings_manage_weightPresets": "Preset di zavorra",
+  "settings_manage_weightPresets_subtitle": "Set di pesi riutilizzabili per un'immersione",
+  "weightPresets_page_title": "Preset di zavorra",
+  "weightPresets_page_empty": "Salva una zavorra dall'editor dell'immersione e comparirà qui per riutilizzarla.",
+  "weightPresets_action_rename": "Rinomina",
+  "weightPresets_rename_title": "Rinomina preset",
+  "weightPresets_delete_title": "Eliminare questo preset?",
+  "weightPresets_delete_body": "“{name}” verrà rimosso. Le immersioni che l'hanno usato mantengono i propri pesi.",
   "settings_manage_serviceTypes": "Tipi di manutenzione",
   "settings_manage_serviceTypes_subtitle": "La manutenzione che serve alla tua attrezzatura, e ogni quanto",
   "settings_migrationProgress_doNotClose": "Non chiudere l'app",
@@ -6421,6 +6475,10 @@
   "settings_siteMatch_subtitle": "Con quanta intensità le immersioni scaricate vengono associate ai siti",
   "settings_tankPressureAtSurfacing_title": "Pressione della bombola in superficie",
   "settings_tankPressureAtSurfacing_subtitle": "Rileva la pressione finale quando raggiungi la superficie, non a fine registrazione",
+  "settings_cloudImportPageSize_title": "Dimensione pagina importazione cloud",
+  "settings_cloudImportPageSize_subtitle": "Quante delle immersioni più recenti scaricare per volta da Suunto Cloud o Garmin Connect. «Carica altro» recupera il lotto successivo della stessa dimensione.",
+  "settings_cloudImportPageSize_dialogTitle": "Immersioni per pagina",
+  "settings_cloudImportPageSize_range": "Tra {min} e {max}",
   "settings_siteMatch_strict": "Rigoroso",
   "settings_siteMatch_balanced": "Bilanciato",
   "settings_siteMatch_relaxed": "Rilassato",
@@ -6636,7 +6694,7 @@
   "settings_homeCards_resetDialog_confirm": "Ripristina",
   "settings_homeCards_card_hero": "Intestazione di benvenuto",
   "settings_homeCards_card_gaugeStrip": "Chip di stato",
-  "settings_homeCards_card_preDive": "Checklist pre-immersione",
+  "settings_homeCards_card_preDive": "Checklist",
   "settings_homeCards_card_recentDives": "Immersioni recenti",
   "settings_homeCards_card_quickActions": "Azioni rapide",
   "settings_homeCards_card_milestones": "Traguardi",
@@ -10747,6 +10805,7 @@
   "importWizard_review_sortByDuration": "Tempo",
   "suuntoCloud_fetch_retry": "Riprova",
   "suuntoCloud_fetch_loadMore": "Carica altro",
+  "suuntoCloud_fetch_fetchAll": "Carica tutto",
   "settings_storageUsage_appBar_title": "Utilizzo dello spazio",
   "settings_storageUsage_tile_title": "Utilizzo dello spazio",
   "settings_storageUsage_tile_subtitle": "Scopri cosa occupa spazio su questo dispositivo",

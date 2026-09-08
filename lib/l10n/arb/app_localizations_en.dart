@@ -2599,6 +2599,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get preDive_dashboard_start => 'Start pre-dive check';
 
   @override
+  String get preDive_templates_view => 'View';
+
+  @override
+  String get preDive_edit_titleView => 'View Pre-Dive Checklist';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Built-in checklist. Clone it to make an editable copy.';
+
+  @override
+  String get dashboard_checklists_title => 'Checklists';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Pre-dive';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Trip: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Started $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Completed $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Aborted $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Pre-dive checklist';
 
   @override
@@ -3288,7 +3324,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Status chips';
 
   @override
-  String get settings_homeCards_card_preDive => 'Pre-dive checklist';
+  String get settings_homeCards_card_preDive => 'Checklists';
 
   @override
   String get settings_homeCards_card_recentDives => 'Recent dives';
@@ -5507,6 +5543,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'Use Set';
+
+  @override
+  String get diveLog_edit_weightPreset_use => 'Use preset';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'Save as preset';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle => 'Apply a weight preset';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'You haven\'t saved any weight presets yet.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weights · $total',
+      one: '1 weight · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'Weight preset applied. Adjust the entries as needed.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle =>
+      'Save weighting as a preset';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'Preset name';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'Weight preset “$name” saved';
+  }
 
   @override
   String diveLog_edit_weightTotal(Object total) {
@@ -17087,6 +17163,34 @@ class AppLocalizationsEn extends AppLocalizations {
       'Manage custom tank configurations';
 
   @override
+  String get settings_manage_weightPresets => 'Weight Presets';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'Reusable sets of weights for a dive';
+
+  @override
+  String get weightPresets_page_title => 'Weight Presets';
+
+  @override
+  String get weightPresets_page_empty =>
+      'Save a weighting from the dive editor and it will appear here to reuse.';
+
+  @override
+  String get weightPresets_action_rename => 'Rename';
+
+  @override
+  String get weightPresets_rename_title => 'Rename preset';
+
+  @override
+  String get weightPresets_delete_title => 'Delete this preset?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '“$name” will be removed. Dives that used it keep their own weights.';
+  }
+
+  @override
   String get settings_manage_serviceTypes => 'Service types';
 
   @override
@@ -23302,6 +23406,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
       'Read end pressure when you reached the surface, not when the computer stopped recording';
+
+  @override
+  String get settings_cloudImportPageSize_title => 'Cloud import page size';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => 'Dives per page';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'Between $min and $max';
+  }
 
   @override
   String get settings_siteMatch_strict => 'Strict';
@@ -36089,6 +36208,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'Load More';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'Fetch All';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

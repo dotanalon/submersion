@@ -1077,6 +1077,43 @@
     }
   },
   "preDive_dashboard_start": "Iniciar verificação pré-mergulho",
+  "preDive_templates_view": "Ver",
+  "preDive_edit_titleView": "Ver Lista de Verificação Pré-Mergulho",
+  "preDive_edit_builtInNotice": "Lista integrada. Duplique-a para obter uma cópia editável.",
+  "dashboard_checklists_title": "Listas de verificação",
+  "dashboard_checklists_preDiveLabel": "Pré-mergulho",
+  "dashboard_checklists_tripLabel": "Viagem: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "Iniciada {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "Concluída {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "Cancelada {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "Lista de verificação pré-mergulho",
   "settings_manage_preDiveChecklists": "Listas de Verificação Pré-Mergulho",
   "settings_manage_preDiveChecklists_subtitle": "Verificações de dupla, listas de montagem de CCR, preparação de equipamento",
@@ -2085,6 +2122,15 @@
   "diveLog_edit_tripSuggested": "Sugerido: {name}",
   "diveLog_edit_tripUse": "Usar",
   "diveLog_edit_useSet": "Usar Conjunto",
+  "diveLog_edit_weightPreset_use": "Usar predefinição",
+  "diveLog_edit_weightPreset_save": "Guardar como predefinição",
+  "diveLog_edit_weightPreset_pickerTitle": "Aplicar uma predefinição de lastro",
+  "diveLog_edit_weightPreset_empty": "Ainda não guardou nenhuma predefinição de lastro.",
+  "diveLog_edit_weightPreset_summary": "{count, plural, =1{1 peso · {total}} other{{count} pesos · {total}}}",
+  "diveLog_edit_weightPreset_applied": "Predefinição de lastro aplicada. Ajuste as entradas conforme necessário.",
+  "diveLog_edit_weightPreset_saveTitle": "Guardar o lastro como predefinição",
+  "diveLog_edit_weightPreset_nameLabel": "Nome da predefinição",
+  "diveLog_edit_weightPreset_saved": "Predefinição de lastro “{name}” guardada",
   "diveLog_edit_weightTotal": "Total: {total}",
   "diveLog_emptyFiltered_clearFilters": "Limpar Filtros",
   "diveLog_emptyFiltered_subtitle": "Tente ajustar ou limpar seus filtros",
@@ -5158,6 +5204,14 @@
   "settings_manage_tags_subtitle": "Gerenciar, mesclar e excluir etiquetas",
   "settings_manage_tankPresets": "Predefinicoes de Cilindro",
   "settings_manage_tankPresets_subtitle": "Gerenciar configuracoes personalizadas de cilindro",
+  "settings_manage_weightPresets": "Predefinições de lastro",
+  "settings_manage_weightPresets_subtitle": "Conjuntos de pesos reutilizáveis para um mergulho",
+  "weightPresets_page_title": "Predefinições de lastro",
+  "weightPresets_page_empty": "Guarde um lastro no editor de mergulho e ele aparecerá aqui para reutilizar.",
+  "weightPresets_action_rename": "Renomear",
+  "weightPresets_rename_title": "Renomear predefinição",
+  "weightPresets_delete_title": "Eliminar esta predefinição?",
+  "weightPresets_delete_body": "“{name}” será removida. Os mergulhos que a usaram mantêm os seus próprios pesos.",
   "settings_manage_serviceTypes": "Tipos de manutenção",
   "settings_manage_serviceTypes_subtitle": "A manutenção de que o seu equipamento precisa, e com que frequência",
   "settings_migrationProgress_doNotClose": "Por favor, nao feche o aplicativo",
@@ -6509,6 +6563,10 @@
   "settings_siteMatch_subtitle": "Com que intensidade os mergulhos baixados são associados aos pontos",
   "settings_tankPressureAtSurfacing_title": "Pressão da garrafa à superfície",
   "settings_tankPressureAtSurfacing_subtitle": "Usar a pressão final ao chegar à superfície, não no fim da gravação",
+  "settings_cloudImportPageSize_title": "Tamanho da página de importação na nuvem",
+  "settings_cloudImportPageSize_subtitle": "Quantos dos mergulhos mais recentes obter de cada vez do Suunto Cloud ou Garmin Connect. «Carregar mais» obtém o lote seguinte do mesmo tamanho.",
+  "settings_cloudImportPageSize_dialogTitle": "Mergulhos por página",
+  "settings_cloudImportPageSize_range": "Entre {min} e {max}",
   "settings_siteMatch_strict": "Rigoroso",
   "settings_siteMatch_balanced": "Equilibrado",
   "settings_siteMatch_relaxed": "Flexível",
@@ -6636,7 +6694,7 @@
   "settings_homeCards_resetDialog_confirm": "Repor",
   "settings_homeCards_card_hero": "Cabeçalho de boas-vindas",
   "settings_homeCards_card_gaugeStrip": "Chips de estado",
-  "settings_homeCards_card_preDive": "Checklist pré-mergulho",
+  "settings_homeCards_card_preDive": "Listas de verificação",
   "settings_homeCards_card_recentDives": "Mergulhos recentes",
   "settings_homeCards_card_quickActions": "Ações rápidas",
   "settings_homeCards_card_milestones": "Marcos",
@@ -10747,6 +10805,7 @@
   "importWizard_review_sortByDuration": "Tempo",
   "suuntoCloud_fetch_retry": "Tentar novamente",
   "suuntoCloud_fetch_loadMore": "Carregar mais",
+  "suuntoCloud_fetch_fetchAll": "Carregar tudo",
   "settings_storageUsage_appBar_title": "Utilização de armazenamento",
   "settings_storageUsage_tile_title": "Utilização de armazenamento",
   "settings_storageUsage_tile_subtitle": "Veja o que está a ocupar espaço neste dispositivo",

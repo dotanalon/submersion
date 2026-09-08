@@ -1077,6 +1077,43 @@
     }
   },
   "preDive_dashboard_start": "Iniciar comprobación previa a la inmersión",
+  "preDive_templates_view": "Ver",
+  "preDive_edit_titleView": "Ver lista previa a la inmersión",
+  "preDive_edit_builtInNotice": "Lista integrada. Duplícala para obtener una copia editable.",
+  "dashboard_checklists_title": "Listas de verificación",
+  "dashboard_checklists_preDiveLabel": "Previa a la inmersión",
+  "dashboard_checklists_tripLabel": "Viaje: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "Iniciada {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "Completada {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "Cancelada {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "Lista previa a la inmersión",
   "settings_manage_preDiveChecklists": "Listas previas a la inmersión",
   "settings_manage_preDiveChecklists_subtitle": "Comprobaciones en pareja, listas de montaje CCR, preparación del equipo",
@@ -2085,6 +2122,15 @@
   "diveLog_edit_tripSuggested": "Sugerido: {name}",
   "diveLog_edit_tripUse": "Usar",
   "diveLog_edit_useSet": "Usar conjunto",
+  "diveLog_edit_weightPreset_use": "Usar preajuste",
+  "diveLog_edit_weightPreset_save": "Guardar como preajuste",
+  "diveLog_edit_weightPreset_pickerTitle": "Aplicar un preajuste de lastre",
+  "diveLog_edit_weightPreset_empty": "Aún no has guardado ningún preajuste de lastre.",
+  "diveLog_edit_weightPreset_summary": "{count, plural, =1{1 peso · {total}} other{{count} pesos · {total}}}",
+  "diveLog_edit_weightPreset_applied": "Preajuste de lastre aplicado. Ajusta las entradas si es necesario.",
+  "diveLog_edit_weightPreset_saveTitle": "Guardar el lastre como preajuste",
+  "diveLog_edit_weightPreset_nameLabel": "Nombre del preajuste",
+  "diveLog_edit_weightPreset_saved": "Preajuste de lastre «{name}» guardado",
   "diveLog_edit_weightTotal": "Total: {total}",
   "diveLog_emptyFiltered_clearFilters": "Borrar filtros",
   "diveLog_emptyFiltered_subtitle": "Intenta ajustar o borrar tus filtros",
@@ -5158,6 +5204,14 @@
   "settings_manage_tags_subtitle": "Administrar, fusionar y eliminar etiquetas",
   "settings_manage_tankPresets": "Preajustes de tanques",
   "settings_manage_tankPresets_subtitle": "Administrar configuraciones de tanques personalizadas",
+  "settings_manage_weightPresets": "Preajustes de lastre",
+  "settings_manage_weightPresets_subtitle": "Conjuntos de lastre reutilizables para una inmersión",
+  "weightPresets_page_title": "Preajustes de lastre",
+  "weightPresets_page_empty": "Guarda un lastre desde el editor de inmersiones y aparecerá aquí para reutilizarlo.",
+  "weightPresets_action_rename": "Renombrar",
+  "weightPresets_rename_title": "Renombrar preajuste",
+  "weightPresets_delete_title": "¿Eliminar este preajuste?",
+  "weightPresets_delete_body": "«{name}» se eliminará. Las inmersiones que lo usaron conservan sus propios pesos.",
   "settings_manage_serviceTypes": "Tipos de servicio",
   "settings_manage_serviceTypes_subtitle": "Mantenimiento que necesita tu equipo y con qué frecuencia",
   "settings_migrationProgress_doNotClose": "Por favor, no cierres la aplicacion",
@@ -6509,6 +6563,10 @@
   "settings_siteMatch_subtitle": "Con qué intensidad se asocian a puntos de buceo las inmersiones descargadas",
   "settings_tankPressureAtSurfacing_title": "Presión de la botella al salir a superficie",
   "settings_tankPressureAtSurfacing_subtitle": "Tomar la presión final al llegar a la superficie, no al terminar el registro",
+  "settings_cloudImportPageSize_title": "Tamaño de página de importación en la nube",
+  "settings_cloudImportPageSize_subtitle": "Cuántas de las inmersiones más recientes se obtienen cada vez desde Suunto Cloud o Garmin Connect. «Cargar más» obtiene el siguiente lote del mismo tamaño.",
+  "settings_cloudImportPageSize_dialogTitle": "Inmersiones por página",
+  "settings_cloudImportPageSize_range": "Entre {min} y {max}",
   "settings_siteMatch_strict": "Estricto",
   "settings_siteMatch_balanced": "Equilibrado",
   "settings_siteMatch_relaxed": "Relajado",
@@ -6636,7 +6694,7 @@
   "settings_homeCards_resetDialog_confirm": "Restablecer",
   "settings_homeCards_card_hero": "Cabecera de bienvenida",
   "settings_homeCards_card_gaugeStrip": "Chips de estado",
-  "settings_homeCards_card_preDive": "Lista previa a la inmersión",
+  "settings_homeCards_card_preDive": "Listas de verificación",
   "settings_homeCards_card_recentDives": "Inmersiones recientes",
   "settings_homeCards_card_quickActions": "Acciones rápidas",
   "settings_homeCards_card_milestones": "Hitos",
@@ -10747,6 +10805,7 @@
   "importWizard_review_sortByDuration": "Tiempo",
   "suuntoCloud_fetch_retry": "Reintentar",
   "suuntoCloud_fetch_loadMore": "Cargar más",
+  "suuntoCloud_fetch_fetchAll": "Cargar todo",
   "settings_storageUsage_appBar_title": "Uso de almacenamiento",
   "settings_storageUsage_tile_title": "Uso de almacenamiento",
   "settings_storageUsage_tile_subtitle": "Vea qué ocupa espacio en este dispositivo",

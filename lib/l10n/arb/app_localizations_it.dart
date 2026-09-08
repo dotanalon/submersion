@@ -2649,6 +2649,42 @@ class AppLocalizationsIt extends AppLocalizations {
   String get preDive_dashboard_start => 'Avvia controllo pre-immersione';
 
   @override
+  String get preDive_templates_view => 'Visualizza';
+
+  @override
+  String get preDive_edit_titleView => 'Visualizza checklist pre-immersione';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Checklist predefinita. Duplicala per ottenere una copia modificabile.';
+
+  @override
+  String get dashboard_checklists_title => 'Checklist';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Pre-immersione';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Viaggio: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Iniziata $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Completata $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Interrotta $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Checklist pre-immersione';
 
   @override
@@ -3350,7 +3386,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Chip di stato';
 
   @override
-  String get settings_homeCards_card_preDive => 'Checklist pre-immersione';
+  String get settings_homeCards_card_preDive => 'Checklist';
 
   @override
   String get settings_homeCards_card_recentDives => 'Immersioni recenti';
@@ -5604,6 +5640,47 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'Usa set';
+
+  @override
+  String get diveLog_edit_weightPreset_use => 'Usa preset';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'Salva come preset';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle =>
+      'Applica un preset di zavorra';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'Non hai ancora salvato nessun preset di zavorra.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pesi · $total',
+      one: '1 peso · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'Preset di zavorra applicato. Regola le voci se necessario.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle =>
+      'Salva la zavorra come preset';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'Nome del preset';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'Preset di zavorra “$name” salvato';
+  }
 
   @override
   String diveLog_edit_weightTotal(Object total) {
@@ -17386,6 +17463,34 @@ class AppLocalizationsIt extends AppLocalizations {
       'Gestisci configurazioni bombole personalizzate';
 
   @override
+  String get settings_manage_weightPresets => 'Preset di zavorra';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'Set di pesi riutilizzabili per un\'immersione';
+
+  @override
+  String get weightPresets_page_title => 'Preset di zavorra';
+
+  @override
+  String get weightPresets_page_empty =>
+      'Salva una zavorra dall\'editor dell\'immersione e comparirà qui per riutilizzarla.';
+
+  @override
+  String get weightPresets_action_rename => 'Rinomina';
+
+  @override
+  String get weightPresets_rename_title => 'Rinomina preset';
+
+  @override
+  String get weightPresets_delete_title => 'Eliminare questo preset?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '“$name” verrà rimosso. Le immersioni che l\'hanno usato mantengono i propri pesi.';
+  }
+
+  @override
   String get settings_manage_serviceTypes => 'Tipi di manutenzione';
 
   @override
@@ -23704,6 +23809,23 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
       'Rileva la pressione finale quando raggiungi la superficie, non a fine registrazione';
+
+  @override
+  String get settings_cloudImportPageSize_title =>
+      'Dimensione pagina importazione cloud';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'Quante delle immersioni più recenti scaricare per volta da Suunto Cloud o Garmin Connect. «Carica altro» recupera il lotto successivo della stessa dimensione.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle =>
+      'Immersioni per pagina';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'Tra $min e $max';
+  }
 
   @override
   String get settings_siteMatch_strict => 'Rigoroso';
@@ -36647,6 +36769,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'Carica altro';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'Carica tutto';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

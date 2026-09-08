@@ -2498,6 +2498,41 @@ class AppLocalizationsZh extends AppLocalizations {
   String get preDive_dashboard_start => '开始潜前检查';
 
   @override
+  String get preDive_templates_view => '查看';
+
+  @override
+  String get preDive_edit_titleView => '查看潜前检查清单';
+
+  @override
+  String get preDive_edit_builtInNotice => '内置检查清单。复制后即可编辑。';
+
+  @override
+  String get dashboard_checklists_title => '检查清单';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => '潜前';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return '行程：$name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return '开始于 $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return '完成于 $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return '中止于 $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => '潜前检查清单';
 
   @override
@@ -3173,7 +3208,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => '状态标签';
 
   @override
-  String get settings_homeCards_card_preDive => '潜水前检查清单';
+  String get settings_homeCards_card_preDive => '检查清单';
 
   @override
   String get settings_homeCards_card_recentDives => '最近潜水';
@@ -5326,6 +5361,43 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => '使用套装';
+
+  @override
+  String get diveLog_edit_weightPreset_use => '使用预设';
+
+  @override
+  String get diveLog_edit_weightPreset_save => '存为预设';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle => '应用配重预设';
+
+  @override
+  String get diveLog_edit_weightPreset_empty => '你还没有保存任何配重预设。';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项配重 · $total',
+      one: '1 项配重 · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied => '已应用配重预设，可按需调整各项。';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle => '将配重存为预设';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => '预设名称';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return '配重预设“$name”已保存';
+  }
 
   @override
   String diveLog_edit_weightTotal(Object total) {
@@ -16512,6 +16584,32 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_manage_tankPresets_subtitle => '管理自定义气瓶配置';
 
   @override
+  String get settings_manage_weightPresets => '配重预设';
+
+  @override
+  String get settings_manage_weightPresets_subtitle => '可重复使用的潜水配重组合';
+
+  @override
+  String get weightPresets_page_title => '配重预设';
+
+  @override
+  String get weightPresets_page_empty => '在潜水编辑器中保存一份配重，它就会出现在这里供重复使用。';
+
+  @override
+  String get weightPresets_action_rename => '重命名';
+
+  @override
+  String get weightPresets_rename_title => '重命名预设';
+
+  @override
+  String get weightPresets_delete_title => '删除此预设？';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '“$name”将被删除。使用过它的潜水仍保留各自的配重。';
+  }
+
+  @override
   String get settings_manage_serviceTypes => '维护类型';
 
   @override
@@ -22485,6 +22583,21 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
       '以到达水面时的压力作为结束压力，而不是记录结束时的压力';
+
+  @override
+  String get settings_cloudImportPageSize_title => '云导入分页大小';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      '每次从 Suunto Cloud 或 Garmin Connect 获取多少条最新潜水记录。「加载更多」会获取同样大小的下一批。';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => '每页潜水次数';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return '$min 到 $max 之间';
+  }
 
   @override
   String get settings_siteMatch_strict => '严格';
@@ -34496,6 +34609,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => '加载更多';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => '加载全部';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

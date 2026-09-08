@@ -1077,6 +1077,43 @@
     }
   },
   "preDive_dashboard_start": "Pre-dive check starten",
+  "preDive_templates_view": "Bekijken",
+  "preDive_edit_titleView": "Pre-dive checklist bekijken",
+  "preDive_edit_builtInNotice": "Ingebouwde checklist. Dupliceer deze voor een bewerkbare kopie.",
+  "dashboard_checklists_title": "Checklists",
+  "dashboard_checklists_preDiveLabel": "Pre-dive",
+  "dashboard_checklists_tripLabel": "Reis: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "Gestart {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "Voltooid {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "Afgebroken {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "Pre-dive checklist",
   "settings_manage_preDiveChecklists": "Pre-dive checklists",
   "settings_manage_preDiveChecklists_subtitle": "Buddychecks, CCR-opbouwlijsten, uitrusting inpakken",
@@ -2085,6 +2122,15 @@
   "diveLog_edit_tripSuggested": "Voorgesteld: {name}",
   "diveLog_edit_tripUse": "Gebruiken",
   "diveLog_edit_useSet": "Set gebruiken",
+  "diveLog_edit_weightPreset_use": "Voorinstelling gebruiken",
+  "diveLog_edit_weightPreset_save": "Opslaan als voorinstelling",
+  "diveLog_edit_weightPreset_pickerTitle": "Loodvoorinstelling toepassen",
+  "diveLog_edit_weightPreset_empty": "Je hebt nog geen loodvoorinstellingen opgeslagen.",
+  "diveLog_edit_weightPreset_summary": "{count, plural, =1{1 gewicht · {total}} other{{count} gewichten · {total}}}",
+  "diveLog_edit_weightPreset_applied": "Loodvoorinstelling toegepast. Pas de items zo nodig aan.",
+  "diveLog_edit_weightPreset_saveTitle": "Loodhoeveelheid opslaan als voorinstelling",
+  "diveLog_edit_weightPreset_nameLabel": "Naam voorinstelling",
+  "diveLog_edit_weightPreset_saved": "Loodvoorinstelling ‘{name}’ opgeslagen",
   "diveLog_edit_weightTotal": "Totaal: {total}",
   "diveLog_emptyFiltered_clearFilters": "Filters wissen",
   "diveLog_emptyFiltered_subtitle": "Probeer uw filters aan te passen of te wissen",
@@ -5158,6 +5204,14 @@
   "settings_manage_tags_subtitle": "Tags beheren, samenvoegen en verwijderen",
   "settings_manage_tankPresets": "Flesvoorinstellingen",
   "settings_manage_tankPresets_subtitle": "Aangepaste flesconfiguraties beheren",
+  "settings_manage_weightPresets": "Loodvoorinstellingen",
+  "settings_manage_weightPresets_subtitle": "Herbruikbare loodsets voor een duik",
+  "weightPresets_page_title": "Loodvoorinstellingen",
+  "weightPresets_page_empty": "Sla een loodhoeveelheid op vanuit de duikeditor, dan verschijnt die hier om te hergebruiken.",
+  "weightPresets_action_rename": "Naam wijzigen",
+  "weightPresets_rename_title": "Voorinstelling hernoemen",
+  "weightPresets_delete_title": "Deze voorinstelling verwijderen?",
+  "weightPresets_delete_body": "‘{name}’ wordt verwijderd. Duiken die deze gebruikten, behouden hun eigen gewichten.",
   "settings_manage_serviceTypes": "Servicetypes",
   "settings_manage_serviceTypes_subtitle": "Welk onderhoud je uitrusting nodig heeft, en hoe vaak",
   "settings_migrationProgress_doNotClose": "Sluit de app niet",
@@ -6509,6 +6563,10 @@
   "settings_siteMatch_subtitle": "Hoe agressief gedownloade duiken aan stekken worden gekoppeld",
   "settings_tankPressureAtSurfacing_title": "Flesdruk bij bovenkomen",
   "settings_tankPressureAtSurfacing_subtitle": "Neem de einddruk op het moment van bovenkomen, niet aan het einde van de opname",
+  "settings_cloudImportPageSize_title": "Paginagrootte voor cloudimport",
+  "settings_cloudImportPageSize_subtitle": "Hoeveel van de nieuwste duiken per keer op te halen van Suunto Cloud of Garmin Connect. „Meer laden” haalt de volgende batch van dezelfde grootte op.",
+  "settings_cloudImportPageSize_dialogTitle": "Duiken per pagina",
+  "settings_cloudImportPageSize_range": "Tussen {min} en {max}",
   "settings_siteMatch_strict": "Strikt",
   "settings_siteMatch_balanced": "Gebalanceerd",
   "settings_siteMatch_relaxed": "Soepel",
@@ -6636,7 +6694,7 @@
   "settings_homeCards_resetDialog_confirm": "Herstellen",
   "settings_homeCards_card_hero": "Welkomstkop",
   "settings_homeCards_card_gaugeStrip": "Statuschips",
-  "settings_homeCards_card_preDive": "Pre-dive checklist",
+  "settings_homeCards_card_preDive": "Checklists",
   "settings_homeCards_card_recentDives": "Recente duiken",
   "settings_homeCards_card_quickActions": "Snelle acties",
   "settings_homeCards_card_milestones": "Mijlpalen",
@@ -10747,6 +10805,7 @@
   "importWizard_review_sortByDuration": "Tijd",
   "suuntoCloud_fetch_retry": "Opnieuw proberen",
   "suuntoCloud_fetch_loadMore": "Meer laden",
+  "suuntoCloud_fetch_fetchAll": "Alles laden",
   "settings_storageUsage_appBar_title": "Opslaggebruik",
   "settings_storageUsage_tile_title": "Opslaggebruik",
   "settings_storageUsage_tile_subtitle": "Bekijk wat ruimte inneemt op dit apparaat",

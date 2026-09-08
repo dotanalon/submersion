@@ -2656,6 +2656,42 @@ class AppLocalizationsDe extends AppLocalizations {
   String get preDive_dashboard_start => 'Check vor dem Tauchgang starten';
 
   @override
+  String get preDive_templates_view => 'Ansehen';
+
+  @override
+  String get preDive_edit_titleView => 'Checkliste vor dem Tauchgang ansehen';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Integrierte Checkliste. Duplizieren, um eine bearbeitbare Kopie zu erhalten.';
+
+  @override
+  String get dashboard_checklists_title => 'Checklisten';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Vor dem Tauchgang';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Reise: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Begonnen $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Abgeschlossen $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Abgebrochen $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Checkliste vor dem Tauchgang';
 
   @override
@@ -3361,7 +3397,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Status-Chips';
 
   @override
-  String get settings_homeCards_card_preDive => 'Pre-Dive-Checkliste';
+  String get settings_homeCards_card_preDive => 'Checklisten';
 
   @override
   String get settings_homeCards_card_recentDives => 'Letzte Tauchgänge';
@@ -5606,6 +5642,46 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'Set verwenden';
+
+  @override
+  String get diveLog_edit_weightPreset_use => 'Vorlage verwenden';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'Als Vorlage speichern';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle => 'Bleivorlage anwenden';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'Du hast noch keine Bleivorlagen gespeichert.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Gewichte · $total',
+      one: '1 Gewicht · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'Bleivorlage angewendet. Passe die Einträge bei Bedarf an.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle =>
+      'Bleimenge als Vorlage speichern';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'Vorlagenname';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'Bleivorlage „$name“ gespeichert';
+  }
 
   @override
   String diveLog_edit_weightTotal(Object total) {
@@ -17361,6 +17437,34 @@ class AppLocalizationsDe extends AppLocalizations {
       'Benutzerdefinierte Flaschenkonfigurationen verwalten';
 
   @override
+  String get settings_manage_weightPresets => 'Bleivorlagen';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'Wiederverwendbare Bleimengen für einen Tauchgang';
+
+  @override
+  String get weightPresets_page_title => 'Bleivorlagen';
+
+  @override
+  String get weightPresets_page_empty =>
+      'Speichere eine Bleimenge im Tauchgang-Editor, dann erscheint sie hier zur Wiederverwendung.';
+
+  @override
+  String get weightPresets_action_rename => 'Umbenennen';
+
+  @override
+  String get weightPresets_rename_title => 'Vorlage umbenennen';
+
+  @override
+  String get weightPresets_delete_title => 'Diese Vorlage löschen?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '„$name“ wird entfernt. Tauchgänge, die sie genutzt haben, behalten ihre eigenen Gewichte.';
+  }
+
+  @override
   String get settings_manage_serviceTypes => 'Wartungsarten';
 
   @override
@@ -23659,6 +23763,22 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
       'Enddruck beim Erreichen der Oberfläche übernehmen, nicht am Ende der Aufzeichnung';
+
+  @override
+  String get settings_cloudImportPageSize_title =>
+      'Seitengröße für Cloud-Import';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'Wie viele der neuesten Tauchgänge jeweils von Suunto Cloud oder Garmin Connect geladen werden. „Mehr laden“ holt den nächsten Stapel derselben Größe.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => 'Tauchgänge pro Seite';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'Zwischen $min und $max';
+  }
 
   @override
   String get settings_siteMatch_strict => 'Streng';
@@ -36576,6 +36696,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'Mehr laden';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'Alle laden';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

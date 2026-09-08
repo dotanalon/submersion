@@ -1511,6 +1511,7 @@ void main() {
         findsOneWidget,
       );
 
+      await tester.ensureVisible(find.text('Checklist Templates'));
       await tester.tap(find.text('Checklist Templates'));
       await tester.pumpAndSettle();
 

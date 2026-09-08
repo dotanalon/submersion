@@ -2575,6 +2575,42 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_dashboard_start => 'התחל בדיקה לפני צלילה';
 
   @override
+  String get preDive_templates_view => 'הצגה';
+
+  @override
+  String get preDive_edit_titleView => 'הצגת רשימת בדיקה לפני צלילה';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'רשימת בדיקה מובנית. שכפלו אותה כדי ליצור עותק הניתן לעריכה.';
+
+  @override
+  String get dashboard_checklists_title => 'רשימות בדיקה';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'לפני צלילה';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'טיול: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'התחילה $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'הושלמה $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'בוטלה $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'רשימת בדיקה לפני צלילה';
 
   @override
@@ -3259,7 +3295,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'שבבי מצב';
 
   @override
-  String get settings_homeCards_card_preDive => 'רשימת בדיקה לפני צלילה';
+  String get settings_homeCards_card_preDive => 'רשימות בדיקה';
 
   @override
   String get settings_homeCards_card_recentDives => 'צלילות אחרונות';
@@ -5466,6 +5502,44 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'שימוש בסט';
+
+  @override
+  String get diveLog_edit_weightPreset_use => 'שימוש בקבוע מראש';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'שמירה כקבוע מראש';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle => 'החלת קבוע משקולות מראש';
+
+  @override
+  String get diveLog_edit_weightPreset_empty => 'עדיין לא שמרת קבועי משקולות.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count משקולות · $total',
+      one: 'משקולת אחת · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'קבוע המשקולות הוחל. התאם את הרשומות לפי הצורך.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle => 'שמירת המשקולות כקבוע';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'שם הקבוע';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'קבוע המשקולות «$name» נשמר';
+  }
 
   @override
   String diveLog_edit_weightTotal(Object total) {
@@ -16947,6 +17021,34 @@ class AppLocalizationsHe extends AppLocalizations {
       'ניהול תצורות בלון מותאמות אישית';
 
   @override
+  String get settings_manage_weightPresets => 'קבועי משקולות';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'סטים של משקולות לשימוש חוזר בצלילה';
+
+  @override
+  String get weightPresets_page_title => 'קבועי משקולות';
+
+  @override
+  String get weightPresets_page_empty =>
+      'שמור משקולות מעורך הצלילה והן יופיעו כאן לשימוש חוזר.';
+
+  @override
+  String get weightPresets_action_rename => 'שנה שם';
+
+  @override
+  String get weightPresets_rename_title => 'שנה שם קבוע';
+
+  @override
+  String get weightPresets_delete_title => 'למחוק קבוע זה?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '«$name» יוסר. צלילות שהשתמשו בו שומרות את המשקולות שלהן.';
+  }
+
+  @override
   String get settings_manage_serviceTypes => 'סוגי טיפול';
 
   @override
@@ -23114,6 +23216,21 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
       'קריאת לחץ הסיום ברגע ההגעה לפני השטח, ולא בסוף ההקלטה';
+
+  @override
+  String get settings_cloudImportPageSize_title => 'גודל עמוד בייבוא מהענן';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'כמה מהצלילות האחרונות לטעון בכל פעם מ-Suunto Cloud או Garmin Connect. «טען עוד» טוען את האצווה הבאה באותו גודל.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => 'צלילות לעמוד';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'בין $min ל-$max';
+  }
 
   @override
   String get settings_siteMatch_strict => 'קפדני';
@@ -35923,6 +36040,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'טען עוד';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'טען הכול';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

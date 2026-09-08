@@ -27,8 +27,10 @@ void main() {
     // Renumbered from 192: main landed the transmitter-serial rung at 194
     // while this branch was open, 192 and 193 are held by other open
     // branches, and a rung at or below the shipped version never runs its
-    // onUpgrade step. Relaxed from an exact match when v197/v198 landed: the
-    // exact assertion is the newest rung's job, and it moves with it.
+    // onUpgrade step. This is the newest rung, so it owns the exact
+    // assertion; relax it to greaterThanOrEqualTo when the next one lands.
+    // Relaxed once v196 (weight presets) landed on top; the exact
+    // assertion moves to the newest rung.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(195));
     expect(AppDatabase.migrationVersions, contains(195));
   });

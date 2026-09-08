@@ -2631,6 +2631,42 @@ class AppLocalizationsNl extends AppLocalizations {
   String get preDive_dashboard_start => 'Pre-dive check starten';
 
   @override
+  String get preDive_templates_view => 'Bekijken';
+
+  @override
+  String get preDive_edit_titleView => 'Pre-dive checklist bekijken';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Ingebouwde checklist. Dupliceer deze voor een bewerkbare kopie.';
+
+  @override
+  String get dashboard_checklists_title => 'Checklists';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Pre-dive';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Reis: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Gestart $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Voltooid $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Afgebroken $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Pre-dive checklist';
 
   @override
@@ -3327,7 +3363,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Statuschips';
 
   @override
-  String get settings_homeCards_card_preDive => 'Pre-dive checklist';
+  String get settings_homeCards_card_preDive => 'Checklists';
 
   @override
   String get settings_homeCards_card_recentDives => 'Recente duiken';
@@ -5564,6 +5600,47 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'Set gebruiken';
+
+  @override
+  String get diveLog_edit_weightPreset_use => 'Voorinstelling gebruiken';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'Opslaan als voorinstelling';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle =>
+      'Loodvoorinstelling toepassen';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'Je hebt nog geen loodvoorinstellingen opgeslagen.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gewichten · $total',
+      one: '1 gewicht · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'Loodvoorinstelling toegepast. Pas de items zo nodig aan.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle =>
+      'Loodhoeveelheid opslaan als voorinstelling';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'Naam voorinstelling';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'Loodvoorinstelling ‘$name’ opgeslagen';
+  }
 
   @override
   String diveLog_edit_weightTotal(Object total) {
@@ -17247,6 +17324,34 @@ class AppLocalizationsNl extends AppLocalizations {
       'Aangepaste flesconfiguraties beheren';
 
   @override
+  String get settings_manage_weightPresets => 'Loodvoorinstellingen';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'Herbruikbare loodsets voor een duik';
+
+  @override
+  String get weightPresets_page_title => 'Loodvoorinstellingen';
+
+  @override
+  String get weightPresets_page_empty =>
+      'Sla een loodhoeveelheid op vanuit de duikeditor, dan verschijnt die hier om te hergebruiken.';
+
+  @override
+  String get weightPresets_action_rename => 'Naam wijzigen';
+
+  @override
+  String get weightPresets_rename_title => 'Voorinstelling hernoemen';
+
+  @override
+  String get weightPresets_delete_title => 'Deze voorinstelling verwijderen?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '‘$name’ wordt verwijderd. Duiken die deze gebruikten, behouden hun eigen gewichten.';
+  }
+
+  @override
   String get settings_manage_serviceTypes => 'Servicetypes';
 
   @override
@@ -23517,6 +23622,22 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
       'Neem de einddruk op het moment van bovenkomen, niet aan het einde van de opname';
+
+  @override
+  String get settings_cloudImportPageSize_title =>
+      'Paginagrootte voor cloudimport';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'Hoeveel van de nieuwste duiken per keer op te halen van Suunto Cloud of Garmin Connect. „Meer laden” haalt de volgende batch van dezelfde grootte op.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => 'Duiken per pagina';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'Tussen $min en $max';
+  }
 
   @override
   String get settings_siteMatch_strict => 'Strikt';
@@ -36397,6 +36518,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'Meer laden';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'Alles laden';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

@@ -2653,6 +2653,42 @@ class AppLocalizationsEs extends AppLocalizations {
       'Iniciar comprobación previa a la inmersión';
 
   @override
+  String get preDive_templates_view => 'Ver';
+
+  @override
+  String get preDive_edit_titleView => 'Ver lista previa a la inmersión';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Lista integrada. Duplícala para obtener una copia editable.';
+
+  @override
+  String get dashboard_checklists_title => 'Listas de verificación';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Previa a la inmersión';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Viaje: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Iniciada $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Completada $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Cancelada $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Lista previa a la inmersión';
 
   @override
@@ -3351,7 +3387,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Chips de estado';
 
   @override
-  String get settings_homeCards_card_preDive => 'Lista previa a la inmersión';
+  String get settings_homeCards_card_preDive => 'Listas de verificación';
 
   @override
   String get settings_homeCards_card_recentDives => 'Inmersiones recientes';
@@ -5606,6 +5642,47 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'Usar conjunto';
+
+  @override
+  String get diveLog_edit_weightPreset_use => 'Usar preajuste';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'Guardar como preajuste';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle =>
+      'Aplicar un preajuste de lastre';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'Aún no has guardado ningún preajuste de lastre.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pesos · $total',
+      one: '1 peso · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'Preajuste de lastre aplicado. Ajusta las entradas si es necesario.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle =>
+      'Guardar el lastre como preajuste';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'Nombre del preajuste';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'Preajuste de lastre «$name» guardado';
+  }
 
   @override
   String diveLog_edit_weightTotal(Object total) {
@@ -17391,6 +17468,34 @@ class AppLocalizationsEs extends AppLocalizations {
       'Administrar configuraciones de tanques personalizadas';
 
   @override
+  String get settings_manage_weightPresets => 'Preajustes de lastre';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'Conjuntos de lastre reutilizables para una inmersión';
+
+  @override
+  String get weightPresets_page_title => 'Preajustes de lastre';
+
+  @override
+  String get weightPresets_page_empty =>
+      'Guarda un lastre desde el editor de inmersiones y aparecerá aquí para reutilizarlo.';
+
+  @override
+  String get weightPresets_action_rename => 'Renombrar';
+
+  @override
+  String get weightPresets_rename_title => 'Renombrar preajuste';
+
+  @override
+  String get weightPresets_delete_title => '¿Eliminar este preajuste?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '«$name» se eliminará. Las inmersiones que lo usaron conservan sus propios pesos.';
+  }
+
+  @override
   String get settings_manage_serviceTypes => 'Tipos de servicio';
 
   @override
@@ -23725,6 +23830,23 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
       'Tomar la presión final al llegar a la superficie, no al terminar el registro';
+
+  @override
+  String get settings_cloudImportPageSize_title =>
+      'Tamaño de página de importación en la nube';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'Cuántas de las inmersiones más recientes se obtienen cada vez desde Suunto Cloud o Garmin Connect. «Cargar más» obtiene el siguiente lote del mismo tamaño.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle =>
+      'Inmersiones por página';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'Entre $min y $max';
+  }
 
   @override
   String get settings_siteMatch_strict => 'Estricto';
@@ -36696,6 +36818,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'Cargar más';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'Cargar todo';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

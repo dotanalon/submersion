@@ -4457,6 +4457,60 @@ abstract class AppLocalizations {
   /// **'Start pre-dive check'**
   String get preDive_dashboard_start;
 
+  /// No description provided for @preDive_templates_view.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get preDive_templates_view;
+
+  /// No description provided for @preDive_edit_titleView.
+  ///
+  /// In en, this message translates to:
+  /// **'View Pre-Dive Checklist'**
+  String get preDive_edit_titleView;
+
+  /// No description provided for @preDive_edit_builtInNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in checklist. Clone it to make an editable copy.'**
+  String get preDive_edit_builtInNotice;
+
+  /// No description provided for @dashboard_checklists_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklists'**
+  String get dashboard_checklists_title;
+
+  /// No description provided for @dashboard_checklists_preDiveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-dive'**
+  String get dashboard_checklists_preDiveLabel;
+
+  /// No description provided for @dashboard_checklists_tripLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip: {name}'**
+  String dashboard_checklists_tripLabel(String name);
+
+  /// No description provided for @preDive_sessions_startedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Started {when}'**
+  String preDive_sessions_startedAt(String when);
+
+  /// No description provided for @preDive_sessions_completedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed {when}'**
+  String preDive_sessions_completedAt(String when);
+
+  /// No description provided for @preDive_sessions_abortedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Aborted {when}'**
+  String preDive_sessions_abortedAt(String when);
+
   /// No description provided for @trips_detail_preDive_action.
   ///
   /// In en, this message translates to:
@@ -5666,7 +5720,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_homeCards_card_preDive.
   ///
   /// In en, this message translates to:
-  /// **'Pre-dive checklist'**
+  /// **'Checklists'**
   String get settings_homeCards_card_preDive;
 
   /// No description provided for @settings_homeCards_card_recentDives.
@@ -9268,6 +9322,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use Set'**
   String get diveLog_edit_useSet;
+
+  /// No description provided for @diveLog_edit_weightPreset_use.
+  ///
+  /// In en, this message translates to:
+  /// **'Use preset'**
+  String get diveLog_edit_weightPreset_use;
+
+  /// No description provided for @diveLog_edit_weightPreset_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as preset'**
+  String get diveLog_edit_weightPreset_save;
+
+  /// No description provided for @diveLog_edit_weightPreset_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply a weight preset'**
+  String get diveLog_edit_weightPreset_pickerTitle;
+
+  /// No description provided for @diveLog_edit_weightPreset_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t saved any weight presets yet.'**
+  String get diveLog_edit_weightPreset_empty;
+
+  /// No description provided for @diveLog_edit_weightPreset_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 weight · {total}} other{{count} weights · {total}}}'**
+  String diveLog_edit_weightPreset_summary(int count, Object total);
+
+  /// No description provided for @diveLog_edit_weightPreset_applied.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight preset applied. Adjust the entries as needed.'**
+  String get diveLog_edit_weightPreset_applied;
+
+  /// No description provided for @diveLog_edit_weightPreset_saveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save weighting as a preset'**
+  String get diveLog_edit_weightPreset_saveTitle;
+
+  /// No description provided for @diveLog_edit_weightPreset_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset name'**
+  String get diveLog_edit_weightPreset_nameLabel;
+
+  /// No description provided for @diveLog_edit_weightPreset_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight preset “{name}” saved'**
+  String diveLog_edit_weightPreset_saved(Object name);
 
   /// No description provided for @diveLog_edit_weightTotal.
   ///
@@ -28759,6 +28867,54 @@ abstract class AppLocalizations {
   /// **'Manage custom tank configurations'**
   String get settings_manage_tankPresets_subtitle;
 
+  /// No description provided for @settings_manage_weightPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight Presets'**
+  String get settings_manage_weightPresets;
+
+  /// No description provided for @settings_manage_weightPresets_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reusable sets of weights for a dive'**
+  String get settings_manage_weightPresets_subtitle;
+
+  /// No description provided for @weightPresets_page_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight Presets'**
+  String get weightPresets_page_title;
+
+  /// No description provided for @weightPresets_page_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a weighting from the dive editor and it will appear here to reuse.'**
+  String get weightPresets_page_empty;
+
+  /// No description provided for @weightPresets_action_rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get weightPresets_action_rename;
+
+  /// No description provided for @weightPresets_rename_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename preset'**
+  String get weightPresets_rename_title;
+
+  /// No description provided for @weightPresets_delete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this preset?'**
+  String get weightPresets_delete_title;
+
+  /// No description provided for @weightPresets_delete_body.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” will be removed. Dives that used it keep their own weights.'**
+  String weightPresets_delete_body(Object name);
+
   /// No description provided for @settings_manage_serviceTypes.
   ///
   /// In en, this message translates to:
@@ -38962,6 +39118,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read end pressure when you reached the surface, not when the computer stopped recording'**
   String get settings_tankPressureAtSurfacing_subtitle;
+
+  /// No description provided for @settings_cloudImportPageSize_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud import page size'**
+  String get settings_cloudImportPageSize_title;
+
+  /// No description provided for @settings_cloudImportPageSize_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.'**
+  String get settings_cloudImportPageSize_subtitle;
+
+  /// No description provided for @settings_cloudImportPageSize_dialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives per page'**
+  String get settings_cloudImportPageSize_dialogTitle;
+
+  /// Helper text under the cloud import page size field showing the allowed range
+  ///
+  /// In en, this message translates to:
+  /// **'Between {min} and {max}'**
+  String settings_cloudImportPageSize_range(Object min, Object max);
 
   /// No description provided for @settings_siteMatch_strict.
   ///
@@ -60237,6 +60417,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Load More'**
   String get suuntoCloud_fetch_loadMore;
+
+  /// Button on the Suunto cloud fetch step that fetches every remaining page of dives instead of one page at a time.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch All'**
+  String get suuntoCloud_fetch_fetchAll;
 
   /// Result headline after fetching dives from the Suunto cloud.
   ///

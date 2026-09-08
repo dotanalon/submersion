@@ -1077,6 +1077,43 @@
     }
   },
   "preDive_dashboard_start": "התחל בדיקה לפני צלילה",
+  "preDive_templates_view": "הצגה",
+  "preDive_edit_titleView": "הצגת רשימת בדיקה לפני צלילה",
+  "preDive_edit_builtInNotice": "רשימת בדיקה מובנית. שכפלו אותה כדי ליצור עותק הניתן לעריכה.",
+  "dashboard_checklists_title": "רשימות בדיקה",
+  "dashboard_checklists_preDiveLabel": "לפני צלילה",
+  "dashboard_checklists_tripLabel": "טיול: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "התחילה {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "הושלמה {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "בוטלה {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "רשימת בדיקה לפני צלילה",
   "settings_manage_preDiveChecklists": "רשימות בדיקה לפני צלילה",
   "settings_manage_preDiveChecklists_subtitle": "בדיקות באדי, רשימות הרכבת CCR, אריזת ציוד",
@@ -2001,6 +2038,15 @@
   "diveLog_edit_tripSuggested": "מוצע: {name}",
   "diveLog_edit_tripUse": "שימוש",
   "diveLog_edit_useSet": "שימוש בסט",
+  "diveLog_edit_weightPreset_use": "שימוש בקבוע מראש",
+  "diveLog_edit_weightPreset_save": "שמירה כקבוע מראש",
+  "diveLog_edit_weightPreset_pickerTitle": "החלת קבוע משקולות מראש",
+  "diveLog_edit_weightPreset_empty": "עדיין לא שמרת קבועי משקולות.",
+  "diveLog_edit_weightPreset_summary": "{count, plural, =1{משקולת אחת · {total}} other{{count} משקולות · {total}}}",
+  "diveLog_edit_weightPreset_applied": "קבוע המשקולות הוחל. התאם את הרשומות לפי הצורך.",
+  "diveLog_edit_weightPreset_saveTitle": "שמירת המשקולות כקבוע",
+  "diveLog_edit_weightPreset_nameLabel": "שם הקבוע",
+  "diveLog_edit_weightPreset_saved": "קבוע המשקולות «{name}» נשמר",
   "diveLog_edit_weightTotal": "סה\"כ: {total}",
   "diveLog_emptyFiltered_clearFilters": "ניקוי מסננים",
   "diveLog_emptyFiltered_subtitle": "נסה לשנות או לנקות את המסננים",
@@ -5158,6 +5204,14 @@
   "settings_manage_tags_subtitle": "ניהול, מיזוג ומחיקת תגיות",
   "settings_manage_tankPresets": "הגדרות בלון מוכנות",
   "settings_manage_tankPresets_subtitle": "ניהול תצורות בלון מותאמות אישית",
+  "settings_manage_weightPresets": "קבועי משקולות",
+  "settings_manage_weightPresets_subtitle": "סטים של משקולות לשימוש חוזר בצלילה",
+  "weightPresets_page_title": "קבועי משקולות",
+  "weightPresets_page_empty": "שמור משקולות מעורך הצלילה והן יופיעו כאן לשימוש חוזר.",
+  "weightPresets_action_rename": "שנה שם",
+  "weightPresets_rename_title": "שנה שם קבוע",
+  "weightPresets_delete_title": "למחוק קבוע זה?",
+  "weightPresets_delete_body": "«{name}» יוסר. צלילות שהשתמשו בו שומרות את המשקולות שלהן.",
   "settings_manage_serviceTypes": "סוגי טיפול",
   "settings_manage_serviceTypes_subtitle": "הטיפולים שהציוד שלך צריך, ובאיזו תדירות",
   "settings_migrationProgress_doNotClose": "נא לא לסגור את האפליקציה",
@@ -6509,6 +6563,10 @@
   "settings_siteMatch_subtitle": "באיזו מידה צלילות שהורדו מותאמות לאתרים",
   "settings_tankPressureAtSurfacing_title": "לחץ המיכל בעלייה לפני השטח",
   "settings_tankPressureAtSurfacing_subtitle": "קריאת לחץ הסיום ברגע ההגעה לפני השטח, ולא בסוף ההקלטה",
+  "settings_cloudImportPageSize_title": "גודל עמוד בייבוא מהענן",
+  "settings_cloudImportPageSize_subtitle": "כמה מהצלילות האחרונות לטעון בכל פעם מ-Suunto Cloud או Garmin Connect. «טען עוד» טוען את האצווה הבאה באותו גודל.",
+  "settings_cloudImportPageSize_dialogTitle": "צלילות לעמוד",
+  "settings_cloudImportPageSize_range": "בין {min} ל-{max}",
   "settings_siteMatch_strict": "קפדני",
   "settings_siteMatch_balanced": "מאוזן",
   "settings_siteMatch_relaxed": "גמיש",
@@ -6636,7 +6694,7 @@
   "settings_homeCards_resetDialog_confirm": "איפוס",
   "settings_homeCards_card_hero": "כותרת פתיחה",
   "settings_homeCards_card_gaugeStrip": "שבבי מצב",
-  "settings_homeCards_card_preDive": "רשימת בדיקה לפני צלילה",
+  "settings_homeCards_card_preDive": "רשימות בדיקה",
   "settings_homeCards_card_recentDives": "צלילות אחרונות",
   "settings_homeCards_card_quickActions": "פעולות מהירות",
   "settings_homeCards_card_milestones": "אבני דרך",
@@ -10747,6 +10805,7 @@
   "importWizard_review_sortByDuration": "זמן",
   "suuntoCloud_fetch_retry": "נסה שוב",
   "suuntoCloud_fetch_loadMore": "טען עוד",
+  "suuntoCloud_fetch_fetchAll": "טען הכול",
   "settings_storageUsage_appBar_title": "שימוש באחסון",
   "settings_storageUsage_tile_title": "שימוש באחסון",
   "settings_storageUsage_tile_subtitle": "ראה מה תופס מקום במכשיר הזה",

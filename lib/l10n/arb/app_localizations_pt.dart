@@ -2649,6 +2649,42 @@ class AppLocalizationsPt extends AppLocalizations {
   String get preDive_dashboard_start => 'Iniciar verificação pré-mergulho';
 
   @override
+  String get preDive_templates_view => 'Ver';
+
+  @override
+  String get preDive_edit_titleView => 'Ver Lista de Verificação Pré-Mergulho';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Lista integrada. Duplique-a para obter uma cópia editável.';
+
+  @override
+  String get dashboard_checklists_title => 'Listas de verificação';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Pré-mergulho';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Viagem: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Iniciada $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Concluída $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Cancelada $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Lista de verificação pré-mergulho';
 
   @override
@@ -3351,7 +3387,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Chips de estado';
 
   @override
-  String get settings_homeCards_card_preDive => 'Checklist pré-mergulho';
+  String get settings_homeCards_card_preDive => 'Listas de verificação';
 
   @override
   String get settings_homeCards_card_recentDives => 'Mergulhos recentes';
@@ -5608,6 +5644,47 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'Usar Conjunto';
+
+  @override
+  String get diveLog_edit_weightPreset_use => 'Usar predefinição';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'Guardar como predefinição';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle =>
+      'Aplicar uma predefinição de lastro';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'Ainda não guardou nenhuma predefinição de lastro.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pesos · $total',
+      one: '1 peso · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'Predefinição de lastro aplicada. Ajuste as entradas conforme necessário.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle =>
+      'Guardar o lastro como predefinição';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'Nome da predefinição';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'Predefinição de lastro “$name” guardada';
+  }
 
   @override
   String diveLog_edit_weightTotal(Object total) {
@@ -17389,6 +17466,34 @@ class AppLocalizationsPt extends AppLocalizations {
       'Gerenciar configuracoes personalizadas de cilindro';
 
   @override
+  String get settings_manage_weightPresets => 'Predefinições de lastro';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'Conjuntos de pesos reutilizáveis para um mergulho';
+
+  @override
+  String get weightPresets_page_title => 'Predefinições de lastro';
+
+  @override
+  String get weightPresets_page_empty =>
+      'Guarde um lastro no editor de mergulho e ele aparecerá aqui para reutilizar.';
+
+  @override
+  String get weightPresets_action_rename => 'Renomear';
+
+  @override
+  String get weightPresets_rename_title => 'Renomear predefinição';
+
+  @override
+  String get weightPresets_delete_title => 'Eliminar esta predefinição?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '“$name” será removida. Os mergulhos que a usaram mantêm os seus próprios pesos.';
+  }
+
+  @override
   String get settings_manage_serviceTypes => 'Tipos de manutenção';
 
   @override
@@ -23705,6 +23810,22 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
       'Usar a pressão final ao chegar à superfície, não no fim da gravação';
+
+  @override
+  String get settings_cloudImportPageSize_title =>
+      'Tamanho da página de importação na nuvem';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'Quantos dos mergulhos mais recentes obter de cada vez do Suunto Cloud ou Garmin Connect. «Carregar mais» obtém o lote seguinte do mesmo tamanho.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => 'Mergulhos por página';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'Entre $min e $max';
+  }
 
   @override
   String get settings_siteMatch_strict => 'Rigoroso';
@@ -36660,6 +36781,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'Carregar mais';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'Carregar tudo';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

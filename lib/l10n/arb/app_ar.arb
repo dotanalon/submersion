@@ -1077,6 +1077,43 @@
     }
   },
   "preDive_dashboard_start": "بدء فحص ما قبل الغوص",
+  "preDive_templates_view": "عرض",
+  "preDive_edit_titleView": "عرض قائمة تحقق ما قبل الغوص",
+  "preDive_edit_builtInNotice": "قائمة تحقق مدمجة. استنسخها للحصول على نسخة قابلة للتعديل.",
+  "dashboard_checklists_title": "قوائم التحقق",
+  "dashboard_checklists_preDiveLabel": "ما قبل الغوص",
+  "dashboard_checklists_tripLabel": "الرحلة: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "بدأت {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "اكتملت {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "أُلغيت {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "قائمة تحقق ما قبل الغوص",
   "settings_manage_preDiveChecklists": "قوائم تحقق ما قبل الغوص",
   "settings_manage_preDiveChecklists_subtitle": "فحوصات رفيق الغوص، قوائم تجهيز CCR، توضيب المعدات",
@@ -2085,6 +2122,15 @@
   "diveLog_edit_tripSuggested": "مقترح: {name}",
   "diveLog_edit_tripUse": "استخدام",
   "diveLog_edit_useSet": "استخدام طقم",
+  "diveLog_edit_weightPreset_use": "استخدام إعداد مسبق",
+  "diveLog_edit_weightPreset_save": "حفظ كإعداد مسبق",
+  "diveLog_edit_weightPreset_pickerTitle": "تطبيق إعداد أوزان مسبق",
+  "diveLog_edit_weightPreset_empty": "لم تحفظ أي إعدادات أوزان مسبقة بعد.",
+  "diveLog_edit_weightPreset_summary": "{count, plural, =1{وزن واحد · {total}} other{{count} أوزان · {total}}}",
+  "diveLog_edit_weightPreset_applied": "تم تطبيق إعداد الأوزان. عدّل المدخلات حسب الحاجة.",
+  "diveLog_edit_weightPreset_saveTitle": "حفظ الأوزان كإعداد مسبق",
+  "diveLog_edit_weightPreset_nameLabel": "اسم الإعداد",
+  "diveLog_edit_weightPreset_saved": "تم حفظ إعداد الأوزان «{name}»",
   "diveLog_edit_weightTotal": "الإجمالي: {total}",
   "diveLog_emptyFiltered_clearFilters": "مسح عوامل التصفية",
   "diveLog_emptyFiltered_subtitle": "حاول تعديل أو مسح عوامل التصفية",
@@ -5158,6 +5204,14 @@
   "settings_manage_tags_subtitle": "إدارة ودمج وحذف الوسوم",
   "settings_manage_tankPresets": "إعدادات الأسطوانات المسبقة",
   "settings_manage_tankPresets_subtitle": "إدارة تهيئات الأسطوانات المخصصة",
+  "settings_manage_weightPresets": "إعدادات الأوزان",
+  "settings_manage_weightPresets_subtitle": "مجموعات أوزان قابلة لإعادة الاستخدام لغطسة",
+  "weightPresets_page_title": "إعدادات الأوزان",
+  "weightPresets_page_empty": "احفظ أوزانًا من محرر الغطسة وستظهر هنا لإعادة الاستخدام.",
+  "weightPresets_action_rename": "إعادة تسمية",
+  "weightPresets_rename_title": "إعادة تسمية الإعداد",
+  "weightPresets_delete_title": "حذف هذا الإعداد؟",
+  "weightPresets_delete_body": "سيتم حذف «{name}». الغطسات التي استخدمته تحتفظ بأوزانها.",
   "settings_manage_serviceTypes": "أنواع الصيانة",
   "settings_manage_serviceTypes_subtitle": "الصيانة التي تحتاجها معداتك، وعدد مراتها",
   "settings_migrationProgress_doNotClose": "يرجى عدم إغلاق التطبيق",
@@ -6509,6 +6563,10 @@
   "settings_siteMatch_subtitle": "مدى صرامة مطابقة الغوصات التي تم تنزيلها بالمواقع",
   "settings_tankPressureAtSurfacing_title": "ضغط الأسطوانة عند الصعود إلى السطح",
   "settings_tankPressureAtSurfacing_subtitle": "قراءة ضغط النهاية عند الوصول إلى السطح، وليس عند انتهاء التسجيل",
+  "settings_cloudImportPageSize_title": "حجم صفحة الاستيراد السحابي",
+  "settings_cloudImportPageSize_subtitle": "عدد أحدث الغوصات التي يتم جلبها في كل مرة من Suunto Cloud أو Garmin Connect. «تحميل المزيد» يجلب الدفعة التالية بنفس الحجم.",
+  "settings_cloudImportPageSize_dialogTitle": "غوصات لكل صفحة",
+  "settings_cloudImportPageSize_range": "بين {min} و{max}",
   "settings_siteMatch_strict": "صارم",
   "settings_siteMatch_balanced": "متوازن",
   "settings_siteMatch_relaxed": "متساهل",
@@ -6636,7 +6694,7 @@
   "settings_homeCards_resetDialog_confirm": "إعادة تعيين",
   "settings_homeCards_card_hero": "ترويسة الترحيب",
   "settings_homeCards_card_gaugeStrip": "شرائح الحالة",
-  "settings_homeCards_card_preDive": "قائمة فحص ما قبل الغوص",
+  "settings_homeCards_card_preDive": "قوائم التحقق",
   "settings_homeCards_card_recentDives": "الغوصات الأخيرة",
   "settings_homeCards_card_quickActions": "إجراءات سريعة",
   "settings_homeCards_card_milestones": "الإنجازات",
@@ -10747,6 +10805,7 @@
   "importWizard_review_sortByDuration": "الوقت",
   "suuntoCloud_fetch_retry": "إعادة المحاولة",
   "suuntoCloud_fetch_loadMore": "تحميل المزيد",
+  "suuntoCloud_fetch_fetchAll": "تحميل الكل",
   "settings_storageUsage_appBar_title": "استخدام التخزين",
   "settings_storageUsage_tile_title": "استخدام التخزين",
   "settings_storageUsage_tile_subtitle": "اطلع على ما يشغل مساحة على هذا الجهاز",

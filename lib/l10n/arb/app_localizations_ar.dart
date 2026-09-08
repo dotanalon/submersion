@@ -2597,6 +2597,42 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_dashboard_start => 'بدء فحص ما قبل الغوص';
 
   @override
+  String get preDive_templates_view => 'عرض';
+
+  @override
+  String get preDive_edit_titleView => 'عرض قائمة تحقق ما قبل الغوص';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'قائمة تحقق مدمجة. استنسخها للحصول على نسخة قابلة للتعديل.';
+
+  @override
+  String get dashboard_checklists_title => 'قوائم التحقق';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'ما قبل الغوص';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'الرحلة: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'بدأت $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'اكتملت $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'أُلغيت $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'قائمة تحقق ما قبل الغوص';
 
   @override
@@ -3284,7 +3320,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'شرائح الحالة';
 
   @override
-  String get settings_homeCards_card_preDive => 'قائمة فحص ما قبل الغوص';
+  String get settings_homeCards_card_preDive => 'قوائم التحقق';
 
   @override
   String get settings_homeCards_card_recentDives => 'الغوصات الأخيرة';
@@ -5494,6 +5530,45 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'استخدام طقم';
+
+  @override
+  String get diveLog_edit_weightPreset_use => 'استخدام إعداد مسبق';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'حفظ كإعداد مسبق';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle => 'تطبيق إعداد أوزان مسبق';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'لم تحفظ أي إعدادات أوزان مسبقة بعد.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أوزان · $total',
+      one: 'وزن واحد · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'تم تطبيق إعداد الأوزان. عدّل المدخلات حسب الحاجة.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle => 'حفظ الأوزان كإعداد مسبق';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'اسم الإعداد';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'تم حفظ إعداد الأوزان «$name»';
+  }
 
   @override
   String diveLog_edit_weightTotal(Object total) {
@@ -17071,6 +17146,34 @@ class AppLocalizationsAr extends AppLocalizations {
       'إدارة تهيئات الأسطوانات المخصصة';
 
   @override
+  String get settings_manage_weightPresets => 'إعدادات الأوزان';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'مجموعات أوزان قابلة لإعادة الاستخدام لغطسة';
+
+  @override
+  String get weightPresets_page_title => 'إعدادات الأوزان';
+
+  @override
+  String get weightPresets_page_empty =>
+      'احفظ أوزانًا من محرر الغطسة وستظهر هنا لإعادة الاستخدام.';
+
+  @override
+  String get weightPresets_action_rename => 'إعادة تسمية';
+
+  @override
+  String get weightPresets_rename_title => 'إعادة تسمية الإعداد';
+
+  @override
+  String get weightPresets_delete_title => 'حذف هذا الإعداد؟';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return 'سيتم حذف «$name». الغطسات التي استخدمته تحتفظ بأوزانها.';
+  }
+
+  @override
   String get settings_manage_serviceTypes => 'أنواع الصيانة';
 
   @override
@@ -23282,6 +23385,21 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
       'قراءة ضغط النهاية عند الوصول إلى السطح، وليس عند انتهاء التسجيل';
+
+  @override
+  String get settings_cloudImportPageSize_title => 'حجم صفحة الاستيراد السحابي';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'عدد أحدث الغوصات التي يتم جلبها في كل مرة من Suunto Cloud أو Garmin Connect. «تحميل المزيد» يجلب الدفعة التالية بنفس الحجم.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => 'غوصات لكل صفحة';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'بين $min و$max';
+  }
 
   @override
   String get settings_siteMatch_strict => 'صارم';
@@ -36284,6 +36402,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'تحميل المزيد';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'تحميل الكل';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {
