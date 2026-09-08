@@ -8361,10 +8361,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_gasOptions_title => 'Gas options';
 
   @override
-  String get divePlanner_gasOptions_sacDeco => 'Deco SAC';
+  String get divePlanner_gasOptions_sacDeco => 'Deko-AMV';
 
   @override
-  String get divePlanner_gasOptions_sacFactor => 'SAC factor';
+  String get divePlanner_gasOptions_sacFactor => 'AMV-Faktor';
 
   @override
   String get divePlanner_gasOptions_problemSolvingMinutes =>
