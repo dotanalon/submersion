@@ -2175,6 +2175,37 @@ class AppLocalizationsHe extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => 'שמור כתבנית...';
 
   @override
+  String get checklists_menu_clearAll => 'ניקוי רשימת המשימות...';
+
+  @override
+  String get checklists_clear_title => 'ניקוי רשימת המשימות';
+
+  @override
+  String checklists_clear_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'למחוק את כל $count הפריטים מרשימה זו? התבניות לא יושפעו.',
+      one: 'למחוק את הפריט היחיד מרשימה זו? התבניות לא יושפעו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_clear_confirm => 'ניקוי';
+
+  @override
+  String checklists_clear_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים הוסרו',
+      one: 'פריט אחד הוסר',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checklists_applySheet_title => 'החלת תבנית';
 
   @override
@@ -5781,6 +5812,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_events => 'אירועים';
 
   @override
+  String get diveLog_legend_label_computedEvents => 'אירועים מחושבים';
+
+  @override
   String get diveLog_legend_label_gasDensity => 'צפיפות גז';
 
   @override
@@ -6767,10 +6801,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_o2tox_label_maxPpO2Depth => 'עומק ppO2 מרבי';
 
   @override
-  String get diveLog_o2tox_label_timeAbove14 => 'זמן מעל 1.4 bar';
-
-  @override
-  String get diveLog_o2tox_label_timeAbove16 => 'זמן מעל 1.6 bar';
+  String diveLog_o2tox_label_timeAboveLimit(String limit) {
+    return 'זמן מעל $limit bar';
+  }
 
   @override
   String get diveLog_o2tox_ofDailyLimit => 'מהמגבלה היומית';
@@ -9709,6 +9742,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_certificationAgency_cmas => 'CMAS';
 
   @override
+  String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
   String get enum_certificationAgency_gue => 'GUE';
 
   @override
@@ -9794,6 +9830,101 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_certificationLevel_wreck => 'ספינה טרופה';
+
+  @override
+  String get enum_certificationLevel_masterDiver => 'צוללן מאסטר';
+
+  @override
+  String get enum_certificationLevel_assistantInstructor => 'עוזר מדריך';
+
+  @override
+  String get enum_certificationLevel_extendedRange => 'Extended Range';
+
+  @override
+  String get enum_certificationLevel_advancedTrimix => 'טרימיקס מתקדם';
+
+  @override
+  String get enum_certificationLevel_cmas1StarDiver => 'צוללן כוכב 1';
+
+  @override
+  String get enum_certificationLevel_cmas2StarDiver => 'צוללן כוכב 2';
+
+  @override
+  String get enum_certificationLevel_cmas3StarDiver => 'צוללן כוכב 3';
+
+  @override
+  String get enum_certificationLevel_cmas4StarDiver => 'צוללן כוכב 4';
+
+  @override
+  String get enum_certificationLevel_cmas3StarDiverAssistantInstructor =>
+      'צוללן כוכב 3 - עוזר מדריך';
+
+  @override
+  String get enum_certificationLevel_cmas4StarDiverAssistantInstructor =>
+      'צוללן כוכב 4 - עוזר מדריך';
+
+  @override
+  String get enum_certificationLevel_cmas1StarInstructor => 'מדריך כוכב 1';
+
+  @override
+  String get enum_certificationLevel_cmas2StarInstructor => 'מדריך כוכב 2';
+
+  @override
+  String get enum_certificationLevel_cmas3StarInstructor => 'מדריך כוכב 3';
+
+  @override
+  String get enum_certificationLevel_bsacOceanDiver => 'Ocean Diver';
+
+  @override
+  String get enum_certificationLevel_bsacSportsDiver => 'Sports Diver';
+
+  @override
+  String get enum_certificationLevel_bsacDiveLeader => 'Dive Leader';
+
+  @override
+  String get enum_certificationLevel_bsacAdvancedDiver => 'Advanced Diver';
+
+  @override
+  String get enum_certificationLevel_bsacFirstClassDiver => 'First Class Diver';
+
+  @override
+  String get enum_certificationLevel_bsacOpenWaterInstructor =>
+      'Open Water Instructor';
+
+  @override
+  String get enum_certificationLevel_bsacAdvancedInstructor =>
+      'Advanced Instructor';
+
+  @override
+  String get enum_certificationLevel_bsacNationalInstructor =>
+      'National Instructor';
+
+  @override
+  String get enum_certificationLevel_gueFundamentals => 'Fundamentals';
+
+  @override
+  String get enum_certificationLevel_gueRec1 => 'Rec 1';
+
+  @override
+  String get enum_certificationLevel_gueRec2 => 'Rec 2';
+
+  @override
+  String get enum_certificationLevel_gueRec3 => 'Rec 3';
+
+  @override
+  String get enum_certificationLevel_gueTech1 => 'Tech 1';
+
+  @override
+  String get enum_certificationLevel_gueTech2 => 'Tech 2';
+
+  @override
+  String get enum_certificationLevel_gueCave1 => 'Cave 1';
+
+  @override
+  String get enum_certificationLevel_gueCave2 => 'Cave 2';
+
+  @override
+  String get enum_certificationLevel_gueDpv => 'DPV';
 
   @override
   String get enum_currentDirection_east => 'מזרח';
@@ -9998,6 +10129,27 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_wetsuit => 'חליפת צלילה';
+
+  @override
+  String get enum_equipmentType_snorkel => 'שנורקל';
+
+  @override
+  String get enum_equipmentType_transmitter => 'משדר';
+
+  @override
+  String get enum_equipmentType_instrument => 'מכשיר / מד לחץ';
+
+  @override
+  String get enum_equipmentType_compass => 'מצפן';
+
+  @override
+  String get enum_equipmentType_rebreather => 'ריברת\'ר';
+
+  @override
+  String get enum_equipmentType_tool => 'כלי';
+
+  @override
+  String get enum_equipmentType_rashGuard => 'חולצת ליקרה';
 
   @override
   String get enum_eventSeverity_alert => 'התראה';
@@ -10386,6 +10538,54 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'סטייג\'';
+
+  @override
+  String get enum_tideState_rising => 'עולה';
+
+  @override
+  String get enum_tideState_falling => 'יורד';
+
+  @override
+  String get enum_tideState_slackHigh => 'גאות מלאה (רגיעה)';
+
+  @override
+  String get enum_tideState_slackLow => 'שפל (רגיעה)';
+
+  @override
+  String get enum_timeFormat_twelveHour => '12 שעות';
+
+  @override
+  String get enum_timeFormat_twentyFourHour => '24 שעות';
+
+  @override
+  String get enum_matchConfidence_exact => 'מדויק';
+
+  @override
+  String get enum_matchConfidence_interpolated => 'משוער';
+
+  @override
+  String get enum_matchConfidence_estimated => 'מוערך';
+
+  @override
+  String get enum_matchConfidence_noProfile => 'אין פרופיל';
+
+  @override
+  String get enum_matchConfidence_manual => 'ידני';
+
+  @override
+  String get enum_logCategory_app => 'אפליקציה';
+
+  @override
+  String get enum_logCategory_bluetooth => 'Bluetooth';
+
+  @override
+  String get enum_logCategory_serial => 'טורי';
+
+  @override
+  String get enum_logCategory_libdc => 'libdc';
+
+  @override
+  String get enum_logCategory_database => 'מסד נתונים';
 
   @override
   String get enum_visibility_excellent => 'מצוינת (>30m / >100ft)';
@@ -16344,6 +16544,35 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_decompression_header_oxygenToxicity => 'רעילות חמצן';
+
+  @override
+  String get settings_decompression_ppO2LimitsTitle => 'מגבלות ppO2';
+
+  @override
+  String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
+    return 'עבודה $working bar · מקסימום $max bar';
+  }
+
+  @override
+  String get settings_decompression_ppO2Dialog_title => 'מגבלות ppO2';
+
+  @override
+  String get settings_decompression_ppO2Dialog_info =>
+      'תקרות ה-ppO2 המשמשות לחישוב MOD, לתכנון גזים ולהתראות רעילות חמצן. הגדר אותן כך שיתאמו למגבלות שהוגדרו במחשב הצלילה שלך.';
+
+  @override
+  String get settings_decompression_ppO2Dialog_working => 'ppO2 בעבודה';
+
+  @override
+  String get settings_decompression_ppO2Dialog_workingHint =>
+      'גז תחתית, החלק הפעיל של הצלילה';
+
+  @override
+  String get settings_decompression_ppO2Dialog_max => 'ppO2 מרבי';
+
+  @override
+  String get settings_decompression_ppO2Dialog_maxHint =>
+      'דקומפרסיה ומצבי חירום';
 
   @override
   String settings_decompression_preset_selectLabel(Object presetName) {
@@ -25599,6 +25828,24 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_inbox_title => 'איכות הנתונים';
+
+  @override
+  String get dataQuality_dive_unknown => 'פרטי הצלילה אינם זמינים';
+
+  @override
+  String dataQuality_dive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String dataQuality_dive_pairedWith(String dive) {
+    return 'משויכת ל-$dive';
+  }
+
+  @override
+  String dataQuality_dive_recordedBy(String computer) {
+    return 'נרשמה על ידי $computer';
+  }
 
   @override
   String get dataQuality_badge_tooltip => 'בדיקת איכות הנתונים';
@@ -36057,4 +36304,63 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_detail_duplicateBannerAction => 'מיזוג';
+
+  @override
+  String get startup_versionMismatch_restore_title =>
+      'שחזור הגיבוי שלפני העדכון';
+
+  @override
+  String get startup_versionMismatch_restore_body =>
+      'במכשיר הזה שמור עותק בטיחות של יומן הצלילה שנלקח לפני העדכון, והגרסה הזו יכולה לפתוח אותו.';
+
+  @override
+  String get startup_versionMismatch_restore_warning =>
+      'כל מה שתיעדת אחרי העדכון קיים רק בקובץ החדש יותר. הקובץ הזה נשמר כגיבוי מוצמד, כך שהתקנה מחדש של הגרסה החדשה תחזיר אותו.';
+
+  @override
+  String backup_history_preDowngradeSubtitle(String size) {
+    return 'מסד נתונים חדש יותר, נשמר בעת החזרה - $size';
+  }
+
+  @override
+  String backup_history_manualSubtitle(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    return '$_temp0, $_temp1 - $size';
+  }
+
+  @override
+  String backup_history_manualSubtitleAuto(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    return '$_temp0, $_temp1 - $size (אוטומטי)';
+  }
 }

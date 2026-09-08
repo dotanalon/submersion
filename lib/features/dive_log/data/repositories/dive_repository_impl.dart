@@ -1411,6 +1411,7 @@ class DiveRepository {
                 tankName: Value(tank.name),
                 presetName: Value(tank.presetName),
                 computerId: Value(tank.computerId),
+                transmitterSerial: Value(tank.transmitterSerial),
               ),
             );
           }
@@ -1652,6 +1653,10 @@ class DiveRepository {
               tankMaterial: Value(tank.material?.name),
               tankName: Value(tank.name),
               presetName: Value(tank.presetName),
+              // computerId and transmitterSerial are computer-owned identity
+              // and deliberately not written here: edit flows rebuild the
+              // tank field by field, and a rebuild that forgot them must not
+              // wipe what the download recorded.
             ),
           );
           // Log as pending update (assuming sync handles updates)
@@ -1680,6 +1685,7 @@ class DiveRepository {
                   tankName: Value(tank.name),
                   presetName: Value(tank.presetName),
                   computerId: Value(tank.computerId),
+                  transmitterSerial: Value(tank.transmitterSerial),
                 ),
               );
           await _syncRepository.markRecordPending(
@@ -2692,6 +2698,30 @@ class DiveRepository {
     }
   }
 
+  /// Loads [DiveSummary] rows for an arbitrary set of dive ids.
+  ///
+  /// One batched slim SELECT, for callers that hold ids and need only to name
+  /// and describe those dives. Prefer this over a [getDiveById] per id: that
+  /// hydrates tanks, tank pressures, the profile, and equipment, which is far
+  /// more than a display label needs.
+  ///
+  /// Ids that no longer exist are simply absent from the result, so callers
+  /// must handle a missing dive rather than assuming a row per id.
+  // stats-scope-exempt: hydrates rows for an already-chosen id set.
+  Future<List<DiveSummary>> getSummariesByIds(List<String> ids) async {
+    if (ids.isEmpty) return const [];
+    try {
+      return await _summariesForIds(ids);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load dive summaries by id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Loads [DiveSummary] rows for [ids] (slim SELECT plus batched tags and
   /// dive types), ordered most recent first.
   // stats-scope-exempt: hydrates rows for an already-chosen id set. It
@@ -3545,6 +3575,7 @@ class DiveRepository {
               order: t.tankOrder,
               presetName: t.presetName,
               computerId: t.computerId,
+              transmitterSerial: t.transmitterSerial,
             ),
           )
           .toList(),
@@ -3939,6 +3970,7 @@ class DiveRepository {
           order: t.tankOrder,
           presetName: t.presetName,
           computerId: t.computerId,
+          transmitterSerial: t.transmitterSerial,
         );
       }).toList(),
       profile: seriesProfile,
@@ -5796,6 +5828,7 @@ class DiveRepository {
     tankName: Value(t.name),
     presetName: Value(t.presetName),
     computerId: Value(t.computerId),
+    transmitterSerial: Value(t.transmitterSerial),
   );
 
   /// Append [tanks] to each dive (fresh ids, appended after existing tanks).

@@ -2230,6 +2230,39 @@ class AppLocalizationsHu extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => 'Mentés sablonként...';
 
   @override
+  String get checklists_menu_clearAll => 'Ellenőrzőlista törlése...';
+
+  @override
+  String get checklists_clear_title => 'Ellenőrzőlista törlése';
+
+  @override
+  String checklists_clear_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Törli mind a(z) $count elemet az ellenőrzőlistáról? A sablonokat ez nem érinti.',
+      one:
+          'Törli az ellenőrzőlista egyetlen elemét? A sablonokat ez nem érinti.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_clear_confirm => 'Törlés';
+
+  @override
+  String checklists_clear_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem eltávolítva',
+      one: '1 elem eltávolítva',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checklists_applySheet_title => 'Sablon alkalmazása';
 
   @override
@@ -5916,6 +5949,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_events => 'Esemenyek';
 
   @override
+  String get diveLog_legend_label_computedEvents => 'Számított események';
+
+  @override
   String get diveLog_legend_label_gasDensity => 'Gaz suruseg';
 
   @override
@@ -6922,10 +6958,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_o2tox_label_maxPpO2Depth => 'Max ppO2 melyseg';
 
   @override
-  String get diveLog_o2tox_label_timeAbove14 => '1,4 bar feletti ido';
-
-  @override
-  String get diveLog_o2tox_label_timeAbove16 => '1,6 bar feletti ido';
+  String diveLog_o2tox_label_timeAboveLimit(String limit) {
+    return '$limit bar feletti idő';
+  }
 
   @override
   String get diveLog_o2tox_ofDailyLimit => 'a napi limitbol';
@@ -9922,6 +9957,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_certificationAgency_cmas => 'CMAS';
 
   @override
+  String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
   String get enum_certificationAgency_gue => 'GUE';
 
   @override
@@ -10007,6 +10045,101 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_certificationLevel_wreck => 'Roncs';
+
+  @override
+  String get enum_certificationLevel_masterDiver => 'Mesterbúvár';
+
+  @override
+  String get enum_certificationLevel_assistantInstructor => 'Oktatóasszisztens';
+
+  @override
+  String get enum_certificationLevel_extendedRange => 'Extended Range';
+
+  @override
+  String get enum_certificationLevel_advancedTrimix => 'Haladó trimix';
+
+  @override
+  String get enum_certificationLevel_cmas1StarDiver => '1★ Búvár';
+
+  @override
+  String get enum_certificationLevel_cmas2StarDiver => '2★ Búvár';
+
+  @override
+  String get enum_certificationLevel_cmas3StarDiver => '3★ Búvár';
+
+  @override
+  String get enum_certificationLevel_cmas4StarDiver => '4★ Búvár';
+
+  @override
+  String get enum_certificationLevel_cmas3StarDiverAssistantInstructor =>
+      '3★ Búvár - Oktatóasszisztens';
+
+  @override
+  String get enum_certificationLevel_cmas4StarDiverAssistantInstructor =>
+      '4★ Búvár - Oktatóasszisztens';
+
+  @override
+  String get enum_certificationLevel_cmas1StarInstructor => '1★ Oktató';
+
+  @override
+  String get enum_certificationLevel_cmas2StarInstructor => '2★ Oktató';
+
+  @override
+  String get enum_certificationLevel_cmas3StarInstructor => '3★ Oktató';
+
+  @override
+  String get enum_certificationLevel_bsacOceanDiver => 'Ocean Diver';
+
+  @override
+  String get enum_certificationLevel_bsacSportsDiver => 'Sports Diver';
+
+  @override
+  String get enum_certificationLevel_bsacDiveLeader => 'Dive Leader';
+
+  @override
+  String get enum_certificationLevel_bsacAdvancedDiver => 'Advanced Diver';
+
+  @override
+  String get enum_certificationLevel_bsacFirstClassDiver => 'First Class Diver';
+
+  @override
+  String get enum_certificationLevel_bsacOpenWaterInstructor =>
+      'Open Water Instructor';
+
+  @override
+  String get enum_certificationLevel_bsacAdvancedInstructor =>
+      'Advanced Instructor';
+
+  @override
+  String get enum_certificationLevel_bsacNationalInstructor =>
+      'National Instructor';
+
+  @override
+  String get enum_certificationLevel_gueFundamentals => 'Fundamentals';
+
+  @override
+  String get enum_certificationLevel_gueRec1 => 'Rec 1';
+
+  @override
+  String get enum_certificationLevel_gueRec2 => 'Rec 2';
+
+  @override
+  String get enum_certificationLevel_gueRec3 => 'Rec 3';
+
+  @override
+  String get enum_certificationLevel_gueTech1 => 'Tech 1';
+
+  @override
+  String get enum_certificationLevel_gueTech2 => 'Tech 2';
+
+  @override
+  String get enum_certificationLevel_gueCave1 => 'Cave 1';
+
+  @override
+  String get enum_certificationLevel_gueCave2 => 'Cave 2';
+
+  @override
+  String get enum_certificationLevel_gueDpv => 'DPV';
 
   @override
   String get enum_currentDirection_east => 'Kelet';
@@ -10211,6 +10344,27 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_equipmentType_wetsuit => 'Neopren ruha';
+
+  @override
+  String get enum_equipmentType_snorkel => 'Pipa';
+
+  @override
+  String get enum_equipmentType_transmitter => 'Jeladó';
+
+  @override
+  String get enum_equipmentType_instrument => 'Műszer / Nyomásmérő';
+
+  @override
+  String get enum_equipmentType_compass => 'Iránytű';
+
+  @override
+  String get enum_equipmentType_rebreather => 'Zárt rendszerű légzőkészülék';
+
+  @override
+  String get enum_equipmentType_tool => 'Szerszám';
+
+  @override
+  String get enum_equipmentType_rashGuard => 'Vízi trikó';
 
   @override
   String get enum_eventSeverity_alert => 'Riasztas';
@@ -10601,6 +10755,54 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stage';
+
+  @override
+  String get enum_tideState_rising => 'Emelkedő';
+
+  @override
+  String get enum_tideState_falling => 'Apadó';
+
+  @override
+  String get enum_tideState_slackHigh => 'Dagály (állóvíz)';
+
+  @override
+  String get enum_tideState_slackLow => 'Apály (állóvíz)';
+
+  @override
+  String get enum_timeFormat_twelveHour => '12 órás';
+
+  @override
+  String get enum_timeFormat_twentyFourHour => '24 órás';
+
+  @override
+  String get enum_matchConfidence_exact => 'Pontos';
+
+  @override
+  String get enum_matchConfidence_interpolated => 'Interpolált';
+
+  @override
+  String get enum_matchConfidence_estimated => 'Becsült';
+
+  @override
+  String get enum_matchConfidence_noProfile => 'Nincs profil';
+
+  @override
+  String get enum_matchConfidence_manual => 'Kézi';
+
+  @override
+  String get enum_logCategory_app => 'Alkalmazás';
+
+  @override
+  String get enum_logCategory_bluetooth => 'Bluetooth';
+
+  @override
+  String get enum_logCategory_serial => 'Soros';
+
+  @override
+  String get enum_logCategory_libdc => 'libdc';
+
+  @override
+  String get enum_logCategory_database => 'Adatbázis';
 
   @override
   String get enum_visibility_excellent => 'Kituno (>30m / >100ft)';
@@ -16713,6 +16915,35 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_header_oxygenToxicity => 'Oxigéntoxicitás';
+
+  @override
+  String get settings_decompression_ppO2LimitsTitle => 'ppO2-határok';
+
+  @override
+  String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
+    return 'Munka $working bar · Max. $max bar';
+  }
+
+  @override
+  String get settings_decompression_ppO2Dialog_title => 'ppO2-határok';
+
+  @override
+  String get settings_decompression_ppO2Dialog_info =>
+      'A MOD-hoz, a gáztervezéshez és az oxigéntoxicitási figyelmeztetésekhez használt ppO2-plafonértékek. Állítsd be őket a búvárkomputereden konfigurált határok szerint.';
+
+  @override
+  String get settings_decompression_ppO2Dialog_working => 'Munka ppO2';
+
+  @override
+  String get settings_decompression_ppO2Dialog_workingHint =>
+      'Fenékgáz, a merülés aktív része';
+
+  @override
+  String get settings_decompression_ppO2Dialog_max => 'Maximális ppO2';
+
+  @override
+  String get settings_decompression_ppO2Dialog_maxHint =>
+      'Dekompresszió és tartalék';
 
   @override
   String settings_decompression_preset_selectLabel(Object presetName) {
@@ -26140,6 +26371,24 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataQuality_inbox_title => 'Adatminőség';
+
+  @override
+  String get dataQuality_dive_unknown => 'A merülés adatai nem érhetők el';
+
+  @override
+  String dataQuality_dive_number(int number) {
+    return '#$number.';
+  }
+
+  @override
+  String dataQuality_dive_pairedWith(String dive) {
+    return 'Párosítva ezzel: $dive';
+  }
+
+  @override
+  String dataQuality_dive_recordedBy(String computer) {
+    return 'Rögzítette: $computer';
+  }
 
   @override
   String get dataQuality_badge_tooltip => 'Adatminőség-ellenőrzés';
@@ -36636,4 +36885,63 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_detail_duplicateBannerAction => 'Osszevonas';
+
+  @override
+  String get startup_versionMismatch_restore_title =>
+      'A frissítés előtti biztonsági mentés visszaállítása';
+
+  @override
+  String get startup_versionMismatch_restore_body =>
+      'A frissítés előtt készült biztonsági másolat a merülőnaplódról ezen az eszközön van, és ez a verzió meg tudja nyitni.';
+
+  @override
+  String get startup_versionMismatch_restore_warning =>
+      'Minden, amit a frissítés után rögzítettél, csak az újabb fájlban létezik. Azt a fájlt rögzített biztonsági mentésként megőrizzük, így az újabb verzió ismételt telepítésével visszakapod.';
+
+  @override
+  String backup_history_preDowngradeSubtitle(String size) {
+    return 'Újabb adatbázis, visszalépéskor megőrizve - $size';
+  }
+
+  @override
+  String backup_history_manualSubtitle(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount merülés',
+      one: '1 merülés',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount merülőhely',
+      one: '1 merülőhely',
+    );
+    return '$_temp0, $_temp1 - $size';
+  }
+
+  @override
+  String backup_history_manualSubtitleAuto(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount merülés',
+      one: '1 merülés',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount merülőhely',
+      one: '1 merülőhely',
+    );
+    return '$_temp0, $_temp1 - $size (automatikus)';
+  }
 }
