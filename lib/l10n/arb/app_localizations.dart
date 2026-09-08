@@ -38555,6 +38555,12 @@ abstract class AppLocalizations {
   /// **'Dives per page'**
   String get settings_cloudImportPageSize_dialogTitle;
 
+  /// Helper text under the cloud import page size field showing the allowed range
+  ///
+  /// In en, this message translates to:
+  /// **'Between {min} and {max}'**
+  String settings_cloudImportPageSize_range(Object min, Object max);
+
   /// No description provided for @settings_siteMatch_strict.
   ///
   /// In en, this message translates to:

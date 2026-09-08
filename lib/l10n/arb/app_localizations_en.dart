@@ -23070,6 +23070,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_cloudImportPageSize_dialogTitle => 'Dives per page';
 
   @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'Between $min and $max';
+  }
+
+  @override
   String get settings_siteMatch_strict => 'Strict';
 
   @override

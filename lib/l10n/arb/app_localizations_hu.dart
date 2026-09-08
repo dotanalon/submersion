@@ -23398,6 +23398,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülések oldalanként';
 
   @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return '$min és $max között';
+  }
+
+  @override
   String get settings_siteMatch_strict => 'Szigorú';
 
   @override

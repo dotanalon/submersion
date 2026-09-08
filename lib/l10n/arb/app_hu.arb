@@ -6343,6 +6343,7 @@
   "settings_cloudImportPageSize_title": "Felhőimport oldalmérete",
   "settings_cloudImportPageSize_subtitle": "Hány legutóbbi merülést töltsön le egyszerre a Suunto Cloudból vagy a Garmin Connectből. A „Továbbiak betöltése” ugyanekkora következő köteget kér.",
   "settings_cloudImportPageSize_dialogTitle": "Merülések oldalanként",
+  "settings_cloudImportPageSize_range": "{min} és {max} között",
   "settings_siteMatch_strict": "Szigorú",
   "settings_siteMatch_balanced": "Kiegyensúlyozott",
   "settings_siteMatch_relaxed": "Laza",

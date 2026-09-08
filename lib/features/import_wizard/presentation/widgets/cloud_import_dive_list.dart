@@ -11,15 +11,17 @@ class CloudImportDiveList extends StatelessWidget {
     super.key,
     required this.itemCount,
     required this.selectedIndices,
-    required this.titleOf,
-    required this.subtitleOf,
+    required this.summaryOf,
     required this.onToggle,
   });
 
   final int itemCount;
   final Set<int> selectedIndices;
-  final String Function(int index) titleOf;
-  final String Function(int index) subtitleOf;
+
+  /// Title and subtitle for one row, computed together so a caller that
+  /// derives both from a single formatting pass runs it once per row rather
+  /// than once per line of text.
+  final ({String title, String subtitle}) Function(int index) summaryOf;
   final ValueChanged<int> onToggle;
 
   @override
@@ -27,12 +29,13 @@ class CloudImportDiveList extends StatelessWidget {
     return ListView.builder(
       itemCount: itemCount,
       itemBuilder: (context, index) {
+        final summary = summaryOf(index);
         return CheckboxListTile(
           value: selectedIndices.contains(index),
           onChanged: (_) => onToggle(index),
           controlAffinity: ListTileControlAffinity.leading,
-          title: Text(titleOf(index)),
-          subtitle: Text(subtitleOf(index)),
+          title: Text(summary.title),
+          subtitle: Text(summary.subtitle),
         );
       },
     );

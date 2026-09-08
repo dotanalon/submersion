@@ -61,6 +61,21 @@ void main() {
       expect(find.widgetWithText(TextField, '42'), findsOneWidget);
     });
 
+    testWidgets('labels the field and states the accepted range', (
+      tester,
+    ) async {
+      await openDialog(tester);
+
+      expect(find.text('Dives per page'), findsOneWidget);
+      expect(
+        find.text(
+          'Between ${CloudImportPaging.minPageSize} and '
+          '${CloudImportPaging.maxPageSize}',
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('save pops the entered value', (tester) async {
       final result = await openDialog(tester);
 

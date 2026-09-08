@@ -6427,6 +6427,7 @@
   "settings_cloudImportPageSize_title": "حجم صفحة الاستيراد السحابي",
   "settings_cloudImportPageSize_subtitle": "عدد أحدث الغوصات التي يتم جلبها في كل مرة من Suunto Cloud أو Garmin Connect. «تحميل المزيد» يجلب الدفعة التالية بنفس الحجم.",
   "settings_cloudImportPageSize_dialogTitle": "غوصات لكل صفحة",
+  "settings_cloudImportPageSize_range": "بين {min} و{max}",
   "settings_siteMatch_strict": "صارم",
   "settings_siteMatch_balanced": "متوازن",
   "settings_siteMatch_relaxed": "متساهل",

@@ -41,12 +41,19 @@ class _CloudImportPageSizeDialogState extends State<CloudImportPageSizeDialog> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return AlertDialog(
-      title: Text(l10n.settings_cloudImportPageSize_dialogTitle),
+      title: Text(l10n.settings_cloudImportPageSize_title),
       content: TextField(
         controller: _controller,
         autofocus: true,
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        decoration: InputDecoration(
+          labelText: l10n.settings_cloudImportPageSize_dialogTitle,
+          helperText: l10n.settings_cloudImportPageSize_range(
+            CloudImportPaging.minPageSize,
+            CloudImportPaging.maxPageSize,
+          ),
+        ),
         onSubmitted: (_) => _save(),
       ),
       actions: [

@@ -23560,6 +23560,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_cloudImportPageSize_dialogTitle => 'Plongées par page';
 
   @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'Entre $min et $max';
+  }
+
+  @override
   String get settings_siteMatch_strict => 'Strict';
 
   @override

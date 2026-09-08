@@ -22885,6 +22885,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudImportPageSize_dialogTitle => 'צלילות לעמוד';
 
   @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'בין $min ל-$max';
+  }
+
+  @override
   String get settings_siteMatch_strict => 'קפדני';
 
   @override

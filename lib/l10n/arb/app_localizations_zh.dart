@@ -22260,6 +22260,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudImportPageSize_dialogTitle => '每页潜水次数';
 
   @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return '$min 到 $max 之间';
+  }
+
+  @override
   String get settings_siteMatch_strict => '严格';
 
   @override

@@ -5352,6 +5352,7 @@
   "settings_cloudImportPageSize_title": "云导入分页大小",
   "settings_cloudImportPageSize_subtitle": "每次从 Suunto Cloud 或 Garmin Connect 获取多少条最新潜水记录。「加载更多」会获取同样大小的下一批。",
   "settings_cloudImportPageSize_dialogTitle": "每页潜水次数",
+  "settings_cloudImportPageSize_range": "{min} 到 {max} 之间",
   "settings_siteMatch_strict": "严格",
   "settings_siteMatch_balanced": "平衡",
   "settings_siteMatch_relaxed": "宽松",

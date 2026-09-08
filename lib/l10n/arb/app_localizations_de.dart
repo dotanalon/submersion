@@ -23428,6 +23428,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_cloudImportPageSize_dialogTitle => 'Tauchgänge pro Seite';
 
   @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'Zwischen $min und $max';
+  }
+
+  @override
   String get settings_siteMatch_strict => 'Streng';
 
   @override

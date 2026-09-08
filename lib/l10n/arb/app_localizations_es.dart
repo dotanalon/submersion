@@ -23495,6 +23495,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Inmersiones por página';
 
   @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'Entre $min y $max';
+  }
+
+  @override
   String get settings_siteMatch_strict => 'Estricto';
 
   @override

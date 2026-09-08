@@ -497,14 +497,10 @@ class _CloudImportFetchStepState<TSummary, TParsed>
             child: CloudImportDiveList(
               itemCount: _parsedDives.length,
               selectedIndices: _selectedIndices,
-              titleOf: (index) => formatCloudDiveSummary(
+              summaryOf: (index) => formatCloudDiveSummary(
                 widget.diveOf(_parsedDives[index]),
                 settings,
-              ).title,
-              subtitleOf: (index) => formatCloudDiveSummary(
-                widget.diveOf(_parsedDives[index]),
-                settings,
-              ).subtitle,
+              ),
               onToggle: _toggleSelected,
             ),
           ),

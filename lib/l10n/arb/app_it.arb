@@ -6339,6 +6339,7 @@
   "settings_cloudImportPageSize_title": "Dimensione pagina importazione cloud",
   "settings_cloudImportPageSize_subtitle": "Quante delle immersioni più recenti scaricare per volta da Suunto Cloud o Garmin Connect. «Carica altro» recupera il lotto successivo della stessa dimensione.",
   "settings_cloudImportPageSize_dialogTitle": "Immersioni per pagina",
+  "settings_cloudImportPageSize_range": "Tra {min} e {max}",
   "settings_siteMatch_strict": "Rigoroso",
   "settings_siteMatch_balanced": "Bilanciato",
   "settings_siteMatch_relaxed": "Rilassato",

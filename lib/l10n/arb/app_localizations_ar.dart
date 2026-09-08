@@ -23048,6 +23048,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudImportPageSize_dialogTitle => 'غوصات لكل صفحة';
 
   @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'بين $min و$max';
+  }
+
+  @override
   String get settings_siteMatch_strict => 'صارم';
 
   @override

@@ -6343,6 +6343,7 @@
   "settings_cloudImportPageSize_title": "Taille de page d'import cloud",
   "settings_cloudImportPageSize_subtitle": "Combien des plongées les plus récentes charger à la fois depuis Suunto Cloud ou Garmin Connect. « Charger plus » récupère le lot suivant de la même taille.",
   "settings_cloudImportPageSize_dialogTitle": "Plongées par page",
+  "settings_cloudImportPageSize_range": "Entre {min} et {max}",
   "settings_siteMatch_strict": "Strict",
   "settings_siteMatch_balanced": "Équilibré",
   "settings_siteMatch_relaxed": "Souple",
