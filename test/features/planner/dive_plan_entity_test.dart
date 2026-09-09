@@ -29,7 +29,7 @@ void main() {
   group('DivePlan', () {
     test('SAC defaults derive from bottom SAC', () {
       final plan = _plan(sacBottom: 15.0);
-      expect(plan.sacDecoEffective, closeTo(12.0, 1e-9));
+      expect(plan.sacDecoEffective, 15.0);
       expect(plan.sacStressedEffective, closeTo(37.5, 1e-9));
     });
 

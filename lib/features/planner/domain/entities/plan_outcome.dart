@@ -134,7 +134,14 @@ class SegmentOutcome extends Equatable {
 class PlanTankUsage extends Equatable {
   final String tankId;
   final double litersUsed;
+
+  /// Surface liters in the cylinder at the start of the plan; null when the
+  /// tank has no size or start pressure.
+  final double? totalLiters;
   final double? remainingPressure;
+
+  /// Fill pressure at the start of the plan, in bar.
+  final double? startPressure;
   final double percentUsed;
   final bool reserveViolation;
 
@@ -147,18 +154,41 @@ class PlanTankUsage extends Equatable {
   const PlanTankUsage({
     required this.tankId,
     required this.litersUsed,
+    this.totalLiters,
     this.remainingPressure,
+    this.startPressure,
     required this.percentUsed,
     this.reserveViolation = false,
     this.turnPressureBar,
     this.minGasBar,
   });
 
+  /// Pressure consumed, in bar; null when start or remaining is unknown.
+  double? get usedPressure {
+    final start = startPressure;
+    final remaining = remainingPressure;
+    if (start == null || remaining == null) return null;
+    final used = start - remaining;
+    if (used < 0) return 0;
+    if (used > start) return start;
+    return used;
+  }
+
+  /// Surface liters left at the end of the plan.
+  double? get remainingLiters {
+    final total = totalLiters;
+    if (total == null) return null;
+    final left = total - litersUsed;
+    return left < 0 ? 0.0 : left;
+  }
+
   @override
   List<Object?> get props => [
     tankId,
     litersUsed,
+    totalLiters,
     remainingPressure,
+    startPressure,
     percentUsed,
     reserveViolation,
     turnPressureBar,

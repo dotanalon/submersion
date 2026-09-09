@@ -539,23 +539,37 @@ class _GasRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final remaining = usage.remainingPressure;
+    final l10n = context.l10n;
+    final statsStyle = theme.textTheme.labelSmall?.copyWith(
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Wrap(
+            spacing: 12,
+            runSpacing: 2,
             children: [
-              Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
               Text(
-                units.formatVolume(usage.litersUsed),
-                style: theme.textTheme.bodySmall,
+                l10n.plannerCanvas_gas_usedReading(
+                  _reading(usage.litersUsed, usage.usedPressure),
+                ),
+                style: statsStyle,
               ),
-              const SizedBox(width: 12),
               Text(
-                remaining != null ? units.formatPressure(remaining) : '--',
-                style: theme.textTheme.bodyMedium?.copyWith(
+                l10n.plannerCanvas_gas_endReading(
+                  _reading(usage.remainingLiters, usage.remainingPressure),
+                ),
+                style: statsStyle?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: usage.reserveViolation
                       ? theme.colorScheme.error
@@ -598,6 +612,18 @@ class _GasRow extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Compact "411L/37bar" pair; no space before the unit, matching the
+  /// slate-style gas row.
+  String _reading(double? liters, double? bar) {
+    final volume = liters == null
+        ? '--'
+        : '${units.convertVolume(liters).round()}${units.volumeSymbol}';
+    final pressure = bar == null
+        ? '--'
+        : '${units.convertPressure(bar).round()}${units.pressureSymbol}';
+    return '$volume/$pressure';
   }
 }
 

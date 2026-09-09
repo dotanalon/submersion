@@ -636,7 +636,17 @@ class PlanEngine {
           return PlanTankUsage(
             tankId: tank.id,
             litersUsed: used,
+            totalLiters: start != null
+                ? gasVolume(
+                    tankSizeLiters: tank.volume ?? 11.0,
+                    pressureBar: start,
+                    o2Percent: tank.gasMix.o2,
+                    hePercent: tank.gasMix.he,
+                    model: config.gasModel,
+                  )
+                : null,
             remainingPressure: remaining,
+            startPressure: start,
             percentUsed: start != null && start > 0
                 ? (start - (remaining ?? 0)) / start * 100.0
                 : 0.0,
@@ -683,6 +693,26 @@ class PlanEngine {
         sac *
             (leg.durationSeconds / 60.0) *
             environment.pressureAtDepth(leg.avgDepth),
+      );
+    }
+
+    // Problem-solving time: extra N minutes at max depth on the working
+    // gas, at bottom SAC x SAC factor, so the used/end figures include the
+    // same bottom-hold term the gas-options row describes.
+    if (plan.problemSolvingMinutes > 0 && plan.maxDepth > 0) {
+      String? bottomTankId;
+      for (final leg in legs) {
+        if (leg.endDepth >= plan.maxDepth - 0.1 ||
+            leg.startDepth >= plan.maxDepth - 0.1) {
+          bottomTankId = leg.tankId;
+        }
+      }
+      charge(
+        bottomTankId,
+        plan.sacBottom *
+            plan.sacFactor *
+            plan.problemSolvingMinutes *
+            environment.pressureAtDepth(plan.maxDepth),
       );
     }
 
@@ -759,7 +789,17 @@ class PlanEngine {
           return PlanTankUsage(
             tankId: tank.id,
             litersUsed: used,
+            totalLiters: start != null
+                ? gasVolume(
+                    tankSizeLiters: tank.volume ?? 11.0,
+                    pressureBar: start,
+                    o2Percent: tank.gasMix.o2,
+                    hePercent: tank.gasMix.he,
+                    model: config.gasModel,
+                  )
+                : null,
             remainingPressure: remaining,
+            startPressure: start,
             percentUsed: start != null && start > 0
                 ? (start - (remaining ?? 0)) / start * 100.0
                 : 0.0,

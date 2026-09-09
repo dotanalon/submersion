@@ -131,14 +131,22 @@ void main() {
     expect(container.read(divePlanNotifierProvider).lastStopDepth, 4.0);
   });
 
-  testWidgets('gas section shows SAC slider and reserve field with unit', (
+  testWidgets('gas section shows SAC field and reserve field with unit', (
     tester,
   ) async {
     await tester.pumpWidget(_harness(const PlanGasSection()));
     await tester.pumpAndSettle();
-    expect(find.byType(Slider), findsOneWidget);
+    expect(find.text('SAC'), findsOneWidget);
+    expect(find.byType(Slider), findsNothing);
     expect(find.text('50'), findsOneWidget);
     expect(find.textContaining('bar'), findsWidgets);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanGasSection)),
+    );
+    await tester.enterText(find.byType(TextField).first, '20');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).sacRate, 20);
   });
 
   testWidgets('reserve validation: zero shows error, valid updates state', (

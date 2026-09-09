@@ -8166,13 +8166,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_label_remaining => 'נותר';
 
   @override
-  String get divePlanner_label_reserve => 'עתודה:';
+  String get divePlanner_label_reserve => 'עתודה';
 
   @override
   String get divePlanner_label_runtime => 'זמן ריצה';
 
   @override
-  String get divePlanner_label_sacRate => 'RMV:';
+  String get divePlanner_label_sacRate => 'SAC';
 
   @override
   String get divePlanner_label_salinity => 'מליחות';
@@ -15084,6 +15084,16 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String plannerCanvas_gas_turnAt(String pressure) {
     return 'פנייה ב-$pressure';
+  }
+
+  @override
+  String plannerCanvas_gas_usedReading(String reading) {
+    return 'בשימוש: $reading';
+  }
+
+  @override
+  String plannerCanvas_gas_endReading(String reading) {
+    return 'סיום: $reading';
   }
 
   @override
@@ -35876,7 +35886,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String divePlanner_semantics_sacRate(Object value, Object volumeSymbol) {
-    return 'RMV: $value $volumeSymbol לדקה';
+    return 'SAC: $value $volumeSymbol לדקה';
   }
 
   @override

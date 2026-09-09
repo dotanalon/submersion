@@ -49,7 +49,7 @@ void main() {
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           sourceDiveForPlanProvider.overrideWith((ref) async => null),
-          sourceDiveDecoSecondsProvider.overrideWith((ref) async => null),
+          sourceDiveTtsSecondsProvider.overrideWith((ref) async => null),
         ],
         child: const PlanSourceDiveCompareStrip(),
       ),
@@ -85,7 +85,7 @@ void main() {
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           sourceDiveForPlanProvider.overrideWith((ref) async => dive),
-          sourceDiveDecoSecondsProvider.overrideWith((ref) async => 1500),
+          sourceDiveTtsSecondsProvider.overrideWith((ref) async => 28 * 60),
           activePlanOutcomeProvider.overrideWithValue(_outcome()),
         ],
         child: const PlanSourceDiveCompareStrip(),
@@ -96,6 +96,8 @@ void main() {
     expect(find.text('vs. original dive'), findsOneWidget);
     expect(find.textContaining('30′'), findsOneWidget); // planned runtime
     expect(find.textContaining('32′'), findsOneWidget); // actual runtime
-    expect(find.text('25′'), findsOneWidget); // actual deco held at stops
+    expect(find.text('TTS'), findsOneWidget);
+    expect(find.text('5′'), findsOneWidget); // planned TTS
+    expect(find.text('28′'), findsOneWidget); // actual computer TTS
   });
 }

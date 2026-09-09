@@ -46,6 +46,7 @@ void main() {
         .widgetList<TextField>(find.byType(TextField))
         .toList();
     expect(fields, hasLength(6));
+    expect(fields.first.decoration?.hintText, '15');
 
     await tester.enterText(find.byType(TextField).at(1), '3');
     await tester.pumpAndSettle();

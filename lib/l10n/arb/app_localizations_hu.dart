@@ -8358,13 +8358,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_label_remaining => 'Maradt';
 
   @override
-  String get divePlanner_label_reserve => 'Tartalék:';
+  String get divePlanner_label_reserve => 'Tartalék';
 
   @override
   String get divePlanner_label_runtime => 'Futási idő';
 
   @override
-  String get divePlanner_label_sacRate => 'RMV:';
+  String get divePlanner_label_sacRate => 'SAC';
 
   @override
   String get divePlanner_label_salinity => 'Sótartalom';
@@ -15414,6 +15414,16 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String plannerCanvas_gas_turnAt(String pressure) {
     return 'fordulás $pressure-nál';
+  }
+
+  @override
+  String plannerCanvas_gas_usedReading(String reading) {
+    return 'felhasználva: $reading';
+  }
+
+  @override
+  String plannerCanvas_gas_endReading(String reading) {
+    return 'vég: $reading';
   }
 
   @override
@@ -36443,7 +36453,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String divePlanner_semantics_sacRate(Object value, Object volumeSymbol) {
-    return 'RMV: $value $volumeSymbol percenként';
+    return 'SAC: $value $volumeSymbol percenként';
   }
 
   @override

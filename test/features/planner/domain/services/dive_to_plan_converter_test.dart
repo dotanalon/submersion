@@ -32,12 +32,16 @@ DivePlanState _defaults() {
 Dive _dive({
   required List<DiveProfilePoint> profile,
   List<DiveTank> tanks = const [],
+  WaterType? waterType,
+  double? altitude,
 }) {
   return Dive(
     id: 'dive-1',
     dateTime: DateTime(2026, 1, 1, 9),
     profile: profile,
     tanks: tanks,
+    waterType: waterType,
+    altitude: altitude,
   );
 }
 
@@ -145,6 +149,24 @@ void main() {
       expect(bottom.targetDepth, 30);
       expect(bottom.durationSeconds, closeTo(1200, 60));
       expect(result.sourceDiveId, 'dive-1');
+    });
+
+    test('copies the logged dive water type and altitude onto the plan', () {
+      final profile = _squareProfile();
+      final result = converter.convert(
+        dive: _dive(
+          profile: profile,
+          waterType: WaterType.fresh,
+          altitude: 1500,
+        ),
+        profile: profile,
+        gasSwitches: const [],
+        levels: 1,
+        planName: 'What if',
+        defaults: _defaults(),
+      );
+      expect(result.waterType, WaterType.fresh);
+      expect(result.altitude, 1500);
     });
 
     test('bottom time is preserved at every detail level', () {
