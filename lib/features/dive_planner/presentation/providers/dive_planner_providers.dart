@@ -429,14 +429,14 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
-  /// Set (or clear, with `seconds: null`) the diver-authored minimum hold
-  /// time for the stop at [depthMeters].
+  /// Set (or clear, with `seconds: null` or `<= 0`) the diver-authored
+  /// minimum hold time for the stop at [depthMeters].
   ///
   /// Immutable map update: builds a new map rather than mutating
   /// [state.stopMinimums] in place.
   void setStopMinimum(int depthMeters, int? seconds) {
     final updated = Map<int, int>.from(state.stopMinimums);
-    if (seconds == null) {
+    if (seconds == null || seconds <= 0) {
       updated.remove(depthMeters);
     } else {
       updated[depthMeters] = seconds;

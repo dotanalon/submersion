@@ -400,7 +400,7 @@ class _RuntimeTable extends ConsumerWidget {
   ) {
     final isStop = line.row.kind == PlanScheduleRowKind.stop;
     final stopDepth = line.row.depthMeters.round();
-    final hasMinimum = isStop && stopMinimums.containsKey(stopDepth);
+    final hasMinimum = isStop && (stopMinimums[stopDepth] ?? 0) > 0;
     final theme = Theme.of(context);
 
     final row = Padding(
@@ -440,78 +440,16 @@ class _RuntimeTable extends ConsumerWidget {
     if (!isStop) return row;
 
     return InkWell(
-      onTap: () => _showStopMinimumDialog(
-        context,
-        ref,
-        stopDepth: stopDepth,
-        currentMinutes: (line.row.durationSeconds / 60).round(),
-        currentMinimumSeconds: stopMinimums[stopDepth],
+      onTap: () => showDialog<void>(
+        context: context,
+        builder: (dialogContext) => _StopMinimumDialog(
+          stopDepth: stopDepth,
+          currentMinutes: (line.row.durationSeconds / 60).round(),
+          currentMinimumSeconds: stopMinimums[stopDepth],
+          depthLabel: units.formatDepth(stopDepth.toDouble(), decimals: 0),
+        ),
       ),
       child: row,
-    );
-  }
-
-  Future<void> _showStopMinimumDialog(
-    BuildContext context,
-    WidgetRef ref, {
-    required int stopDepth,
-    required int currentMinutes,
-    required int? currentMinimumSeconds,
-  }) async {
-    final l10n = context.l10n;
-    final controller = TextEditingController(
-      text:
-          (currentMinimumSeconds != null
-                  ? (currentMinimumSeconds / 60).round()
-                  : currentMinutes)
-              .toString(),
-    );
-    final depthLabel = units.formatDepth(stopDepth.toDouble(), decimals: 0);
-
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(l10n.plannerCanvas_stopMinimum_dialogTitle(depthLabel)),
-          content: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: l10n.plannerCanvas_stopMinimum_minutesLabel,
-            ),
-          ),
-          actions: [
-            if (currentMinimumSeconds != null)
-              TextButton(
-                onPressed: () {
-                  ref
-                      .read(divePlanNotifierProvider.notifier)
-                      .setStopMinimum(stopDepth, null);
-                  Navigator.of(dialogContext).pop();
-                },
-                child: Text(l10n.plannerCanvas_stopMinimum_clear),
-              ),
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(
-                MaterialLocalizations.of(dialogContext).cancelButtonLabel,
-              ),
-            ),
-            FilledButton(
-              onPressed: () {
-                final minutes = int.tryParse(controller.text);
-                if (minutes != null && minutes >= 0) {
-                  ref
-                      .read(divePlanNotifierProvider.notifier)
-                      .setStopMinimum(stopDepth, minutes * 60);
-                }
-                Navigator.of(dialogContext).pop();
-              },
-              child: Text(l10n.plannerCanvas_stopMinimum_apply),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -522,6 +460,94 @@ class _RuntimeTable extends ConsumerWidget {
       return "$base (+${(line.row.airBreakSeconds / 60).ceil()}′)";
     }
     return base;
+  }
+}
+
+/// Owns the minutes field so the controller is disposed with the route,
+/// after the pop animation, not when [showDialog] first completes.
+class _StopMinimumDialog extends ConsumerStatefulWidget {
+  const _StopMinimumDialog({
+    required this.stopDepth,
+    required this.currentMinutes,
+    required this.currentMinimumSeconds,
+    required this.depthLabel,
+  });
+
+  final int stopDepth;
+  final int currentMinutes;
+  final int? currentMinimumSeconds;
+  final String depthLabel;
+
+  @override
+  ConsumerState<_StopMinimumDialog> createState() => _StopMinimumDialogState();
+}
+
+class _StopMinimumDialogState extends ConsumerState<_StopMinimumDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final seed = widget.currentMinimumSeconds != null
+        ? (widget.currentMinimumSeconds! / 60).round()
+        : widget.currentMinutes;
+    _controller = TextEditingController(text: seed.toString());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(
+        l10n.plannerCanvas_stopMinimum_dialogTitle(widget.depthLabel),
+      ),
+      content: TextField(
+        controller: _controller,
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+          labelText: l10n.plannerCanvas_stopMinimum_minutesLabel,
+        ),
+      ),
+      actions: [
+        if (widget.currentMinimumSeconds != null)
+          TextButton(
+            onPressed: () {
+              ref
+                  .read(divePlanNotifierProvider.notifier)
+                  .setStopMinimum(widget.stopDepth, null);
+              Navigator.of(context).pop();
+            },
+            child: Text(l10n.plannerCanvas_stopMinimum_clear),
+          ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+        ),
+        FilledButton(
+          onPressed: () {
+            final minutes = int.tryParse(_controller.text);
+            if (minutes != null) {
+              // Non-positive is "no minimum": the engine ignores <= 0,
+              // so persisting 0 would pin the row with no effect.
+              ref
+                  .read(divePlanNotifierProvider.notifier)
+                  .setStopMinimum(
+                    widget.stopDepth,
+                    minutes <= 0 ? null : minutes * 60,
+                  );
+            }
+            Navigator.of(context).pop();
+          },
+          child: Text(l10n.plannerCanvas_stopMinimum_apply),
+        ),
+      ],
+    );
   }
 }
 

@@ -48,24 +48,28 @@ PlanOutcome _outcomeWithStop() {
   );
 }
 
+Future<DivePlanNotifier> _pumpSheet(WidgetTester tester) async {
+  final notifier = DivePlanNotifier(PlanCalculatorService());
+  await tester.pumpWidget(
+    testApp(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        activePlanOutcomeProvider.overrideWithValue(_outcomeWithStop()),
+        divePlanNotifierProvider.overrideWith((ref) => notifier),
+      ],
+      child: PlanResultsSheet(controller: ScrollController()),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return notifier;
+}
+
 void main() {
   testWidgets(
     'tapping a stop row opens the minimum-duration dialog and applying it '
     'updates the notifier state',
     (tester) async {
-      final notifier = DivePlanNotifier(PlanCalculatorService());
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: [
-            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-            activePlanOutcomeProvider.overrideWithValue(_outcomeWithStop()),
-            divePlanNotifierProvider.overrideWith((ref) => notifier),
-          ],
-          child: PlanResultsSheet(controller: ScrollController()),
-        ),
-      );
-      await tester.pumpAndSettle();
+      final notifier = await _pumpSheet(tester);
 
       expect(notifier.state.stopMinimums, isEmpty);
 
@@ -76,12 +80,31 @@ void main() {
       expect(find.byType(AlertDialog), findsOneWidget);
       expect(find.text('Minimum stop time at 6m'), findsOneWidget);
 
-      final field = find.byType(TextField);
-      await tester.enterText(field, '5');
+      await tester.enterText(find.byType(TextField), '5');
       await tester.tap(find.text('Apply'));
       await tester.pumpAndSettle();
 
       expect(notifier.state.stopMinimums[6], 5 * 60);
+      expect(find.byIcon(Icons.push_pin), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'applying 0 minutes clears the minimum instead of persisting a no-op 0',
+    (tester) async {
+      final notifier = await _pumpSheet(tester);
+      notifier.setStopMinimum(6, 5 * 60);
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.push_pin), findsOneWidget);
+
+      await tester.tap(find.text('6m'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '0');
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.state.stopMinimums.containsKey(6), isFalse);
+      expect(find.byIcon(Icons.push_pin), findsNothing);
     },
   );
 }
