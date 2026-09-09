@@ -7952,13 +7952,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_label_remaining => '剩余';
 
   @override
-  String get divePlanner_label_reserve => '储备:';
+  String get divePlanner_label_reserve => '储备';
 
   @override
   String get divePlanner_label_runtime => '运行时间';
 
   @override
-  String get divePlanner_label_sacRate => 'RMV:';
+  String get divePlanner_label_sacRate => 'SAC';
 
   @override
   String get divePlanner_label_salinity => '盐度';
@@ -14686,6 +14686,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String plannerCanvas_gas_turnAt(String pressure) {
     return '$pressure 时折返';
+  }
+
+  @override
+  String plannerCanvas_gas_usedReading(String reading) {
+    return '已用: $reading';
+  }
+
+  @override
+  String plannerCanvas_gas_endReading(String reading) {
+    return '结束: $reading';
   }
 
   @override
@@ -34404,7 +34414,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String divePlanner_semantics_sacRate(Object value, Object volumeSymbol) {
-    return 'RMV：每分钟 $value $volumeSymbol';
+    return 'SAC：每分钟 $value $volumeSymbol';
   }
 
   @override

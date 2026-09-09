@@ -8351,13 +8351,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_label_remaining => 'Restante';
 
   @override
-  String get divePlanner_label_reserve => 'Reserva:';
+  String get divePlanner_label_reserve => 'Reserva';
 
   @override
   String get divePlanner_label_runtime => 'Tiempo Total';
 
   @override
-  String get divePlanner_label_sacRate => 'RMV:';
+  String get divePlanner_label_sacRate => 'SAC';
 
   @override
   String get divePlanner_label_salinity => 'Salinidad';
@@ -15407,6 +15407,16 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String plannerCanvas_gas_turnAt(String pressure) {
     return 'retorno a $pressure';
+  }
+
+  @override
+  String plannerCanvas_gas_usedReading(String reading) {
+    return 'usado: $reading';
+  }
+
+  @override
+  String plannerCanvas_gas_endReading(String reading) {
+    return 'final: $reading';
   }
 
   @override
@@ -36529,7 +36539,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String divePlanner_semantics_sacRate(Object value, Object volumeSymbol) {
-    return 'RMV: $value $volumeSymbol por minuto';
+    return 'SAC: $value $volumeSymbol por minuto';
   }
 
   @override

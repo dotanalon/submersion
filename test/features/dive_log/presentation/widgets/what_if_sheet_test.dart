@@ -115,6 +115,10 @@ void main() {
       final state = container.read(divePlanNotifierProvider);
       expect(state.sourceDiveId, 'dive-7');
       expect(state.name, 'Replan: Wreck');
+      // No preceding dive: start clean. Seeding from this dive's end
+      // tissues would plan a repetitive after it and inflate TTS.
+      expect(state.initialTissueState, isNull);
+      expect(state.surfaceInterval, isNull);
       // Descent plus bottom from the log, authored as editable segments. Deco
       // stops are NOT baked in as segments: the engine computes them fresh
       // from the authored bottom portion, same as any other plan.

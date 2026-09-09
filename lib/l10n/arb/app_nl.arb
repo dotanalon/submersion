@@ -2842,10 +2842,10 @@
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "Planinstellingen",
   "divePlanner_label_remaining": "Resterend",
-  "divePlanner_label_reserve": "Reserve:",
+  "divePlanner_label_reserve": "Reserve",
   "divePlanner_label_resultsWithWarnings": "Resultaten, {count} waarschuwingen",
   "divePlanner_label_runtime": "Looptijd",
-  "divePlanner_label_sacRate": "RMV:",
+  "divePlanner_label_sacRate": "SAC",
   "divePlanner_label_salinity": "Zoutgehalte",
   "divePlanner_gasOptions_title": "Gas options",
   "divePlanner_gasOptions_sacDeco": "Deco SAC",
@@ -11180,7 +11180,7 @@
   "divePlanner_quickPlan_previewBottomTime": "Bodemtijd: {minutes} min",
   "divePlanner_quickPlan_previewAscent": "Opstijging met veiligheidsstop",
   "divePlanner_quickPlan_create": "Maken",
-  "divePlanner_semantics_sacRate": "RMV: {value} {volumeSymbol} per minuut",
+  "divePlanner_semantics_sacRate": "SAC: {value} {volumeSymbol} per minuut",
   "divePlanner_semantics_reservePressure": "Reservedruk in {pressureSymbol}",
   "divePlanner_semantics_altitudeGroup": "Hoogtegroep: {group}",
   "diveSites_import_detail_maxDepth": "Max {depth}",
@@ -11932,5 +11932,7 @@
   "plannerCanvas_compare_cns": "CNS",
   "plannerCanvas_compare_planned": "Plan",
   "plannerCanvas_compare_actual": "Actual",
-  "plannerCanvas_compare_showOnChart": "Show on chart"
+  "plannerCanvas_compare_showOnChart": "Show on chart",
+  "plannerCanvas_gas_usedReading": "verbruikt: {reading}",
+  "plannerCanvas_gas_endReading": "einde: {reading}"
 }

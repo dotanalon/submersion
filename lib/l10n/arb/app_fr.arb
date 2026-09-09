@@ -2758,10 +2758,10 @@
   "divePlanner_label_ndl": "DTR",
   "divePlanner_label_planSettings": "Paramètres du plan",
   "divePlanner_label_remaining": "Restant",
-  "divePlanner_label_reserve": "Réserve :",
+  "divePlanner_label_reserve": "Réserve",
   "divePlanner_label_resultsWithWarnings": "Résultats, {count} avertissements",
   "divePlanner_label_runtime": "Durée totale",
-  "divePlanner_label_sacRate": "RMV :",
+  "divePlanner_label_sacRate": "SAC",
   "divePlanner_label_salinity": "Salinité",
   "divePlanner_gasOptions_title": "Gas options",
   "divePlanner_gasOptions_sacDeco": "Deco SAC",
@@ -11180,7 +11180,7 @@
   "divePlanner_quickPlan_previewBottomTime": "Temps au fond : {minutes} min",
   "divePlanner_quickPlan_previewAscent": "Remontée avec palier de sécurité",
   "divePlanner_quickPlan_create": "Créer",
-  "divePlanner_semantics_sacRate": "RMV : {value} {volumeSymbol} par minute",
+  "divePlanner_semantics_sacRate": "SAC : {value} {volumeSymbol} par minute",
   "divePlanner_semantics_reservePressure": "Pression de réserve en {pressureSymbol}",
   "divePlanner_semantics_altitudeGroup": "Groupe d’altitude : {group}",
   "diveSites_import_detail_maxDepth": "Max {depth}",
@@ -11932,5 +11932,7 @@
   "plannerCanvas_compare_cns": "CNS",
   "plannerCanvas_compare_planned": "Plan",
   "plannerCanvas_compare_actual": "Actual",
-  "plannerCanvas_compare_showOnChart": "Show on chart"
+  "plannerCanvas_compare_showOnChart": "Show on chart",
+  "plannerCanvas_gas_usedReading": "utilisé : {reading}",
+  "plannerCanvas_gas_endReading": "fin : {reading}"
 }

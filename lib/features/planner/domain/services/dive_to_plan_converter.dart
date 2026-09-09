@@ -106,6 +106,7 @@ class DiveToPlanConverter {
     );
 
     final now = DateTime.now();
+    final diveWater = dive.effectiveWaterType;
     return DivePlanState(
       id: newId(),
       name: planName,
@@ -115,6 +116,9 @@ class DiveToPlanConverter {
       // replanned deco is judged by the same rule the dive was run on.
       gfLow: dive.gradientFactorLow ?? defaults.gfLow,
       gfHigh: dive.gradientFactorHigh ?? defaults.gfHigh,
+      altitude: dive.altitude ?? defaults.altitude,
+      waterType: diveWater ?? defaults.waterType,
+      salinityPpt: diveWater != null ? null : defaults.salinityPpt,
       sacRate: defaults.sacRate,
       ascentRate: defaults.ascentRate,
       intermediateAscentRate: defaults.intermediateAscentRate,

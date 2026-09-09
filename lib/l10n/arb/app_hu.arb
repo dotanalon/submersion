@@ -2758,10 +2758,10 @@
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "Terv beállításai",
   "divePlanner_label_remaining": "Maradt",
-  "divePlanner_label_reserve": "Tartalék:",
+  "divePlanner_label_reserve": "Tartalék",
   "divePlanner_label_resultsWithWarnings": "Eredmények, {count} figyelmeztetés",
   "divePlanner_label_runtime": "Futási idő",
-  "divePlanner_label_sacRate": "RMV:",
+  "divePlanner_label_sacRate": "SAC",
   "divePlanner_label_salinity": "Sótartalom",
   "divePlanner_gasOptions_title": "Gas options",
   "divePlanner_gasOptions_sacDeco": "Deco SAC",
@@ -11180,7 +11180,7 @@
   "divePlanner_quickPlan_previewBottomTime": "Fenéken töltött idő: {minutes} perc",
   "divePlanner_quickPlan_previewAscent": "Felemelkedés biztonsági megállóval",
   "divePlanner_quickPlan_create": "Létrehozás",
-  "divePlanner_semantics_sacRate": "RMV: {value} {volumeSymbol} percenként",
+  "divePlanner_semantics_sacRate": "SAC: {value} {volumeSymbol} percenként",
   "divePlanner_semantics_reservePressure": "Tartaléknyomás {pressureSymbol} egységben",
   "divePlanner_semantics_altitudeGroup": "Magassági csoport: {group}",
   "diveSites_import_detail_maxDepth": "Max. {depth}",
@@ -11932,5 +11932,7 @@
   "plannerCanvas_compare_cns": "CNS",
   "plannerCanvas_compare_planned": "Plan",
   "plannerCanvas_compare_actual": "Actual",
-  "plannerCanvas_compare_showOnChart": "Show on chart"
+  "plannerCanvas_compare_showOnChart": "Show on chart",
+  "plannerCanvas_gas_usedReading": "felhasználva: {reading}",
+  "plannerCanvas_gas_endReading": "vég: {reading}"
 }

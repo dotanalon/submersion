@@ -5017,9 +5017,9 @@
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "Plan Settings",
   "divePlanner_label_remaining": "Remaining",
-  "divePlanner_label_reserve": "Reserve:",
+  "divePlanner_label_reserve": "Reserve",
   "divePlanner_label_runtime": "Runtime",
-  "divePlanner_label_sacRate": "RMV:",
+  "divePlanner_label_sacRate": "SAC",
   "divePlanner_label_salinity": "Salinity",
   "divePlanner_gasOptions_title": "Gas options",
   "divePlanner_gasOptions_sacDeco": "Deco SAC",
@@ -9405,6 +9405,18 @@
       "pressure": {
         "type": "String"
       }
+    }
+  },
+  "plannerCanvas_gas_usedReading": "used: {reading}",
+  "@plannerCanvas_gas_usedReading": {
+    "placeholders": {
+      "reading": { "type": "String" }
+    }
+  },
+  "plannerCanvas_gas_endReading": "end: {reading}",
+  "@plannerCanvas_gas_endReading": {
+    "placeholders": {
+      "reading": { "type": "String" }
     }
   },
   "plannerCanvas_issue_gasDensityCritical": "Gas density {value} g/L over hard limit",
@@ -21691,7 +21703,7 @@
   "divePlanner_quickPlan_previewBottomTime": "Bottom time: {minutes} min",
   "divePlanner_quickPlan_previewAscent": "Ascent with safety stop",
   "divePlanner_quickPlan_create": "Create",
-  "divePlanner_semantics_sacRate": "RMV: {value} {volumeSymbol} per minute",
+  "divePlanner_semantics_sacRate": "SAC: {value} {volumeSymbol} per minute",
   "divePlanner_semantics_reservePressure": "Reserve pressure in {pressureSymbol}",
   "divePlanner_semantics_altitudeGroup": "Altitude group: {group}",
   "diveSites_import_detail_maxDepth": "Max {depth}",

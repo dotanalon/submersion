@@ -2842,10 +2842,10 @@
   "divePlanner_label_ndl": "Nullzeit",
   "divePlanner_label_planSettings": "Planeinstellungen",
   "divePlanner_label_remaining": "Verbleibend",
-  "divePlanner_label_reserve": "Reserve:",
+  "divePlanner_label_reserve": "Reserve",
   "divePlanner_label_resultsWithWarnings": "Ergebnisse, {count} Warnungen",
   "divePlanner_label_runtime": "Laufzeit",
-  "divePlanner_label_sacRate": "AMV:",
+  "divePlanner_label_sacRate": "AMV",
   "divePlanner_label_salinity": "Salzgehalt",
   "divePlanner_gasOptions_title": "Gas options",
   "divePlanner_gasOptions_sacDeco": "Deko-AMV",
@@ -11932,5 +11932,7 @@
   "plannerCanvas_compare_cns": "CNS",
   "plannerCanvas_compare_planned": "Plan",
   "plannerCanvas_compare_actual": "Actual",
-  "plannerCanvas_compare_showOnChart": "Show on chart"
+  "plannerCanvas_compare_showOnChart": "Show on chart",
+  "plannerCanvas_gas_usedReading": "verbraucht: {reading}",
+  "plannerCanvas_gas_endReading": "ende: {reading}"
 }

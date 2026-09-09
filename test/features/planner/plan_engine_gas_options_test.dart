@@ -169,6 +169,32 @@ void main() {
     });
 
     test(
+      'problem-solving time adds N minutes at max depth times SAC factor to used gas',
+      () {
+        const engine = PlanEngine();
+        final none = engine.compute(
+          _decoPlan(sacFactor: 2.0, problemSolvingMinutes: 0),
+        );
+        final extra = engine.compute(
+          _decoPlan(sacFactor: 2.0, problemSolvingMinutes: 2),
+        );
+        final env = DiveEnvironment.forConditions(
+          salinityPpt: DiveEnvironment.salinityPptFromDensity(
+            DiveEnvironment.en13319Density,
+          ),
+        );
+        final expected = 15.0 * 2.0 * 2 * env.pressureAtDepth(42.0);
+        final noneUsed = none.tankUsages
+            .firstWhere((u) => u.tankId == 'back')
+            .litersUsed;
+        final extraUsed = extra.tankUsages
+            .firstWhere((u) => u.tankId == 'back')
+            .litersUsed;
+        expect(extraUsed - noneUsed, closeTo(expected, 1.0));
+      },
+    );
+
+    test(
       'problemSolvingMinutes changes the minimum-gas figure by hand calculation',
       () {
         final plan = _decoPlan();

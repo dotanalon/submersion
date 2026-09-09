@@ -143,19 +143,27 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
 
     List<TissueCompartment> tissueCompartments = const [];
     Duration? surfaceInterval;
+    // Replay this dive as it started. Seeding from THIS dive's end tissues
+    // plus "now" would plan a repetitive after it and inflate TTS.
     if (_seedTissues) {
-      final analysis = await ref.read(profileAnalysisProvider(dive.id).future);
-      if (analysis != null && analysis.decoStatuses.isNotEmpty) {
-        tissueCompartments = analysis.decoStatuses.last.compartments;
-      }
-      final end = (dive.entryTime ?? dive.dateTime).add(
-        dive.effectiveRuntime ?? Duration.zero,
+      final preceding = await ref.read(
+        _precedingDiveWithin24hProvider(dive.id).future,
       );
-      var interval = DateTime.now().difference(end);
-      if (interval < const Duration(minutes: 10)) {
-        interval = const Duration(hours: 1);
+      if (preceding != null) {
+        final analysis = await ref.read(
+          profileAnalysisProvider(preceding.id).future,
+        );
+        if (analysis != null && analysis.decoStatuses.isNotEmpty) {
+          tissueCompartments = analysis.decoStatuses.last.compartments;
+        }
+        final precedingEnd = (preceding.entryTime ?? preceding.dateTime).add(
+          preceding.effectiveRuntime ?? Duration.zero,
+        );
+        final diveStart = dive.entryTime ?? dive.dateTime;
+        var interval = diveStart.difference(precedingEnd);
+        if (interval.isNegative) interval = Duration.zero;
+        surfaceInterval = interval;
       }
-      surfaceInterval = interval;
     }
 
     if (!mounted) return;

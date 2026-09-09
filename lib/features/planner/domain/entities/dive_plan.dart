@@ -193,8 +193,8 @@ class DivePlan extends Equatable {
   double get effectiveSetpointHigh => setpointHigh ?? 1.3;
   double get effectiveSetpointSwitchDepth => setpointSwitchDepth ?? 10.0;
 
-  /// Deco SAC: explicit value or the 0.8x-of-bottom default.
-  double get sacDecoEffective => sacDeco ?? sacBottom * 0.8;
+  /// Deco SAC: explicit value, otherwise 15 L/min (same default as bottom SAC).
+  double get sacDecoEffective => sacDeco ?? 15.0;
 
   /// Stressed (bailout/rock-bottom) SAC: explicit or 2.5x bottom.
   double get sacStressedEffective => sacStressed ?? sacBottom * 2.5;

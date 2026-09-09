@@ -21,8 +21,8 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
     if (dive == null) return const SizedBox.shrink();
 
     final outcome = ref.watch(activePlanOutcomeProvider);
-    final actualDecoSeconds = ref
-        .watch(sourceDiveDecoSecondsProvider)
+    final actualTtsSeconds = ref
+        .watch(sourceDiveTtsSecondsProvider)
         .valueOrNull;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final theme = Theme.of(context);
@@ -41,12 +41,11 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
         actual: dive.maxDepth == null ? '--' : units.formatDepth(dive.maxDepth),
       ),
       _CompareRow(
-        label: context.l10n.plannerCanvas_compare_deco,
-        planned: '${(outcome.totalDecoSeconds / 60).round()}′',
-        // Time the diver actually held stops, from the analysed profile.
-        actual: actualDecoSeconds == null
+        label: context.l10n.divePlanner_label_tts,
+        planned: '${(outcome.ttsAtBottom / 60).round()}′',
+        actual: actualTtsSeconds == null
             ? '--'
-            : '${(actualDecoSeconds / 60).round()}′',
+            : '${(actualTtsSeconds / 60).round()}′',
       ),
       for (final tank in dive.tanks)
         if (tank.pressureUsed != null && tank.volume != null)
