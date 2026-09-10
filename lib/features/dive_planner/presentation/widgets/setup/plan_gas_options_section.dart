@@ -119,6 +119,7 @@ class PlanGasOptionsSection extends ConsumerWidget {
 /// reset to a concrete default) - this widget only handles text <-> number.
 class PlanGasOptionNumberField extends StatefulWidget {
   const PlanGasOptionNumberField({
+    super.key,
     required this.label,
     required this.value,
     required this.hintValue,
