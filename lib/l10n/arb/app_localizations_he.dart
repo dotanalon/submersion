@@ -6217,12 +6217,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
-  String get diveLog_legend_source_dc => 'DC';
-
-  @override
-  String get diveLog_legend_source_calc => 'מחושב';
-
-  @override
   String get diveLog_chartSection_overlays => 'שכבות על';
 
   @override
@@ -34082,39 +34076,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'בלוני דקו/סטייג + גז גב';
 
   @override
-  String get settings_decompression_cnsSource => 'מקור CNS';
-
-  @override
-  String get settings_decompression_decoStopSource => 'מקור עצירות הדקו';
-
-  @override
   String get settings_decompression_header_ascent => 'תכנון העלייה';
 
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'לאילו בלונים נישאים העלייה המדומה (TTS, תקרה ועצירות) יכולה לעבור בכל עומק. נלקחים בחשבון רק גזים שנרשמו בצלילה.';
-
-  @override
-  String get settings_decompression_header_dataSources => 'העדפות מקור נתונים';
-
-  @override
-  String get settings_decompression_header_dataSources_subtitle =>
-      'כאשר ההגדרה היא מחשב צלילה, האפליקציה משתמשת בנתונים שמדווח מחשב הצלילה כשהם זמינים. בהיעדר נתוני מחשב, היא חוזרת לערכים המחושבים.';
-
-  @override
-  String get settings_decompression_ndlSource => 'מקור NDL';
-
-  @override
-  String get settings_decompression_sourceCalculated => 'מחושב';
-
-  @override
-  String get settings_decompression_sourceComputer => 'מחשב צלילה';
-
-  @override
-  String get settings_decompression_ttsSource => 'מקור TTS';
-
-  @override
-  String get settings_decompression_gtrSource => 'מקור GTR';
 
   @override
   String get settings_decompression_gtrReserve => 'לחץ רזרבה GTR';

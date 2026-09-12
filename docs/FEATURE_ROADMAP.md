@@ -6,7 +6,7 @@
 > **Current Version:** 1.2.25 (v1.5 Complete)
 > **Status:** v1.0 ✅ COMPLETE | v1.1 ✅ COMPLETE | v1.5 ✅ COMPLETE
 >
-> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete | PDF Templates (Category 10.3) ✅ Complete | Wearable Integration v1 (Category 15.5) ✅ Complete | Marine Life Tracking (Category 9.2) ✅ Complete | Universal Import (Category 13.2/13.3) ✅ Complete | Accessibility & Keyboard Navigation (Category 15.3) ✅ Complete | Internationalization & Localization (Category 15.3) ✅ Complete | Custom Fields (Category 1.4) ✅ Complete | Bulk Media Selection (Category 9.3) ✅ Complete | Backup Redesign (Category 12.3) ✅ Complete | Gradient Factors & Dive Events (Category 3/4.4) ✅ Complete | Metric Data Source Switching (Category 2.1/4.4) ✅ Complete | Profile Editing (Category 2.3) ✅ Complete | Card Color Customization (Category 15.1) ✅ Complete
+> **v1.5 Progress:** Dive Profile & Telemetry (Category 2) ✅ Complete | Profile Visualization (Category 2.1) ✅ Complete | Dive Computer Connectivity (Category 3) ✅ Complete | Cloud Sync (Category 12) ✅ Complete | Statistics (Category 10) ✅ Complete | CCR/SCR Rebreather Support ✅ Complete | Dive Planner (Category 4.5) ✅ Complete | Search & Filtering (Category 10.1) ✅ Complete | Tools & Calculators (Category 11) ✅ Complete | Digital Signatures (Category 7.2) ✅ Complete | Training Dives (Category 8.3) ✅ Complete | Underwater Photography (Category 9.3) ✅ Complete | Maps & Visualization (Category 5.3) ✅ Complete | Certification Cards (Category 8.1) ✅ Complete | Push Notifications (Category 6.3) ✅ Complete | PDF Templates (Category 10.3) ✅ Complete | Wearable Integration v1 (Category 15.5) ✅ Complete | Marine Life Tracking (Category 9.2) ✅ Complete | Universal Import (Category 13.2/13.3) ✅ Complete | Accessibility & Keyboard Navigation (Category 15.3) ✅ Complete | Internationalization & Localization (Category 15.3) ✅ Complete | Custom Fields (Category 1.4) ✅ Complete | Bulk Media Selection (Category 9.3) ✅ Complete | Backup Redesign (Category 12.3) ✅ Complete | Gradient Factors & Dive Events (Category 3/4.4) ✅ Complete | Profile Editing (Category 2.3) ✅ Complete | Card Color Customization (Category 15.1) ✅ Complete
 
 ---
 
@@ -166,12 +166,13 @@
 - [x] Tissue saturation chart (16-compartment bar chart with N2/He split)
 - [x] CNS/OTU curves on dive profile graph (toggle in legend)
 - [x] Recursive CNS calculation incorporating residual CNS from previous dives
-- [x] Per-metric data source switching (NDL, ceiling, TTS, CNS: computer vs calculated)
-- [x] MetricDataSource enum and MetricSourceInfo type for source tracking
-- [x] Data source preference UI in settings and appearance pages
-- [x] Legend badges showing actual data source (DC/Calc*) per metric
-- [x] Source selector controls in profile legend More menu
-- [x] Database migration v42 for per-metric source settings in diver_settings
+- [x] Every decompression metric on the profile (NDL, TTS, CNS, GTR, deco stop
+      band, ceiling) is the app's own Buhlmann calculation, so one model and
+      the diver's own gradient factors produce every number comparably across a
+      whole logbook. Retired in v208: the per-metric Computer/Calculated
+      preference, the `MetricDataSource` enum and `MetricSourceInfo` type, the
+      settings section, the legend source selectors, the computer-CNS extractor
+      and the v42 `default_*_source` columns (#767).
 - [x] Recalculate buttons for max depth, avg depth, and runtime from dive profile
 - [x] Auto-populate average depth for dives with a dive profile
 
@@ -1545,11 +1546,9 @@
 -- diver_settings.card_color_attribute (text, e.g., 'depth', 'temperature', 'rating')
 -- diver_settings.card_color_gradient (text, gradient preset name)
 
--- Per-metric data source settings (v42):
--- diver_settings.default_ndl_source (int, MetricDataSource enum)
--- diver_settings.default_ceiling_source (int, MetricDataSource enum)
--- diver_settings.default_tts_source (int, MetricDataSource enum)
--- diver_settings.default_cns_source (int, MetricDataSource enum)
+-- Per-metric data source settings (v42): dropped again in v208 (#767), along
+-- with default_deco_stop_source (v133), default_gtr_source (v177) and the
+-- vestigial use_dive_computer_cns_data. Every metric is calculated.
 
 -- Media unique constraint:
 -- UNIQUE(dive_id, platform_asset_id) on media table (de-duplication)
@@ -1678,7 +1677,7 @@
 - [x] Recalculate Buttons (max depth, avg depth, runtime from dive profile data)
 - [x] Gradient Factors & Dive Events (full sample capture, deco model import, 25 event types)
 - [x] Pigeon Platform Channels (native libdivecomputer bridge: macOS full, iOS synced, Windows/Linux/Android scaffolded)
-- [x] Metric Data Source Switching (per-metric computer vs calculated for NDL, ceiling, TTS, CNS with UI badges)
+- [x] Calculated profile metrics (NDL, TTS, CNS, GTR, deco stops and ceiling all come from one Buhlmann model with the diver's gradient factors)
 - [x] Profile Editing (outlier detection, smoothing, manual drawing, segment editing)
 - [ ] Performance with 5000+ dives
 

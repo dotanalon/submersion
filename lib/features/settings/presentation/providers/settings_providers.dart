@@ -84,7 +84,6 @@ class SettingsKeys {
   static const String ascentRateCritical = 'ascent_rate_critical';
   static const String showCeilingOnProfile = 'show_ceiling_on_profile';
   static const String showDecoStopsOnProfile = 'show_deco_stops_on_profile';
-  static const String defaultDecoStopSource = 'default_deco_stop_source';
   static const String showAscentRateColors = 'show_ascent_rate_colors';
   static const String showNdlOnProfile = 'show_ndl_on_profile';
   static const String lastStopDepth = 'last_stop_depth';
@@ -274,25 +273,6 @@ class AppSettings {
 
   /// END limit in meters for MND calculations (typically 30)
   final double endLimit;
-
-  /// Default data source for NDL metric (computer or calculated)
-  final MetricDataSource defaultNdlSource;
-
-  /// Default data source for ceiling metric (computer or calculated)
-  final MetricDataSource defaultCeilingSource;
-
-  /// Default data source for deco stop band (computer or calculated)
-  final MetricDataSource defaultDecoStopSource;
-
-  /// Default data source for TTS metric (computer or calculated)
-  final MetricDataSource defaultTtsSource;
-
-  /// Default data source for CNS metric (computer or calculated)
-  final MetricDataSource defaultCnsSource;
-
-  /// Default data source for GTR (gas time remaining): the computer's own
-  /// reading or the app's calculation.
-  final MetricDataSource defaultGtrSource;
 
   /// Tank pressure (bar) the calculated GTR counts down to, i.e. what the
   /// diver wants left on surfacing. Mirrors the reserve setting on an
@@ -568,12 +548,6 @@ class AppSettings {
     this.ascentGasSet = AscentGasSet.allCarried,
     this.o2Narcotic = true,
     this.endLimit = 30.0,
-    this.defaultNdlSource = MetricDataSource.calculated,
-    this.defaultCeilingSource = MetricDataSource.calculated,
-    this.defaultDecoStopSource = MetricDataSource.calculated,
-    this.defaultTtsSource = MetricDataSource.calculated,
-    this.defaultCnsSource = MetricDataSource.calculated,
-    this.defaultGtrSource = MetricDataSource.calculated,
     // Same default as the planner's reserve and defaultGtrReserveBar.
     this.gtrReservePressure = 50.0,
     this.cnsCalculationMethod = CnsCalculationMethod.shearwater,
@@ -742,12 +716,6 @@ class AppSettings {
     AscentGasSet? ascentGasSet,
     bool? o2Narcotic,
     double? endLimit,
-    MetricDataSource? defaultNdlSource,
-    MetricDataSource? defaultCeilingSource,
-    MetricDataSource? defaultDecoStopSource,
-    MetricDataSource? defaultTtsSource,
-    MetricDataSource? defaultCnsSource,
-    MetricDataSource? defaultGtrSource,
     double? gtrReservePressure,
     CnsCalculationMethod? cnsCalculationMethod,
     CardColorAttribute? cardColorAttribute,
@@ -891,13 +859,6 @@ class AppSettings {
       ascentGasSet: ascentGasSet ?? this.ascentGasSet,
       o2Narcotic: o2Narcotic ?? this.o2Narcotic,
       endLimit: endLimit ?? this.endLimit,
-      defaultNdlSource: defaultNdlSource ?? this.defaultNdlSource,
-      defaultCeilingSource: defaultCeilingSource ?? this.defaultCeilingSource,
-      defaultDecoStopSource:
-          defaultDecoStopSource ?? this.defaultDecoStopSource,
-      defaultTtsSource: defaultTtsSource ?? this.defaultTtsSource,
-      defaultCnsSource: defaultCnsSource ?? this.defaultCnsSource,
-      defaultGtrSource: defaultGtrSource ?? this.defaultGtrSource,
       gtrReservePressure: gtrReservePressure ?? this.gtrReservePressure,
       cnsCalculationMethod: cnsCalculationMethod ?? this.cnsCalculationMethod,
       cardColorAttribute: cardColorAttribute ?? this.cardColorAttribute,
@@ -1743,36 +1704,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setEndLimit(double value) async {
     final clamped = value.clamp(20.0, 50.0);
     state = state.copyWith(endLimit: clamped);
-    await _saveSettings();
-  }
-
-  Future<void> setDefaultNdlSource(MetricDataSource value) async {
-    state = state.copyWith(defaultNdlSource: value);
-    await _saveSettings();
-  }
-
-  Future<void> setDefaultCeilingSource(MetricDataSource value) async {
-    state = state.copyWith(defaultCeilingSource: value);
-    await _saveSettings();
-  }
-
-  Future<void> setDefaultDecoStopSource(MetricDataSource value) async {
-    state = state.copyWith(defaultDecoStopSource: value);
-    await _saveSettings();
-  }
-
-  Future<void> setDefaultTtsSource(MetricDataSource value) async {
-    state = state.copyWith(defaultTtsSource: value);
-    await _saveSettings();
-  }
-
-  Future<void> setDefaultCnsSource(MetricDataSource value) async {
-    state = state.copyWith(defaultCnsSource: value);
-    await _saveSettings();
-  }
-
-  Future<void> setDefaultGtrSource(MetricDataSource value) async {
-    state = state.copyWith(defaultGtrSource: value);
     await _saveSettings();
   }
 

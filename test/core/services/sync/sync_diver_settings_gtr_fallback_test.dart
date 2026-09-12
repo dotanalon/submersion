@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
@@ -41,7 +40,6 @@ void main() {
 
       final legacy = Map<String, dynamic>.from(exported!)
         ..remove('defaultShowGtr')
-        ..remove('defaultGtrSource')
         ..remove('gtrReservePressure');
 
       await (db.delete(
@@ -54,10 +52,6 @@ void main() {
         db.diverSettings,
       )..where((t) => t.id.equals('ds-gtr'))).getSingle();
       expect(row.defaultShowGtr, isFalse);
-      expect(
-        MetricDataSource.fromInt(row.defaultGtrSource),
-        MetricDataSource.calculated,
-      );
       expect(row.gtrReservePressure, 50.0);
     },
   );

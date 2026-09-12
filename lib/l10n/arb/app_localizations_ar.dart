@@ -6250,12 +6250,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
-  String get diveLog_legend_source_dc => 'DC';
-
-  @override
-  String get diveLog_legend_source_calc => 'محسوب';
-
-  @override
   String get diveLog_chartSection_overlays => 'طبقات إضافية';
 
   @override
@@ -34343,40 +34337,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'غاز الديكو/الستيج + الغاز الخلفي';
 
   @override
-  String get settings_decompression_cnsSource => 'مصدر الـ CNS';
-
-  @override
-  String get settings_decompression_decoStopSource => 'مصدر محطات تخفيف الضغط';
-
-  @override
   String get settings_decompression_header_ascent => 'تخطيط الصعود';
 
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'أي الأسطوانات المحمولة يمكن للصعود المحاكى (TTS والسقف والمحطات) التبديل إليها عند كل عمق. تؤخذ في الاعتبار الغازات المسجَّلة في الغوصة فقط.';
-
-  @override
-  String get settings_decompression_header_dataSources =>
-      'تفضيلات مصدر البيانات';
-
-  @override
-  String get settings_decompression_header_dataSources_subtitle =>
-      'عند ضبطه على حاسوب الغوص، يستخدم التطبيق البيانات التي يبلّغ عنها حاسوب الغوص عند توفرها. ويرجع إلى القيم المحسوبة عند عدم توفر بيانات الحاسوب.';
-
-  @override
-  String get settings_decompression_ndlSource => 'مصدر NDL';
-
-  @override
-  String get settings_decompression_sourceCalculated => 'محسوب';
-
-  @override
-  String get settings_decompression_sourceComputer => 'حاسوب الغوص';
-
-  @override
-  String get settings_decompression_ttsSource => 'مصدر TTS';
-
-  @override
-  String get settings_decompression_gtrSource => 'مصدر GTR';
 
   @override
   String get settings_decompression_gtrReserve => 'ضغط احتياطي GTR';

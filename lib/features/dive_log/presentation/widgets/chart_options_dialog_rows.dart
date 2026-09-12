@@ -8,10 +8,8 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
 
 Widget buildOptionsSection(
   BuildContext context, {
@@ -39,78 +37,6 @@ Widget buildOptionsSection(
       childrenPadding: EdgeInsets.zero,
       dense: true,
       children: children,
-    ),
-  );
-}
-
-/// Computer/Calculated segments, shared by every deco source switch.
-List<(MetricDataSource, String)> sourceSegments(BuildContext context) => [
-  (MetricDataSource.computer, context.l10n.diveLog_legend_source_dc),
-  (MetricDataSource.calculated, context.l10n.diveLog_legend_source_calc),
-];
-
-/// A toggle row with a segmented mode switch on the right. Generic over the
-/// mode enum so every computer-vs-calculated data-source toggle (deco stops,
-/// NDL, TTS, CNS) shares one row implementation.
-Widget buildToggleWithSource<T>(
-  BuildContext context, {
-  required String label,
-  required Color color,
-  required bool isEnabled,
-  required VoidCallback onTap,
-  required T currentSource,
-  required ValueChanged<T> onSourceChanged,
-  required List<(T, String)> segments,
-}) {
-  return _checkboxSemantics(
-    isEnabled: isEnabled,
-    child: InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        child: Row(
-          children: [
-            _checkboxIndicator(context, isEnabled: isEnabled, color: color),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                label,
-                style: isEnabled
-                    ? null
-                    : TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {}, // absorb tap to prevent parent InkWell from firing
-              child: SizedBox(
-                height: 28,
-                child: SegmentedButton<T>(
-                  segments: [
-                    for (final (value, text) in segments)
-                      ButtonSegment(
-                        value: value,
-                        label: Text(text, style: const TextStyle(fontSize: 11)),
-                      ),
-                  ],
-                  selected: {currentSource},
-                  onSelectionChanged: (selected) =>
-                      onSourceChanged(selected.first),
-                  showSelectedIcon: false,
-                  style: const ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    padding: WidgetStatePropertyAll(
-                      EdgeInsets.symmetric(horizontal: 8),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     ),
   );
 }

@@ -6413,12 +6413,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
-  String get diveLog_legend_source_dc => 'DC';
-
-  @override
-  String get diveLog_legend_source_calc => 'Calc.';
-
-  @override
   String get diveLog_chartSection_overlays => 'Superpositions';
 
   @override
@@ -34900,42 +34894,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Bloc déco/relais + gaz dorsal';
 
   @override
-  String get settings_decompression_cnsSource => 'Source CNS';
-
-  @override
-  String get settings_decompression_decoStopSource =>
-      'Source des paliers de décompression';
-
-  @override
   String get settings_decompression_header_ascent =>
       'Planification de la remontée';
 
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'Les blocs emportés vers lesquels la remontée simulée (TTS, plafond et paliers) peut basculer à chaque profondeur. Seuls les gaz enregistrés sur la plongée sont pris en compte.';
-
-  @override
-  String get settings_decompression_header_dataSources =>
-      'Préférences de source des données';
-
-  @override
-  String get settings_decompression_header_dataSources_subtitle =>
-      'Réglée sur Ordinateur de plongée, l’application utilise les données rapportées par l’ordinateur de plongée lorsqu’elles sont disponibles. À défaut, elle utilise les valeurs calculées.';
-
-  @override
-  String get settings_decompression_ndlSource => 'Source NDL';
-
-  @override
-  String get settings_decompression_sourceCalculated => 'Calculé';
-
-  @override
-  String get settings_decompression_sourceComputer => 'Ordinateur de plongée';
-
-  @override
-  String get settings_decompression_ttsSource => 'Source TTS';
-
-  @override
-  String get settings_decompression_gtrSource => 'Source GTR';
 
   @override
   String get settings_decompression_gtrReserve => 'Pression de réserve GTR';

@@ -74,11 +74,6 @@ class ProfileLegendState {
   // computer's stepped stop depth in `ceiling`, so a "computer" ceiling line
   // would duplicate the deco-stop band. The ceiling line therefore always
   // renders the exact, continuous calculated curve (see issue #755).
-  final MetricDataSource ndlSource;
-  final MetricDataSource ttsSource;
-  final MetricDataSource cnsSource;
-  final MetricDataSource decoStopSource;
-  final MetricDataSource gtrSource;
 
   // Per-tank visibility (keyed by tank ID). Hides the tank's pressure trace
   // on multi-tank dives and its gas-switch markers on gas-switch dives.
@@ -128,11 +123,6 @@ class ProfileLegendState {
     this.showOtu = false,
     this.showO2CellMv = false,
     this.showGtr = false,
-    this.ndlSource = MetricDataSource.calculated,
-    this.ttsSource = MetricDataSource.calculated,
-    this.cnsSource = MetricDataSource.calculated,
-    this.decoStopSource = MetricDataSource.calculated,
-    this.gtrSource = MetricDataSource.calculated,
     this.showTankPressure = const {},
     this.showGas = true,
     this.sectionExpanded = const {
@@ -214,11 +204,6 @@ class ProfileLegendState {
     bool? showOtu,
     bool? showO2CellMv,
     bool? showGtr,
-    MetricDataSource? ndlSource,
-    MetricDataSource? ttsSource,
-    MetricDataSource? cnsSource,
-    MetricDataSource? decoStopSource,
-    MetricDataSource? gtrSource,
     Map<String, bool>? showTankPressure,
     bool? showGas,
     Map<String, bool>? sectionExpanded,
@@ -257,11 +242,6 @@ class ProfileLegendState {
       showOtu: showOtu ?? this.showOtu,
       showO2CellMv: showO2CellMv ?? this.showO2CellMv,
       showGtr: showGtr ?? this.showGtr,
-      ndlSource: ndlSource ?? this.ndlSource,
-      ttsSource: ttsSource ?? this.ttsSource,
-      cnsSource: cnsSource ?? this.cnsSource,
-      decoStopSource: decoStopSource ?? this.decoStopSource,
-      gtrSource: gtrSource ?? this.gtrSource,
       showTankPressure: showTankPressure ?? this.showTankPressure,
       showGas: showGas ?? this.showGas,
       sectionExpanded: sectionExpanded ?? this.sectionExpanded,
@@ -305,11 +285,6 @@ class ProfileLegendState {
           showOtu == other.showOtu &&
           showO2CellMv == other.showO2CellMv &&
           showGtr == other.showGtr &&
-          ndlSource == other.ndlSource &&
-          ttsSource == other.ttsSource &&
-          cnsSource == other.cnsSource &&
-          decoStopSource == other.decoStopSource &&
-          gtrSource == other.gtrSource &&
           mapEquals(showTankPressure, other.showTankPressure) &&
           showGas == other.showGas &&
           metricsFollowViewport == other.metricsFollowViewport &&
@@ -347,11 +322,6 @@ class ProfileLegendState {
     showOtu,
     showO2CellMv,
     showGtr,
-    ndlSource,
-    ttsSource,
-    cnsSource,
-    decoStopSource,
-    gtrSource,
     ...showTankPressure.entries,
     showGas,
     metricsFollowViewport,
@@ -406,11 +376,6 @@ class ProfileLegend extends _$ProfileLegend {
           defaultShowGtr: s.defaultShowGtr,
           defaultShowCns: s.defaultShowCns,
           defaultShowOtu: s.defaultShowOtu,
-          defaultNdlSource: s.defaultNdlSource,
-          defaultTtsSource: s.defaultTtsSource,
-          defaultGtrSource: s.defaultGtrSource,
-          defaultCnsSource: s.defaultCnsSource,
-          defaultDecoStopSource: s.defaultDecoStopSource,
           profileMetricsFollowViewport: s.profileMetricsFollowViewport,
         ),
       ),
@@ -445,11 +410,6 @@ class ProfileLegend extends _$ProfileLegend {
       showCns: settings.defaultShowCns,
       showOtu: settings.defaultShowOtu,
       showGtr: settings.defaultShowGtr,
-      ndlSource: settings.defaultNdlSource,
-      ttsSource: settings.defaultTtsSource,
-      cnsSource: settings.defaultCnsSource,
-      decoStopSource: settings.defaultDecoStopSource,
-      gtrSource: settings.defaultGtrSource,
       metricsFollowViewport: settings.profileMetricsFollowViewport,
     );
   }
@@ -617,27 +577,6 @@ class ProfileLegend extends _$ProfileLegend {
 
   void toggleO2CellMv() {
     state = state.copyWith(showO2CellMv: !state.showO2CellMv);
-  }
-
-  // Data source set methods (for SegmentedButton)
-  void setDecoStopSource(MetricDataSource source) {
-    state = state.copyWith(decoStopSource: source);
-  }
-
-  void setNdlSource(MetricDataSource source) {
-    state = state.copyWith(ndlSource: source);
-  }
-
-  void setTtsSource(MetricDataSource source) {
-    state = state.copyWith(ttsSource: source);
-  }
-
-  void setGtrSource(MetricDataSource source) {
-    state = state.copyWith(gtrSource: source);
-  }
-
-  void setCnsSource(MetricDataSource source) {
-    state = state.copyWith(cnsSource: source);
   }
 
   // Section expand/collapse

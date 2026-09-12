@@ -65,17 +65,17 @@ void main() {
 
     final names = await _columns(db, 'diver_settings');
     expect(names, contains('default_show_gtr'));
-    expect(names, contains('default_gtr_source'));
     expect(names, contains('gtr_reserve_pressure'));
+    // default_gtr_source is added by this rung and dropped again at v208,
+    // which this ladder runs through on its way to the current version.
+    expect(names, isNot(contains('default_gtr_source')));
 
     final row = await db
         .customSelect(
-          'SELECT default_show_gtr, default_gtr_source, gtr_reserve_pressure '
-          'FROM diver_settings',
+          'SELECT default_show_gtr, gtr_reserve_pressure FROM diver_settings',
         )
         .getSingle();
     expect(row.read<int>('default_show_gtr'), 0);
-    expect(row.read<int>('default_gtr_source'), 1);
     expect(row.read<double>('gtr_reserve_pressure'), 50.0);
   });
 
@@ -144,8 +144,8 @@ void main() {
     addTearDown(db.close);
     final names = await _columns(db, 'diver_settings');
     expect(names, contains('default_show_gtr'));
-    expect(names, contains('default_gtr_source'));
     expect(names, contains('gtr_reserve_pressure'));
+    expect(names, isNot(contains('default_gtr_source')));
   });
 
   test('v177 is present in the migration ladder', () {

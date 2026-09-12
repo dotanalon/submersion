@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -67,38 +66,16 @@ void main() {
       );
     });
 
-    test('setDefaultDecoStopSource flips state and persists', () async {
-      final notifier = container.read(settingsProvider.notifier);
-      expect(
-        container.read(settingsProvider).defaultDecoStopSource,
-        MetricDataSource.calculated,
-      );
-
-      await notifier.setDefaultDecoStopSource(MetricDataSource.computer);
-
-      expect(
-        container.read(settingsProvider).defaultDecoStopSource,
-        MetricDataSource.computer,
-      );
-      final stored = await DiverSettingsRepository().getSettingsForDiver('d1');
-      expect(stored!.defaultDecoStopSource, MetricDataSource.computer);
-    });
-
-    test('the deco stop setters leave the ceiling settings alone', () async {
+    test('the deco stop setter leaves the ceiling setting alone', () async {
       final notifier = container.read(settingsProvider.notifier);
       final ceilingVisibleBefore = container
           .read(settingsProvider)
           .showCeilingOnProfile;
-      final ceilingSourceBefore = container
-          .read(settingsProvider)
-          .defaultCeilingSource;
 
       await notifier.setShowDecoStopsOnProfile(false);
-      await notifier.setDefaultDecoStopSource(MetricDataSource.computer);
 
       final after = container.read(settingsProvider);
       expect(after.showCeilingOnProfile, ceilingVisibleBefore);
-      expect(after.defaultCeilingSource, ceilingSourceBefore);
     });
 
     test('showDecoStopsOnProfileProvider tracks the setting', () async {

@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
@@ -32,56 +31,47 @@ void main() {
       DatabaseService.instance.resetForTesting();
     });
 
-    test('new settings default to visible and calculated', () async {
+    test('new settings default to visible', () async {
       await repository.createSettingsForDiver('d1');
       final loaded = await repository.getSettingsForDiver('d1');
       expect(loaded, isNotNull);
       expect(loaded!.showDecoStopsOnProfile, isTrue);
-      expect(loaded.defaultDecoStopSource, MetricDataSource.calculated);
     });
 
-    test('round-trips deco stop settings through update without disturbing '
-        'the ceiling settings', () async {
+    test('round-trips the deco stop setting through update without disturbing '
+        'the ceiling setting', () async {
       await repository.createSettingsForDiver('d1');
       await repository.updateSettingsForDiver(
         'd1',
         const AppSettings(
           showDecoStopsOnProfile: false,
-          defaultDecoStopSource: MetricDataSource.computer,
           showCeilingOnProfile: true,
-          defaultCeilingSource: MetricDataSource.calculated,
         ),
       );
       final loaded = await repository.getSettingsForDiver('d1');
       expect(loaded, isNotNull);
       expect(loaded!.showDecoStopsOnProfile, isFalse);
-      expect(loaded.defaultDecoStopSource, MetricDataSource.computer);
-      // The ceiling settings must survive unchanged: this catches a
-      // copy-paste error where the deco stop fields were accidentally
+      // The ceiling setting must survive unchanged: this catches a
+      // copy-paste error where the deco stop field was accidentally
       // wired to the ceiling column (or vice versa).
       expect(loaded.showCeilingOnProfile, isTrue);
-      expect(loaded.defaultCeilingSource, MetricDataSource.calculated);
     });
 
     test(
-      'round-trips the ceiling settings independently of deco stop settings',
+      'round-trips the ceiling setting independently of the deco stop setting',
       () async {
         await repository.createSettingsForDiver('d1');
         await repository.updateSettingsForDiver(
           'd1',
           const AppSettings(
             showCeilingOnProfile: false,
-            defaultCeilingSource: MetricDataSource.computer,
             showDecoStopsOnProfile: true,
-            defaultDecoStopSource: MetricDataSource.calculated,
           ),
         );
         final loaded = await repository.getSettingsForDiver('d1');
         expect(loaded, isNotNull);
         expect(loaded!.showCeilingOnProfile, isFalse);
-        expect(loaded.defaultCeilingSource, MetricDataSource.computer);
         expect(loaded.showDecoStopsOnProfile, isTrue);
-        expect(loaded.defaultDecoStopSource, MetricDataSource.calculated);
       },
     );
   });

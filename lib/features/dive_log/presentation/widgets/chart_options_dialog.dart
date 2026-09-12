@@ -315,22 +315,18 @@ class ChartOptionsDialog extends StatelessWidget {
     // Decompression section
     final decoItems = <Widget>[
       if (config.hasDecoStopCurve)
-        buildToggleWithSource(
+        buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_decoStops,
           color: ProfileMetricColors.decoStops,
           isEnabled: legendState.showDecoStops,
           onTap: legendNotifier.toggleDecoStops,
-          currentSource: legendState.decoStopSource,
-          onSourceChanged: legendNotifier.setDecoStopSource,
-          segments: sourceSegments(context),
         ),
       if (config.hasCeilingCurve)
-        // No source toggle: the ceiling line always shows the exact, continuous
-        // calculated curve. Every import stores only the computer's stepped stop
-        // depth, so a "computer" ceiling would duplicate the deco-stop band
-        // (issue #755). The Computer/Calculated comparison lives on the deco
-        // stops above.
+        // The ceiling line always shows the exact, continuous calculated
+        // curve. Every import stores only the computer's stepped stop depth,
+        // so a computer-sourced ceiling would just duplicate the deco-stop
+        // band above (issue #755).
         buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_ceiling,
@@ -339,48 +335,36 @@ class ChartOptionsDialog extends StatelessWidget {
           onTap: legendNotifier.toggleCeiling,
         ),
       if (config.hasNdlData)
-        buildToggleWithSource(
+        buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_ndl,
           color: ProfileMetricColors.ndl,
           isEnabled: legendState.showNdl,
           onTap: legendNotifier.toggleNdl,
-          currentSource: legendState.ndlSource,
-          onSourceChanged: legendNotifier.setNdlSource,
-          segments: sourceSegments(context),
         ),
       if (config.hasTtsData)
-        buildToggleWithSource(
+        buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_tts,
           color: ProfileMetricColors.tts,
           isEnabled: legendState.showTts,
           onTap: legendNotifier.toggleTts,
-          currentSource: legendState.ttsSource,
-          onSourceChanged: legendNotifier.setTtsSource,
-          segments: sourceSegments(context),
         ),
       if (config.hasGtrData)
-        buildToggleWithSource(
+        buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_gtr,
           color: ProfileMetricColors.gtr,
           isEnabled: legendState.showGtr,
           onTap: legendNotifier.toggleGtr,
-          currentSource: legendState.gtrSource,
-          onSourceChanged: legendNotifier.setGtrSource,
-          segments: sourceSegments(context),
         ),
       if (config.hasCnsData)
-        buildToggleWithSource(
+        buildToggleItem(
           context,
           label: context.l10n.diveLog_legend_label_cns,
           color: ProfileMetricColors.cns,
           isEnabled: legendState.showCns,
           onTap: legendNotifier.toggleCns,
-          currentSource: legendState.cnsSource,
-          onSourceChanged: legendNotifier.setCnsSource,
-          segments: sourceSegments(context),
         ),
       if (config.hasOtuData)
         buildToggleItem(

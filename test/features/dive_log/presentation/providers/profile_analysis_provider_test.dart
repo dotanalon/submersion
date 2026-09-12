@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -864,7 +863,7 @@ void main() {
     });
   });
 
-  group('overlayComputerDecoData', () {
+  group('overlayRebreatherSensorData', () {
     late ProfileAnalysisService service;
     late List<DiveProfilePoint> baseProfile;
     late ProfileAnalysis baseAnalysis;
@@ -883,17 +882,12 @@ void main() {
       );
     });
 
-    test('returns original analysis when no computer data present', () {
-      // Profile with no computer deco data (all ndl/ceiling/tts/cns null)
-      final (result, sourceInfo) = overlayComputerDecoData(
-        baseAnalysis,
-        baseProfile,
-      );
+    test('returns the identical analysis when there is no sensor data', () {
+      // No ppO2, cells, setpoint or millivolts anywhere: there is nothing to
+      // overlay, so the analysis comes back as the same instance rather than
+      // an equal copy.
+      final result = overlayRebreatherSensorData(baseAnalysis, baseProfile);
       expect(result, same(baseAnalysis));
-      expect(sourceInfo.ndlActual, MetricDataSource.calculated);
-      expect(sourceInfo.ceilingActual, MetricDataSource.calculated);
-      expect(sourceInfo.ttsActual, MetricDataSource.calculated);
-      expect(sourceInfo.cnsActual, MetricDataSource.calculated);
     });
 
     test('CCR: computer ppO2 wins, labeled as not-average', () {
@@ -901,7 +895,7 @@ void main() {
           .map((p) => p.copyWith(ppO2: 1.3, o2Sensor1: 1.1, setpoint: 0.7))
           .toList();
 
-      final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+      final result = overlayRebreatherSensorData(baseAnalysis, profile);
 
       expect(result.ppO2Curve.first, 1.3);
       expect(result.ppO2FromSensorAverage, isFalse);
@@ -917,7 +911,7 @@ void main() {
           )
           .toList();
 
-      final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+      final result = overlayRebreatherSensorData(baseAnalysis, profile);
 
       // (1.2 + 1.3 + 1.4) / 3 = 1.3
       expect(result.ppO2Curve.first, closeTo(1.3, 1e-9));
@@ -934,7 +928,7 @@ void main() {
         profile.add(i.isEven ? p.copyWith(o2Sensor1: 1.3) : p);
       }
 
-      final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+      final result = overlayRebreatherSensorData(baseAnalysis, profile);
 
       expect(result.ppO2Curve.every((v) => v == 1.3), isTrue);
       expect(result.ppO2Curve.any((v) => v == 0.7), isFalse);
@@ -946,7 +940,7 @@ void main() {
           .map((p) => p.copyWith(setpoint: 1.3))
           .toList();
 
-      final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+      final result = overlayRebreatherSensorData(baseAnalysis, profile);
 
       expect(result.ppO2Curve.every((v) => v == 1.3), isTrue);
       expect(result.ppO2FromSensorAverage, isFalse);
@@ -965,7 +959,7 @@ void main() {
           )
           .toList();
 
-      final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+      final result = overlayRebreatherSensorData(baseAnalysis, profile);
 
       expect(result.o2CellMvCurves, isNotNull);
       expect(result.o2CellMvCurves!.length, 3);
@@ -983,7 +977,7 @@ void main() {
             .map((p) => p.copyWith(o2SensorMv1: 58, o2SensorMv3: 43))
             .toList();
 
-        final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+        final result = overlayRebreatherSensorData(baseAnalysis, profile);
 
         expect(result.o2CellMvCurves!.length, 3);
         expect(result.o2CellMvCurves![0].first, 58);
@@ -1000,7 +994,7 @@ void main() {
           .map((p) => p.copyWith(o2SensorMv1: 58, o2SensorMv2: 61))
           .toList();
 
-      final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+      final result = overlayRebreatherSensorData(baseAnalysis, profile);
 
       // No ppO2 was resolved, so nothing about the ppO2 overlay changed.
       expect(result.ppO2FromSensorAverage, isFalse);
@@ -1019,7 +1013,7 @@ void main() {
         );
       }
 
-      final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+      final result = overlayRebreatherSensorData(baseAnalysis, profile);
 
       expect(result.o2CellMvCurves![0][0], 58);
       expect(result.o2CellMvCurves![0][1], isNull);
@@ -1030,258 +1024,15 @@ void main() {
           .map((p) => p.copyWith(o2Sensor1: 1.1, ppO2: 1.1))
           .toList();
 
-      final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+      final result = overlayRebreatherSensorData(baseAnalysis, profile);
 
       expect(result.o2SensorCurves, isNotNull);
       expect(result.o2CellMvCurves, isNull);
     });
 
     test('OC (no setpoint/cells/ppO2) leaves ppO2 curve untouched', () {
-      final (result, _) = overlayComputerDecoData(baseAnalysis, baseProfile);
+      final result = overlayRebreatherSensorData(baseAnalysis, baseProfile);
       expect(result.ppO2Curve, equals(baseAnalysis.ppO2Curve));
-    });
-
-    test('overlays computer NDL when available', () {
-      // Add computer NDL to some profile points
-      final profileWithNdl = <DiveProfilePoint>[];
-      for (int i = 0; i < baseProfile.length; i++) {
-        if (i >= 100 && i < 200) {
-          profileWithNdl.add(baseProfile[i].copyWith(ndl: 600));
-        } else {
-          profileWithNdl.add(baseProfile[i]);
-        }
-      }
-
-      final (result, sourceInfo) = overlayComputerDecoData(
-        baseAnalysis,
-        profileWithNdl,
-        ndlSource: MetricDataSource.computer,
-      );
-
-      // Points with computer NDL should use computer value
-      expect(result.ndlCurve[150], equals(600));
-
-      // Points without computer NDL should fall back to calculated values
-      expect(result.ndlCurve[50], equals(baseAnalysis.ndlCurve[50]));
-
-      expect(sourceInfo.ndlActual, MetricDataSource.computer);
-    });
-
-    test('overlays computer ceiling when available', () {
-      final profileWithCeiling = <DiveProfilePoint>[];
-      for (int i = 0; i < baseProfile.length; i++) {
-        if (i >= 200 && i < 400) {
-          profileWithCeiling.add(baseProfile[i].copyWith(ceiling: 3.0));
-        } else {
-          profileWithCeiling.add(baseProfile[i]);
-        }
-      }
-
-      final (result, sourceInfo) = overlayComputerDecoData(
-        baseAnalysis,
-        profileWithCeiling,
-        ceilingSource: MetricDataSource.computer,
-      );
-
-      // Points with computer ceiling should use computer value
-      expect(result.ceilingCurve[250], closeTo(3.0, 0.001));
-
-      // Points without computer ceiling should fall back to calculated values
-      expect(
-        result.ceilingCurve[50],
-        closeTo(baseAnalysis.ceilingCurve[50], 0.001),
-      );
-
-      expect(sourceInfo.ceilingActual, MetricDataSource.computer);
-    });
-
-    test('overlays computer TTS when available', () {
-      final profileWithTts = <DiveProfilePoint>[];
-      for (int i = 0; i < baseProfile.length; i++) {
-        if (i >= 100 && i < 300) {
-          profileWithTts.add(baseProfile[i].copyWith(tts: 120));
-        } else {
-          profileWithTts.add(baseProfile[i]);
-        }
-      }
-
-      final (result, sourceInfo) = overlayComputerDecoData(
-        baseAnalysis,
-        profileWithTts,
-        ttsSource: MetricDataSource.computer,
-      );
-
-      // Points with computer TTS should use computer value
-      expect(result.ttsCurve![200], equals(120));
-
-      // Points without computer TTS should fall back to calculated values
-      expect(result.ttsCurve![50], equals(baseAnalysis.ttsCurve![50]));
-
-      expect(sourceInfo.ttsActual, MetricDataSource.computer);
-    });
-
-    test('overlays computer CNS when available', () {
-      final profileWithCns = <DiveProfilePoint>[];
-      for (int i = 0; i < baseProfile.length; i++) {
-        if (i >= 100 && i < 300) {
-          profileWithCns.add(baseProfile[i].copyWith(cns: 25.0));
-        } else {
-          profileWithCns.add(baseProfile[i]);
-        }
-      }
-
-      final (result, sourceInfo) = overlayComputerDecoData(
-        baseAnalysis,
-        profileWithCns,
-        cnsSource: MetricDataSource.computer,
-      );
-
-      // Points with computer CNS should use computer value
-      expect(result.cnsCurve![150], closeTo(25.0, 0.001));
-
-      // Points without computer CNS should fall back to calculated values
-      expect(result.cnsCurve![50], closeTo(baseAnalysis.cnsCurve![50], 0.001));
-
-      expect(sourceInfo.cnsActual, MetricDataSource.computer);
-    });
-
-    test('handles mixed computer data - some points have data, some do not', () {
-      // Alternate: every other point has computer NDL
-      final profileMixed = <DiveProfilePoint>[];
-      for (int i = 0; i < baseProfile.length; i++) {
-        if (i % 2 == 0 && i >= 60 && i < 660) {
-          profileMixed.add(baseProfile[i].copyWith(ndl: 777));
-        } else {
-          profileMixed.add(baseProfile[i]);
-        }
-      }
-
-      final (result, sourceInfo) = overlayComputerDecoData(
-        baseAnalysis,
-        profileMixed,
-        ndlSource: MetricDataSource.computer,
-        ceilingSource: MetricDataSource.computer,
-        ttsSource: MetricDataSource.computer,
-        cnsSource: MetricDataSource.computer,
-      );
-
-      // Even indices in range should have computer value
-      expect(result.ndlCurve[100], equals(777));
-
-      // Odd indices without computer data should fall back to calculated values
-      expect(result.ndlCurve[101], equals(baseAnalysis.ndlCurve[101]));
-
-      expect(sourceInfo.ndlActual, MetricDataSource.computer);
-    });
-
-    test('overlays multiple curves simultaneously', () {
-      final profileMulti = <DiveProfilePoint>[];
-      for (int i = 0; i < baseProfile.length; i++) {
-        if (i >= 100 && i < 200) {
-          profileMulti.add(
-            baseProfile[i].copyWith(ndl: 500, ceiling: 6.0, tts: 90, cns: 15.0),
-          );
-        } else {
-          profileMulti.add(baseProfile[i]);
-        }
-      }
-
-      final (result, sourceInfo) = overlayComputerDecoData(
-        baseAnalysis,
-        profileMulti,
-        ndlSource: MetricDataSource.computer,
-        ceilingSource: MetricDataSource.computer,
-        ttsSource: MetricDataSource.computer,
-        cnsSource: MetricDataSource.computer,
-      );
-
-      // All four curves should be overlaid at index 150
-      expect(result.ndlCurve[150], equals(500));
-      expect(result.ceilingCurve[150], closeTo(6.0, 0.001));
-      expect(result.ttsCurve![150], equals(90));
-      expect(result.cnsCurve![150], closeTo(15.0, 0.001));
-
-      expect(sourceInfo.ndlActual, MetricDataSource.computer);
-      expect(sourceInfo.ceilingActual, MetricDataSource.computer);
-      expect(sourceInfo.ttsActual, MetricDataSource.computer);
-      expect(sourceInfo.cnsActual, MetricDataSource.computer);
-    });
-
-    test('handles empty analysis curves gracefully', () {
-      // Create a truly empty analysis with null optional curves
-      final emptyAnalysis = ProfileAnalysis(
-        ascentRates: baseAnalysis.ascentRates,
-        ascentRateStats: baseAnalysis.ascentRateStats,
-        ascentRateViolations: baseAnalysis.ascentRateViolations,
-        events: baseAnalysis.events,
-        ceilingCurve: baseAnalysis.ceilingCurve,
-        ndlCurve: baseAnalysis.ndlCurve,
-        decoStatuses: baseAnalysis.decoStatuses,
-        o2Exposure: baseAnalysis.o2Exposure,
-        ppO2Curve: baseAnalysis.ppO2Curve,
-        // Explicitly null optional curves
-        ttsCurve: null,
-        cnsCurve: null,
-        maxDepth: baseAnalysis.maxDepth,
-        averageDepth: baseAnalysis.averageDepth,
-        maxDepthTimestamp: baseAnalysis.maxDepthTimestamp,
-        durationSeconds: baseAnalysis.durationSeconds,
-      );
-
-      final profileWithTts = <DiveProfilePoint>[];
-      for (int i = 0; i < baseProfile.length; i++) {
-        if (i >= 100 && i < 200) {
-          profileWithTts.add(baseProfile[i].copyWith(tts: 120, cns: 20.0));
-        } else {
-          profileWithTts.add(baseProfile[i]);
-        }
-      }
-
-      final (result, sourceInfo) = overlayComputerDecoData(
-        emptyAnalysis,
-        profileWithTts,
-        ndlSource: MetricDataSource.computer,
-        ceilingSource: MetricDataSource.computer,
-        ttsSource: MetricDataSource.computer,
-        cnsSource: MetricDataSource.computer,
-      );
-
-      // Even with null base curves, computer data should produce curves
-      // with computer values where available and 0 fallback elsewhere
-      expect(result.ttsCurve, isNotNull);
-      expect(result.ttsCurve![150], equals(120));
-      expect(result.ttsCurve![50], equals(0));
-
-      expect(result.cnsCurve, isNotNull);
-      expect(result.cnsCurve![150], closeTo(20.0, 0.001));
-      expect(result.cnsCurve![50], closeTo(0.0, 0.001));
-
-      expect(sourceInfo.ttsActual, MetricDataSource.computer);
-      expect(sourceInfo.cnsActual, MetricDataSource.computer);
-    });
-
-    test('source=calculated ignores available computer NDL data', () {
-      final profileWithNdl = List.generate(baseProfile.length, (i) {
-        return baseProfile[i].copyWith(ndl: i < 5 ? 12 : null);
-      });
-
-      final (result, sourceInfo) = overlayComputerDecoData(
-        baseAnalysis,
-        profileWithNdl,
-        ndlSource: MetricDataSource.calculated,
-      );
-      expect(result.ndlCurve, equals(baseAnalysis.ndlCurve));
-      expect(sourceInfo.ndlActual, MetricDataSource.calculated);
-    });
-
-    test('source=computer without data falls back to calculated', () {
-      final (result, sourceInfo) = overlayComputerDecoData(
-        baseAnalysis,
-        baseProfile,
-        ndlSource: MetricDataSource.computer,
-      );
-      expect(result.ndlCurve, equals(baseAnalysis.ndlCurve));
-      expect(sourceInfo.ndlActual, MetricDataSource.calculated);
     });
   });
 
@@ -1331,42 +1082,6 @@ void main() {
 
       final result = container.read(diveProfileAnalysisProvider(dive));
       expect(result, isNull);
-    });
-
-    test('always overlays the raw DC deco stop band (decoStopSource: computer '
-        'is wired at this call site)', () {
-      // diveProfileAnalysisProvider always prefers computer-reported data
-      // (used by widgets that render a dive independently of the legend's
-      // session toggles). 4.5 m is not a multiple of the 3 m stop spacing
-      // the calculated curve quantizes to, and this profile is far too
-      // shallow/brief to owe any calculated decompression, so 4.5 can only
-      // reach the result if overlayComputerDecoData's decoStopSource
-      // parameter is actually passed as computer at this call site.
-      final profile = [
-        const DiveProfilePoint(timestamp: 0, depth: 0),
-        const DiveProfilePoint(timestamp: 30, depth: 20, ceiling: 4.5),
-        const DiveProfilePoint(timestamp: 60, depth: 20, ceiling: 4.5),
-        const DiveProfilePoint(timestamp: 90, depth: 0),
-      ];
-      final dive = Dive(
-        id: 'dc-ceiling-dive',
-        dateTime: DateTime(2025, 1, 1),
-        profile: profile,
-      );
-
-      final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(_prefs),
-          diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
-          settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      final result = container.read(diveProfileAnalysisProvider(dive));
-
-      expect(result, isNotNull);
-      expect(result!.decoStopCurve, [0.0, 4.5, 4.5, 0.0]);
     });
 
     test(

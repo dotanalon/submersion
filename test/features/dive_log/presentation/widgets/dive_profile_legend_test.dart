@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/presentation/widgets/chart_zoom_controls.dart';
 import 'package:submersion/core/theme/app_colors.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
@@ -236,41 +235,36 @@ void main() {
       expect(_inDialog(find.text('Ceiling')), findsOneWidget);
     });
 
-    testWidgets('source-capable metrics have SegmentedButtons', (tester) async {
+    testWidgets('the decompression metrics are plain visibility toggles', (
+      tester,
+    ) async {
       await openDialog(tester);
-      // 3 metrics with source selectors: NDL, TTS, CNS%. The ceiling line has
-      // no source toggle (issue #755) -- it always shows the calculated curve.
-      expect(find.byType(SegmentedButton<MetricDataSource>), findsNWidgets(3));
-    });
-
-    testWidgets('Ceiling row has no source SegmentedButton', (tester) async {
-      await openDialog(tester);
-      // The ceiling line always renders the exact calculated curve, so its
-      // legend row is a plain visibility toggle with no Computer/Calculated
-      // selector (issue #755).
-      final ceilingRow = find
-          .ancestor(
-            of: _inDialog(find.text('Ceiling')),
-            matching: find.byType(Row),
-          )
-          .first;
-      expect(
-        find.descendant(
-          of: ceilingRow,
-          matching: find.byType(SegmentedButton<MetricDataSource>),
-        ),
-        findsNothing,
-      );
-    });
-
-    testWidgets('tapping SegmentedButton changes source state', (tester) async {
-      await openDialog(tester);
-      // Find the first "DC" segment and tap it
-      final dcButtons = find.text('DC');
-      expect(dcButtons, findsWidgets);
-      await tester.tap(dcButtons.first);
-      await tester.pumpAndSettle();
-      // Verify no crash / the button rebuilt successfully
+      // Every metric is calculated now, so NDL, TTS and CNS% are ordinary
+      // check-box rows with no Computer/Calculated selector, and no
+      // "DC"/"Calc" segment is rendered anywhere in the dialog.
+      for (final label in ['NDL', 'TTS', 'CNS%']) {
+        final row = find
+            .ancestor(
+              of: _inDialog(find.text(label)),
+              matching: find.byType(Row),
+            )
+            .first;
+        expect(
+          find.descendant(
+            of: row,
+            matching: find.byWidgetPredicate(
+              (widget) =>
+                  widget is Icon &&
+                  (widget.icon == Icons.check_box ||
+                      widget.icon == Icons.check_box_outline_blank),
+            ),
+          ),
+          findsOneWidget,
+          reason: '$label should render as a plain check-box row',
+        );
+      }
+      expect(_inDialog(find.text('DC')), findsNothing);
+      expect(_inDialog(find.text('Calc')), findsNothing);
     });
 
     testWidgets('Ceiling toggle changes visibility state', (tester) async {

@@ -26,8 +26,11 @@ const _junctions = [
 ];
 
 void main() {
-  test('v207 is the current schema version and is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 207);
+  test('v207 stays in the schema ladder', () {
+    // Relaxed from an exact-latest tripwire: v208 (retiring the per-metric
+    // source columns) landed on top of v207, so the exact-latest assertion
+    // now lives in migration_v208_drop_metric_source_columns_test.dart.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(207));
     expect(AppDatabase.migrationVersions, contains(207));
   });
 

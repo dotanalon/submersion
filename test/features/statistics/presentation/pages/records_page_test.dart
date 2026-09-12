@@ -19,7 +19,6 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
@@ -289,21 +288,6 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setAscentGasSet(AscentGasSet value) async =>
       state = state.copyWith(ascentGasSet: value);
   @override
-  Future<void> setDefaultNdlSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultNdlSource: value);
-  @override
-  Future<void> setDefaultCeilingSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultCeilingSource: value);
-  @override
-  Future<void> setDefaultDecoStopSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultDecoStopSource: value);
-  @override
-  Future<void> setDefaultTtsSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultTtsSource: value);
-  @override
-  Future<void> setDefaultCnsSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultCnsSource: value);
-  @override
   Future<void> setCnsCalculationMethod(CnsCalculationMethod value) async =>
       state = state.copyWith(cnsCalculationMethod: value);
   @override
@@ -469,10 +453,6 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultShowGtr(bool value) async =>
       state = state.copyWith(defaultShowGtr: value);
-
-  @override
-  Future<void> setDefaultGtrSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultGtrSource: value);
 
   @override
   Future<void> setGtrReservePressure(double value) async =>

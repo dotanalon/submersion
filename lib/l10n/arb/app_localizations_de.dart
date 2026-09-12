@@ -6380,12 +6380,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
-  String get diveLog_legend_source_dc => 'DC';
-
-  @override
-  String get diveLog_legend_source_calc => 'Ber.';
-
-  @override
   String get diveLog_chartSection_overlays => 'Einblendungen';
 
   @override
@@ -34724,40 +34718,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Deko-/Stage-Flasche + Rückengas';
 
   @override
-  String get settings_decompression_cnsSource => 'CNS-Quelle';
-
-  @override
-  String get settings_decompression_decoStopSource => 'Quelle für Dekostopps';
-
-  @override
   String get settings_decompression_header_ascent => 'Aufstiegsplanung';
 
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'Auf welche mitgeführten Flaschen der simulierte Aufstieg (TTS, Ceiling und Stopps) in der jeweiligen Tiefe wechseln darf. Berücksichtigt werden nur Gase, die im Tauchgang erfasst sind.';
-
-  @override
-  String get settings_decompression_header_dataSources =>
-      'Bevorzugte Datenquellen';
-
-  @override
-  String get settings_decompression_header_dataSources_subtitle =>
-      'Bei der Einstellung Tauchcomputer verwendet die App die vom Tauchcomputer gemeldeten Daten, sofern verfügbar. Liegen keine Computerdaten vor, werden berechnete Werte verwendet.';
-
-  @override
-  String get settings_decompression_ndlSource => 'NDL-Quelle';
-
-  @override
-  String get settings_decompression_sourceCalculated => 'Berechnet';
-
-  @override
-  String get settings_decompression_sourceComputer => 'Tauchcomputer';
-
-  @override
-  String get settings_decompression_ttsSource => 'TTS-Quelle';
-
-  @override
-  String get settings_decompression_gtrSource => 'GTR-Quelle';
 
   @override
   String get settings_decompression_gtrReserve => 'GTR-Reservedruck';

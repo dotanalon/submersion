@@ -39,7 +39,6 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_locat
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/core/services/log_file_service.dart';
@@ -128,10 +127,6 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultShowGtr(bool value) async =>
       state = state.copyWith(defaultShowGtr: value);
-
-  @override
-  Future<void> setDefaultGtrSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultGtrSource: value);
 
   @override
   Future<void> setGtrReservePressure(double value) async =>
@@ -344,21 +339,6 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setAscentGasSet(AscentGasSet value) async =>
       state = state.copyWith(ascentGasSet: value);
-  @override
-  Future<void> setDefaultNdlSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultNdlSource: value);
-  @override
-  Future<void> setDefaultCeilingSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultCeilingSource: value);
-  @override
-  Future<void> setDefaultDecoStopSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultDecoStopSource: value);
-  @override
-  Future<void> setDefaultTtsSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultTtsSource: value);
-  @override
-  Future<void> setDefaultCnsSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultCnsSource: value);
   @override
   Future<void> setCnsCalculationMethod(CnsCalculationMethod value) async =>
       state = state.copyWith(cnsCalculationMethod: value);
@@ -2195,7 +2175,7 @@ void main() {
       );
     }
 
-    testWidgets('shows the GTR source and reserve pressure tiles', (
+    testWidgets('shows the GTR reserve pressure tile in the Ascent card', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(500, 6000));
@@ -2204,9 +2184,26 @@ void main() {
       await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      expect(find.text('GTR Source'), findsOneWidget);
-      expect(find.text('GTR reserve pressure'), findsOneWidget);
-      expect(find.text('50 bar'), findsOneWidget);
+      // The reserve tile was re-homed from the retired Data Source
+      // Preferences section into the Ascent planning card, beside the
+      // ascent gas setting.
+      final ascentCard = find
+          .ancestor(
+            of: find.text('Plan ascent with'),
+            matching: find.byType(Card),
+          )
+          .first;
+      expect(
+        find.descendant(
+          of: ascentCard,
+          matching: find.text('GTR reserve pressure'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: ascentCard, matching: find.text('50 bar')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('saving a new reserve updates the tile', (tester) async {

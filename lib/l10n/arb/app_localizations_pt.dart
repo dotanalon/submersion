@@ -6385,12 +6385,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
-  String get diveLog_legend_source_dc => 'DC';
-
-  @override
-  String get diveLog_legend_source_calc => 'Calc.';
-
-  @override
   String get diveLog_chartSection_overlays => 'Sobreposicoes';
 
   @override
@@ -34812,41 +34806,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Deco/estágio + gás de fundo';
 
   @override
-  String get settings_decompression_cnsSource => 'Fonte do CNS';
-
-  @override
-  String get settings_decompression_decoStopSource =>
-      'Fonte das paradas de deco';
-
-  @override
   String get settings_decompression_header_ascent => 'Planejamento da subida';
 
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'Quais cilindros transportados a subida simulada (TTS, teto e paradas) pode usar em cada profundidade. Somente os gases registrados no mergulho são considerados.';
-
-  @override
-  String get settings_decompression_header_dataSources =>
-      'Preferências de fonte de dados';
-
-  @override
-  String get settings_decompression_header_dataSources_subtitle =>
-      'Quando definido como Computador de Mergulho, o aplicativo usa os dados informados pelo computador de mergulho quando disponíveis. Recorre aos valores calculados quando não há dados do computador.';
-
-  @override
-  String get settings_decompression_ndlSource => 'Fonte do NDL';
-
-  @override
-  String get settings_decompression_sourceCalculated => 'Calculado';
-
-  @override
-  String get settings_decompression_sourceComputer => 'Computador de Mergulho';
-
-  @override
-  String get settings_decompression_ttsSource => 'Fonte do TTS';
-
-  @override
-  String get settings_decompression_gtrSource => 'Fonte do GTR';
 
   @override
   String get settings_decompression_gtrReserve => 'Pressão de reserva do GTR';

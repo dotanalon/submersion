@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -27,25 +26,18 @@ void main() {
   }
 
   group('ProfileLegend GTR', () {
-    test('showGtr and gtrSource hydrate from the diver defaults', () {
-      final container = containerWith(
-        const AppSettings(
-          defaultShowGtr: true,
-          defaultGtrSource: MetricDataSource.computer,
-        ),
-      );
+    test('showGtr hydrates from the diver default', () {
+      final container = containerWith(const AppSettings(defaultShowGtr: true));
 
       final state = container.read(profileLegendProvider);
       expect(state.showGtr, isTrue);
-      expect(state.gtrSource, MetricDataSource.computer);
     });
 
-    test('defaults to hidden and calculated', () {
+    test('defaults to hidden', () {
       final container = containerWith(const AppSettings());
 
       final state = container.read(profileLegendProvider);
       expect(state.showGtr, isFalse);
-      expect(state.gtrSource, MetricDataSource.calculated);
     });
 
     test('toggleGtr flips visibility', () {
@@ -55,18 +47,6 @@ void main() {
       expect(container.read(profileLegendProvider).showGtr, isTrue);
       container.read(profileLegendProvider.notifier).toggleGtr();
       expect(container.read(profileLegendProvider).showGtr, isFalse);
-    });
-
-    test('setGtrSource overrides the session source', () {
-      final container = containerWith(const AppSettings());
-
-      container
-          .read(profileLegendProvider.notifier)
-          .setGtrSource(MetricDataSource.computer);
-      expect(
-        container.read(profileLegendProvider).gtrSource,
-        MetricDataSource.computer,
-      );
     });
 
     test('showGtr counts as an active secondary toggle', () {

@@ -6367,12 +6367,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
-  String get diveLog_legend_source_dc => 'DC';
-
-  @override
-  String get diveLog_legend_source_calc => 'Szam.';
-
-  @override
   String get diveLog_chartSection_overlays => 'Rategek';
 
   @override
@@ -34654,40 +34648,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Deko/stage + háti gáz';
 
   @override
-  String get settings_decompression_cnsSource => 'CNS forrása';
-
-  @override
-  String get settings_decompression_decoStopSource => 'Dekóstop forrása';
-
-  @override
   String get settings_decompression_header_ascent => 'Emelkedés tervezése';
 
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'Mely magunkkal vitt palackokra válthat a szimulált emelkedés (TTS, plafon és megállók) az egyes mélységekben. Csak a merülésnél rögzített gázokat veszi figyelembe.';
-
-  @override
-  String get settings_decompression_header_dataSources =>
-      'Adatforrás-beállítások';
-
-  @override
-  String get settings_decompression_header_dataSources_subtitle =>
-      'Ha a Búvárcomputer beállítás aktív, az alkalmazás a búvárcomputer által jelentett adatokat használja, amikor elérhetők. Ha nincs computeradat, a számított értékekre vált.';
-
-  @override
-  String get settings_decompression_ndlSource => 'NDL forrása';
-
-  @override
-  String get settings_decompression_sourceCalculated => 'Számított';
-
-  @override
-  String get settings_decompression_sourceComputer => 'Búvárcomputer';
-
-  @override
-  String get settings_decompression_ttsSource => 'TTS forrása';
-
-  @override
-  String get settings_decompression_gtrSource => 'GTR forrása';
 
   @override
   String get settings_decompression_gtrReserve => 'GTR tartaléknyomás';

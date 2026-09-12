@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -156,17 +155,6 @@ void main() {
   });
 
   group('ProfileLegend notifier methods (via state)', () {
-    group('explicit source set methods', () {
-      // The ceiling line has no source toggle (issue #755); it always uses the
-      // calculated curve, so there is no ceilingSource field or setter to test.
-      test('setNdlSource sets to computer', () {
-        const state = ProfileLegendState();
-        expect(state.ndlSource, MetricDataSource.calculated);
-        final updated = state.copyWith(ndlSource: MetricDataSource.computer);
-        expect(updated.ndlSource, MetricDataSource.computer);
-      });
-    });
-
     group('activeSecondaryCount', () {
       test('includes showCeiling in count', () {
         const isolatedState = ProfileLegendState(

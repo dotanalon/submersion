@@ -6063,12 +6063,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
-  String get diveLog_legend_source_dc => '潜水电脑';
-
-  @override
-  String get diveLog_legend_source_calc => '计算';
-
-  @override
   String get diveLog_chartSection_overlays => '叠加层';
 
   @override
@@ -32829,39 +32823,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_ascentGas_decoStage => '减压/挂瓶 + 背气';
 
   @override
-  String get settings_decompression_cnsSource => 'CNS 来源';
-
-  @override
-  String get settings_decompression_decoStopSource => '减压停留来源';
-
-  @override
   String get settings_decompression_header_ascent => '上升规划';
 
   @override
   String get settings_decompression_header_ascent_subtitle =>
       '模拟上升（TTS、天花板和停留）在各深度可切换到哪些携带的气瓶。仅考虑本次潜水中记录的气体。';
-
-  @override
-  String get settings_decompression_header_dataSources => '数据来源首选项';
-
-  @override
-  String get settings_decompression_header_dataSources_subtitle =>
-      '设置为“潜水电脑”时，应用会在可用时使用潜水电脑报告的数据。若没有电脑数据，则回退到计算值。';
-
-  @override
-  String get settings_decompression_ndlSource => 'NDL 来源';
-
-  @override
-  String get settings_decompression_sourceCalculated => '计算值';
-
-  @override
-  String get settings_decompression_sourceComputer => '潜水电脑';
-
-  @override
-  String get settings_decompression_ttsSource => 'TTS 来源';
-
-  @override
-  String get settings_decompression_gtrSource => 'GTR 来源';
 
   @override
   String get settings_decompression_gtrReserve => 'GTR 储备压力';

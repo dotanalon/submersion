@@ -6383,12 +6383,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
-  String get diveLog_legend_source_dc => 'DC';
-
-  @override
-  String get diveLog_legend_source_calc => 'Calc.';
-
-  @override
   String get diveLog_chartSection_overlays => 'Sovrapposizioni';
 
   @override
@@ -34800,41 +34794,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'Bombola deco/stage + gas principale';
 
   @override
-  String get settings_decompression_cnsSource => 'Fonte CNS';
-
-  @override
-  String get settings_decompression_decoStopSource => 'Fonte delle soste deco';
-
-  @override
   String get settings_decompression_header_ascent =>
       'Pianificazione della risalita';
 
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'A quali bombole trasportate può passare la risalita simulata (TTS, ceiling e soste) a ciascuna profondità. Vengono considerati solo i gas registrati nell’immersione.';
-
-  @override
-  String get settings_decompression_header_dataSources =>
-      'Preferenze sulle fonti dei dati';
-
-  @override
-  String get settings_decompression_header_dataSources_subtitle =>
-      'Se impostato su Computer subacqueo, l’app usa i dati riportati dal computer subacqueo quando sono disponibili. In mancanza dei dati del computer, ricorre ai valori calcolati.';
-
-  @override
-  String get settings_decompression_ndlSource => 'Fonte NDL';
-
-  @override
-  String get settings_decompression_sourceCalculated => 'Calcolato';
-
-  @override
-  String get settings_decompression_sourceComputer => 'Computer subacqueo';
-
-  @override
-  String get settings_decompression_ttsSource => 'Fonte TTS';
-
-  @override
-  String get settings_decompression_gtrSource => 'Fonte GTR';
 
   @override
   String get settings_decompression_gtrReserve => 'Pressione di riserva GTR';

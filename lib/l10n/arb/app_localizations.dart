@@ -10509,18 +10509,6 @@ abstract class AppLocalizations {
   /// **'GTR'**
   String get diveLog_legend_label_gtr;
 
-  /// No description provided for @diveLog_legend_source_dc.
-  ///
-  /// In en, this message translates to:
-  /// **'DC'**
-  String get diveLog_legend_source_dc;
-
-  /// No description provided for @diveLog_legend_source_calc.
-  ///
-  /// In en, this message translates to:
-  /// **'Calc'**
-  String get diveLog_legend_source_calc;
-
   /// No description provided for @diveLog_chartSection_overlays.
   ///
   /// In en, this message translates to:
@@ -57518,18 +57506,6 @@ abstract class AppLocalizations {
   /// **'Deco/stage + back gas'**
   String get settings_decompression_ascentGas_decoStage;
 
-  /// No description provided for @settings_decompression_cnsSource.
-  ///
-  /// In en, this message translates to:
-  /// **'CNS Source'**
-  String get settings_decompression_cnsSource;
-
-  /// No description provided for @settings_decompression_decoStopSource.
-  ///
-  /// In en, this message translates to:
-  /// **'Deco Stop Source'**
-  String get settings_decompression_decoStopSource;
-
   /// No description provided for @settings_decompression_header_ascent.
   ///
   /// In en, this message translates to:
@@ -57541,48 +57517,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Which carried cylinders the simulated ascent (TTS, ceiling and stops) may switch to at each depth. Only gases recorded on the dive are considered.'**
   String get settings_decompression_header_ascent_subtitle;
-
-  /// No description provided for @settings_decompression_header_dataSources.
-  ///
-  /// In en, this message translates to:
-  /// **'Data Source Preferences'**
-  String get settings_decompression_header_dataSources;
-
-  /// No description provided for @settings_decompression_header_dataSources_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'When set to Dive Computer, the app uses data reported by the dive computer when available. Falls back to calculated values when computer data is not present.'**
-  String get settings_decompression_header_dataSources_subtitle;
-
-  /// No description provided for @settings_decompression_ndlSource.
-  ///
-  /// In en, this message translates to:
-  /// **'NDL Source'**
-  String get settings_decompression_ndlSource;
-
-  /// No description provided for @settings_decompression_sourceCalculated.
-  ///
-  /// In en, this message translates to:
-  /// **'Calculated'**
-  String get settings_decompression_sourceCalculated;
-
-  /// No description provided for @settings_decompression_sourceComputer.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Computer'**
-  String get settings_decompression_sourceComputer;
-
-  /// No description provided for @settings_decompression_ttsSource.
-  ///
-  /// In en, this message translates to:
-  /// **'TTS Source'**
-  String get settings_decompression_ttsSource;
-
-  /// No description provided for @settings_decompression_gtrSource.
-  ///
-  /// In en, this message translates to:
-  /// **'GTR Source'**
-  String get settings_decompression_gtrSource;
 
   /// No description provided for @settings_decompression_gtrReserve.
   ///

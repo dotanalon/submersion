@@ -6267,12 +6267,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
-  String get diveLog_legend_source_dc => 'DC';
-
-  @override
-  String get diveLog_legend_source_calc => 'Calc';
-
-  @override
   String get diveLog_chartSection_overlays => 'Overlays';
 
   @override
@@ -34296,40 +34290,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Deco/stage + back gas';
 
   @override
-  String get settings_decompression_cnsSource => 'CNS Source';
-
-  @override
-  String get settings_decompression_decoStopSource => 'Deco Stop Source';
-
-  @override
   String get settings_decompression_header_ascent => 'Ascent planning';
 
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'Which carried cylinders the simulated ascent (TTS, ceiling and stops) may switch to at each depth. Only gases recorded on the dive are considered.';
-
-  @override
-  String get settings_decompression_header_dataSources =>
-      'Data Source Preferences';
-
-  @override
-  String get settings_decompression_header_dataSources_subtitle =>
-      'When set to Dive Computer, the app uses data reported by the dive computer when available. Falls back to calculated values when computer data is not present.';
-
-  @override
-  String get settings_decompression_ndlSource => 'NDL Source';
-
-  @override
-  String get settings_decompression_sourceCalculated => 'Calculated';
-
-  @override
-  String get settings_decompression_sourceComputer => 'Dive Computer';
-
-  @override
-  String get settings_decompression_ttsSource => 'TTS Source';
-
-  @override
-  String get settings_decompression_gtrSource => 'GTR Source';
 
   @override
   String get settings_decompression_gtrReserve => 'GTR reserve pressure';

@@ -33,10 +33,12 @@ void main() {
           .get();
       final cols = [for (final r in rows) r.read<String>('name')];
       expect(cols, contains('show_deco_stops_on_profile'));
-      expect(cols, contains('default_deco_stop_source'));
+      // default_deco_stop_source is added by this rung and dropped again at
+      // v208, so a current-schema database must not carry it.
+      expect(cols, isNot(contains('default_deco_stop_source')));
     });
 
-    test('deco stop columns default to visible and calculated', () async {
+    test('the deco stop band column defaults to visible', () async {
       final rows = await db
           .customSelect("PRAGMA table_info('diver_settings')")
           .get();
@@ -45,7 +47,6 @@ void main() {
           r.read<String>('name'): r.read<String?>('dflt_value'),
       };
       expect(byName['show_deco_stops_on_profile'], '1');
-      expect(byName['default_deco_stop_source'], '1');
     });
   });
 
@@ -68,22 +69,21 @@ void main() {
           .get();
       final names = cols.map((c) => c.read<String>('name')).toSet();
       expect(names, contains('show_deco_stops_on_profile'));
-      expect(names, contains('default_deco_stop_source'));
+      // Added here, dropped again at v208 further up the same ladder.
+      expect(names, isNot(contains('default_deco_stop_source')));
+      expect(names, isNot(contains('default_ceiling_source')));
 
       final row = await db
           .customSelect(
-            'SELECT show_ceiling_on_profile, default_ceiling_source, '
-            'show_deco_stops_on_profile, default_deco_stop_source '
+            'SELECT show_ceiling_on_profile, show_deco_stops_on_profile '
             "FROM diver_settings WHERE id = 's1'",
           )
           .getSingle();
 
-      // The diver's existing ceiling preferences survive untouched.
+      // The diver's existing ceiling visibility survives untouched.
       expect(row.data['show_ceiling_on_profile'], 0);
-      expect(row.data['default_ceiling_source'], 0);
-      // The new non-nullable columns take their defaults on the legacy row.
+      // The new non-nullable column takes its default on the legacy row.
       expect(row.data['show_deco_stops_on_profile'], 1);
-      expect(row.data['default_deco_stop_source'], 1);
     });
 
     test(
@@ -126,18 +126,19 @@ void main() {
         );
         expect(
           names.where((n) => n == 'default_deco_stop_source').length,
-          1,
-          reason: 'default_deco_stop_source should exist exactly once',
+          0,
+          reason: 'v208 drops the source column further up the same ladder',
         );
 
         final row = await db
             .customSelect(
-              'SELECT show_deco_stops_on_profile, default_deco_stop_source '
+              'SELECT show_deco_stops_on_profile '
               "FROM diver_settings WHERE id = 's1'",
             )
             .getSingle();
+        // The diver's own value survives both the v133 guard and the v208
+        // table rebuild.
         expect(row.data['show_deco_stops_on_profile'], 0);
-        expect(row.data['default_deco_stop_source'], 0);
       },
     );
   });
@@ -169,7 +170,10 @@ void main() {
         contains('show_deco_stops_on_profile'),
         reason: 'the beforeOpen backstop must add the column',
       );
-      expect(names, contains('default_deco_stop_source'));
+      // Tripwire: the backstop runs unconditionally on every open, so if it
+      // still re-asserted the source column it would silently undo the v208
+      // drop for every user.
+      expect(names, isNot(contains('default_deco_stop_source')));
     });
   });
 

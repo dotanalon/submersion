@@ -6333,12 +6333,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
-  String get diveLog_legend_source_dc => 'DC';
-
-  @override
-  String get diveLog_legend_source_calc => 'Ber.';
-
-  @override
   String get diveLog_chartSection_overlays => 'Overlays';
 
   @override
@@ -34554,40 +34548,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deco-/stagefles + hoofdgas';
 
   @override
-  String get settings_decompression_cnsSource => 'CNS-bron';
-
-  @override
-  String get settings_decompression_decoStopSource => 'Bron van decostops';
-
-  @override
   String get settings_decompression_header_ascent => 'Opstijgplanning';
 
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'Naar welke meegenomen flessen de gesimuleerde opstijging (TTS, plafond en stops) op elke diepte mag overschakelen. Alleen gassen die bij de duik zijn vastgelegd, worden meegenomen.';
-
-  @override
-  String get settings_decompression_header_dataSources =>
-      'Voorkeuren voor gegevensbron';
-
-  @override
-  String get settings_decompression_header_dataSources_subtitle =>
-      'Bij de instelling Duikcomputer gebruikt de app de gegevens die de duikcomputer meldt, als die beschikbaar zijn. Zijn er geen computergegevens, dan gebruikt de app berekende waarden.';
-
-  @override
-  String get settings_decompression_ndlSource => 'NDL-bron';
-
-  @override
-  String get settings_decompression_sourceCalculated => 'Berekend';
-
-  @override
-  String get settings_decompression_sourceComputer => 'Duikcomputer';
-
-  @override
-  String get settings_decompression_ttsSource => 'TTS-bron';
-
-  @override
-  String get settings_decompression_gtrSource => 'GTR-bron';
 
   @override
   String get settings_decompression_gtrReserve => 'GTR-reservedruk';

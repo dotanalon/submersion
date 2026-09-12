@@ -1979,27 +1979,15 @@ class DiverSettings extends Table {
   // coverage:ignore-end
   BoolColumn get o2Narcotic => boolean().withDefault(const Constant(true))();
   RealColumn get endLimit => real().withDefault(const Constant(30.0))();
-  BoolColumn get useDiveComputerCnsData =>
-      boolean().withDefault(const Constant(false))();
-  IntColumn get defaultNdlSource => integer().withDefault(const Constant(1))();
-  IntColumn get defaultCeilingSource =>
-      integer().withDefault(const Constant(1))();
-  IntColumn get defaultTtsSource => integer().withDefault(const Constant(1))();
-  IntColumn get defaultCnsSource => integer().withDefault(const Constant(1))();
-  // Gas time remaining on the profile chart (v177). Source is a
-  // MetricDataSource index: 0 = computer, 1 = calculated. Reserve is bar.
-  IntColumn get defaultGtrSource => integer().withDefault(const Constant(1))();
+  // Gas time remaining on the profile chart (v177). Reserve is bar.
   RealColumn get gtrReservePressure =>
       real().withDefault(const Constant(50.0))();
   // CNS calculation method: 'classic' | 'shearwater' | 'subsurface' (v113)
   TextColumn get cnsCalculationMethod =>
       text().withDefault(const Constant('shearwater'))();
-  // Deco stop band on the profile chart (v133). Source is a MetricDataSource
-  // index: 0 = computer, 1 = calculated.
+  // Deco stop band on the profile chart (v133).
   BoolColumn get showDecoStopsOnProfile =>
       boolean().withDefault(const Constant(true))();
-  IntColumn get defaultDecoStopSource =>
-      integer().withDefault(const Constant(1))();
   // Post-dive safety review (safety features phase 1, v123)
   BoolColumn get safetyReviewEnabled =>
       boolean().withDefault(const Constant(true))();
@@ -3873,7 +3861,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 207;
+  static const int currentSchemaVersion = 208;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4413,6 +4401,11 @@ class AppDatabase extends _$AppDatabase {
     // rung takes 207; the list only counts remaining steps for progress
     // reporting and is non-contiguous by design.
     207,
+    // v208: retire the per-metric Computer/Calculated source preference
+    // (issue #767). Every decompression metric on the profile is now the
+    // app's own Buhlmann calculation, so the six default_*_source columns
+    // steer nothing.
+    208,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5728,11 +5721,33 @@ class AppDatabase extends _$AppDatabase {
         'CHECK (show_deco_stops_on_profile IN (0, 1))',
       );
     }
-    if (cols.isNotEmpty && !names.contains('default_deco_stop_source')) {
-      await customStatement(
-        'ALTER TABLE diver_settings ADD COLUMN default_deco_stop_source '
-        'INTEGER NOT NULL DEFAULT 1',
-      );
+  }
+
+  /// v208: drop the retired per-metric source columns from diver_settings.
+  ///
+  /// SQLite >= 3.35 supports DROP COLUMN; the PRAGMA guard keeps a database
+  /// that never had them (or that has already been migrated) a no-op. The
+  /// deco-stop and GTR backstops no longer re-assert their source columns, so
+  /// nothing puts these back after the drop.
+  Future<void> _dropRetiredMetricSourceColumns() async {
+    const retired = [
+      'default_ndl_source',
+      'default_ceiling_source',
+      'default_tts_source',
+      'default_cns_source',
+      'default_deco_stop_source',
+      'default_gtr_source',
+      'use_dive_computer_cns_data',
+    ];
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    for (final column in retired) {
+      if (names.contains(column)) {
+        await customStatement('ALTER TABLE diver_settings DROP COLUMN $column');
+      }
     }
   }
 
@@ -6639,12 +6654,6 @@ class AppDatabase extends _$AppDatabase {
         'ALTER TABLE diver_settings ADD COLUMN default_show_gtr '
         'INTEGER NOT NULL DEFAULT 0 '
         'CHECK (default_show_gtr IN (0, 1))',
-      );
-    }
-    if (!names.contains('default_gtr_source')) {
-      await customStatement(
-        'ALTER TABLE diver_settings ADD COLUMN default_gtr_source '
-        'INTEGER NOT NULL DEFAULT 1',
       );
     }
     if (!names.contains('gtr_reserve_pressure')) {
@@ -11365,6 +11374,17 @@ class AppDatabase extends _$AppDatabase {
           await _assertJunctionUpdatedAtColumns();
         }
         if (from < 207) await reportProgress();
+        // v208: the per-metric Computer/Calculated source preference is
+        // retired -- every decompression metric on the profile is now the
+        // app's own Buhlmann calculation.
+        // default_ceiling_source had already been inert since #755/#761, and
+        // #767 asked for its drop to ride along with the next diver_settings
+        // migration; use_dive_computer_cns_data is the v42 ancestor of
+        // default_cns_source and has been read by nothing since.
+        if (from < 208) {
+          await _dropRetiredMetricSourceColumns();
+        }
+        if (from < 208) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

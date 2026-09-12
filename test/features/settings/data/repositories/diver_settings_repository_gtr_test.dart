@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
@@ -32,32 +31,23 @@ void main() {
       DatabaseService.instance.resetForTesting();
     });
 
-    test(
-      'new settings default to hidden, calculated, 50 bar reserve',
-      () async {
-        await repository.createSettingsForDiver('d1');
-        final loaded = await repository.getSettingsForDiver('d1');
-        expect(loaded, isNotNull);
-        expect(loaded!.defaultShowGtr, isFalse);
-        expect(loaded.defaultGtrSource, MetricDataSource.calculated);
-        expect(loaded.gtrReservePressure, 50.0);
-      },
-    );
+    test('new settings default to hidden with a 50 bar reserve', () async {
+      await repository.createSettingsForDiver('d1');
+      final loaded = await repository.getSettingsForDiver('d1');
+      expect(loaded, isNotNull);
+      expect(loaded!.defaultShowGtr, isFalse);
+      expect(loaded.gtrReservePressure, 50.0);
+    });
 
-    test('round-trips all three GTR settings through update', () async {
+    test('round-trips both GTR settings through update', () async {
       await repository.createSettingsForDiver('d1');
       await repository.updateSettingsForDiver(
         'd1',
-        const AppSettings(
-          defaultShowGtr: true,
-          defaultGtrSource: MetricDataSource.computer,
-          gtrReservePressure: 70.0,
-        ),
+        const AppSettings(defaultShowGtr: true, gtrReservePressure: 70.0),
       );
       final loaded = await repository.getSettingsForDiver('d1');
       expect(loaded, isNotNull);
       expect(loaded!.defaultShowGtr, isTrue);
-      expect(loaded.defaultGtrSource, MetricDataSource.computer);
       expect(loaded.gtrReservePressure, 70.0);
     });
   });

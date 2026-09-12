@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
@@ -22,18 +21,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
-import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_time_remaining.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
-
-/// Reports which data source was actually used for each metric in the current profile.
-/// Updated as a side-effect of profileAnalysisProvider.
-final metricSourceInfoProvider = StateProvider<MetricSourceInfo?>(
-  (ref) => null,
-);
 
 /// Provider that loads dive computer events from the database and maps them
 /// to domain [ProfileEvent] instances.
@@ -425,165 +416,48 @@ ProfileAnalysisService _resolveAnalysisService(
   );
 }
 
-/// Overlays computer-reported decompression data onto a calculated
+/// Overlays resolved rebreather sensor data onto a calculated
 /// [ProfileAnalysis].
 ///
-/// Each metric (NDL, ceiling, TTS, CNS, deco stop band) is independently
-/// controlled by its own [MetricDataSource] parameter. When a source is
-/// [MetricDataSource.computer] and computer data exists in the profile,
-/// those values take priority over the Buhlmann-calculated values. Points
-/// without computer data fall back to the calculated values.
+/// Every decompression metric on the profile -- NDL, TTS, CNS, GTR, the deco
+/// stop band and the ceiling line -- is the app's own Buhlmann calculation,
+/// computed from one model with the diver's own gradient factors. The dive
+/// computer's recorded readings for those metrics are still stored on each
+/// sample, they simply do not steer the curves: two computers logging the same
+/// dive disagree, and a computer swap partway through a logbook made the
+/// numbers incomparable from one dive to the next.
 ///
-/// The deco stop band ([decoStopSource]) resolves against the incoming
-/// (calculated) [ProfileAnalysis.decoStopCurve] rather than against the
-/// possibly-overlaid ceiling curve, so choosing computer data for the
-/// ceiling line does not implicitly change the band's source too.
-///
-/// Returns a tuple of the (possibly overlaid) [ProfileAnalysis] and a
-/// [MetricSourceInfo] reporting the actual source used per metric after
-/// fallback resolution.
-(ProfileAnalysis, MetricSourceInfo) overlayComputerDecoData(
+/// ppO2 is the exception, because it is a measurement rather than a model
+/// output. For rebreather dives the displayed ppO2 must come from sensor data
+/// or the setpoint, never the OC depth x FO2 fallback, and the same resolved
+/// curve is fed into the analysis (see [resolveRebreatherPpO2]) so the CNS and
+/// OTU numbers match the displayed ppO2.
+ProfileAnalysis overlayRebreatherSensorData(
   ProfileAnalysis analysis,
   List<DiveProfilePoint> profile, {
-  MetricDataSource ndlSource = MetricDataSource.calculated,
-  MetricDataSource ceilingSource = MetricDataSource.calculated,
-  MetricDataSource ttsSource = MetricDataSource.calculated,
-  MetricDataSource cnsSource = MetricDataSource.calculated,
-  MetricDataSource decoStopSource = MetricDataSource.calculated,
-  MetricDataSource gtrSource = MetricDataSource.calculated,
   RebreatherPpO2? rebreatherPpO2,
 }) {
-  // A zero is not a reading. Computers that do not measure one of these
-  // still leave a zero in every sample, so a series that is zero from end to
-  // end counts as unreported and the calculated curve stands. TTS has always
-  // been read that way; the Cressi Leonardo forces the same rule on the other
-  // two, because it logs its deco obligation as a single bit and no numbers,
-  // leaving a stop depth of zero through a stop and a no-stop time of zero
-  // for the rest of the dive.
-  final hasComputerNdl = profile.any((p) => p.ndl != null && p.ndl! > 0);
-  final hasComputerCeiling = profile.any(
-    (p) => p.ceiling != null && p.ceiling! > 0,
-  );
-  final hasComputerTts = profile.any((p) => p.tts != null && p.tts! > 0);
-  final hasComputerCns = profile.any((p) => p.cns != null);
-  // Air-integrated computers log their own GTR (libdc RBT, stored in
-  // seconds); a null sample is the computer blanking its display.
-  final hasComputerGtr = profile.any((p) => p.rbt != null);
-
-  final useNdl = ndlSource == MetricDataSource.computer && hasComputerNdl;
-  final useCeiling =
-      ceilingSource == MetricDataSource.computer && hasComputerCeiling;
-  final useTts = ttsSource == MetricDataSource.computer && hasComputerTts;
-  final useCns = cnsSource == MetricDataSource.computer && hasComputerCns;
-  final useGtr = gtrSource == MetricDataSource.computer && hasComputerGtr;
-  // Resolved independently of useCeiling: the deco stop band must not be
-  // dragged along when the user picks "computer" for the ceiling line alone.
-  final useDecoStop =
-      decoStopSource == MetricDataSource.computer && hasComputerCeiling;
-
-  // ---- ppO2 / O2 cell overlay (CCR/SCR) ----
-  // For rebreather dives the displayed ppO2 must come from sensor data or the
-  // setpoint, never the OC depth x FO2 fallback. The same resolved curve is fed
-  // into the analysis (see [resolveRebreatherPpO2]) so the CNS/OTU numbers match
-  // the displayed ppO2. Callers that already resolved it pass it in to avoid a
-  // second pass over the profile; otherwise resolve it here.
+  // Callers that already resolved it pass it in to avoid a second pass over
+  // the profile; otherwise resolve it here.
   final resolved = rebreatherPpO2 ?? resolveRebreatherPpO2(profile);
   final resolvedPpO2 = resolved?.curve;
-  final o2SensorCurves = resolved?.sensorCurves;
-  final ppO2FromSensorAverage = resolved?.fromSensorAverage ?? false;
   final o2CellMvCurves = resolveO2CellMvCurves(profile);
 
-  // Report actual source used (fallback to calculated if no data)
-  final sourceInfo = (
-    ndlActual: useNdl ? MetricDataSource.computer : MetricDataSource.calculated,
-    ceilingActual: useCeiling
-        ? MetricDataSource.computer
-        : MetricDataSource.calculated,
-    ttsActual: useTts ? MetricDataSource.computer : MetricDataSource.calculated,
-    cnsActual: useCns ? MetricDataSource.computer : MetricDataSource.calculated,
-    decoStopActual: useDecoStop
-        ? MetricDataSource.computer
-        : MetricDataSource.calculated,
-    gtrActual: useGtr ? MetricDataSource.computer : MetricDataSource.calculated,
-  );
-
-  if (!useNdl &&
-      !useCeiling &&
-      !useDecoStop &&
-      !useTts &&
-      !useCns &&
-      !useGtr &&
-      resolvedPpO2 == null) {
+  if (resolvedPpO2 == null) {
     // Millivolts stand alone: a dive can carry them with no ppO2, cells or
     // setpoint to overlay, and they must not be dropped on this path (#810).
     if (o2CellMvCurves != null) {
-      return (analysis.copyWith(o2CellMvCurves: o2CellMvCurves), sourceInfo);
+      return analysis.copyWith(o2CellMvCurves: o2CellMvCurves);
     }
-    return (analysis, sourceInfo);
+    return analysis;
   }
 
-  final overlaid = analysis.copyWith(
-    ndlCurve: useNdl
-        ? List<int>.generate(
-            profile.length,
-            (i) =>
-                profile[i].ndl ??
-                (i < analysis.ndlCurve.length ? analysis.ndlCurve[i] : 0),
-          )
-        : null,
-    ceilingCurve: useCeiling
-        ? List<double>.generate(
-            profile.length,
-            (i) =>
-                profile[i].ceiling ??
-                (i < analysis.ceilingCurve.length
-                    ? analysis.ceilingCurve[i]
-                    : 0.0),
-          )
-        : null,
-    decoStopCurve: useDecoStop
-        ? List<double>.generate(
-            profile.length,
-            // Raw DC stop depth, deliberately not re-quantized: some computers
-            // use non-3m stop spacing and rounding would misreport what the
-            // diver actually saw. A null means no obligation at that sample.
-            (i) => profile[i].ceiling ?? 0.0,
-          )
-        : null,
-    ttsCurve: useTts
-        ? List<int>.generate(profile.length, (i) {
-            final computerTts = profile[i].tts;
-            if (computerTts != null) return computerTts;
-            if (analysis.ttsCurve != null && i < analysis.ttsCurve!.length) {
-              return analysis.ttsCurve![i];
-            }
-            return 0;
-          })
-        : null,
-    cnsCurve: useCns
-        ? List<double>.generate(
-            profile.length,
-            (i) =>
-                profile[i].cns ??
-                (analysis.cnsCurve != null && i < analysis.cnsCurve!.length
-                    ? analysis.cnsCurve![i]
-                    : 0.0),
-          )
-        : null,
-    // The computer's GTR verbatim: a null sample stays blank rather than
-    // borrowing the calculated value, because this source exists to show
-    // what the diver's display actually read.
-    gtrCurve: useGtr
-        ? List<int?>.generate(profile.length, (i) => profile[i].rbt)
-        : null,
-    // ppO2 from sensor/setpoint (null keeps the calculated curve).
+  return analysis.copyWith(
     ppO2Curve: resolvedPpO2,
-    o2SensorCurves: o2SensorCurves,
+    o2SensorCurves: resolved?.sensorCurves,
     o2CellMvCurves: o2CellMvCurves,
-    ppO2FromSensorAverage: resolvedPpO2 != null ? ppO2FromSensorAverage : null,
+    ppO2FromSensorAverage: resolved?.fromSensorAverage ?? false,
   );
-
-  return (overlaid, sourceInfo);
 }
 
 // Top-level cell accessors so they can form a `const` list of tear-offs.
@@ -1036,38 +910,12 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       heFraction = primaryTank.gasMix.he / 100.0;
     }
 
-    // Read per-metric source preferences from legend state.
-    // Use select() to only watch the per-metric source fields — toggling
-    // visibility or expanding menu sections should NOT trigger a full
-    // Buhlmann recalculation.
-    final ndlSource = ref.watch(
-      profileLegendProvider.select((s) => s.ndlSource),
-    );
-    // The ceiling line has no source toggle; it always uses the calculated
-    // (exact, continuous) curve, so no ceilingSource is read here (issue #755).
-    final ttsSource = ref.watch(
-      profileLegendProvider.select((s) => s.ttsSource),
-    );
-    final cnsSource = ref.watch(
-      profileLegendProvider.select((s) => s.cnsSource),
-    );
-    final decoStopSource = ref.watch(
-      profileLegendProvider.select((s) => s.decoStopSource),
-    );
-    final gtrSource = ref.watch(
-      profileLegendProvider.select((s) => s.gtrSource),
-    );
     final gtrReserveBar = ref.watch(
       settingsProvider.select((s) => s.gtrReservePressure),
     );
 
-    final useComputerCns = cnsSource == MetricDataSource.computer;
-    final computerCns = useComputerCns ? extractComputerCns(profile) : null;
-
-    // Compute residual CNS (skip if this dive has computer CNS data)
-    final startCns = computerCns != null
-        ? computerCns.cnsStart
-        : await _computeResidualCns(ref, diveId);
+    // Compute residual CNS carried over from earlier dives.
+    final startCns = await _computeResidualCns(ref, diveId);
 
     // Compute residual tissue state from previous dives (48h cutoff)
     final startCompartments = await _computeResidualTissueState(ref, diveId);
@@ -1171,47 +1019,20 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     // the very ones it decompressed with.
     final analysis = computed.copyWith(gfSource: gfSource);
 
-    // Overlay computer-reported deco data where available
-    final (overlaid, sourceInfo) = overlayComputerDecoData(
+    // Overlay resolved rebreather sensor data (ppO2 / O2 cells).
+    final overlaid = overlayRebreatherSensorData(
       analysis,
       profile,
-      ndlSource: ndlSource,
-      // ceilingSource omitted: defaults to calculated so the ceiling line is
-      // always the exact continuous curve (issue #755).
-      ttsSource: ttsSource,
-      cnsSource: cnsSource,
-      decoStopSource: decoStopSource,
-      gtrSource: gtrSource,
       rebreatherPpO2: rebreatherPpO2,
     );
-
-    // Publish actual source info for legend badge display. Guard with
-    // ref.mounted: this runs right after the compute() isolate call (a real
-    // async gap), and with several per-source analyses now in flight at
-    // once (active source + overlays), this provider instance can have
-    // been disposed by a rebuild before the isolate returns -- using a
-    // disposed Ref throws.
-    if (ref.mounted) {
-      ref.read(metricSourceInfoProvider.notifier).state = sourceInfo;
-    }
-
-    // Override o2Exposure with computer-reported CNS start/end
-    final withCns = computerCns != null
-        ? overlaid.copyWith(
-            o2Exposure: overlaid.o2Exposure.copyWith(
-              cnsStart: computerCns.cnsStart,
-              cnsEnd: computerCns.cnsEnd,
-            ),
-          )
-        : overlaid;
 
     // Merge DB events (dive computer events) with auto-detected events
     final dbEvents = await ref.watch(diveComputerEventsProvider(diveId).future);
     if (dbEvents.isEmpty) {
-      return withCns;
+      return overlaid;
     }
-    final merged = mergeEvents(withCns.events, dbEvents);
-    return withCns.copyWith(events: merged);
+    final merged = mergeEvents(overlaid.events, dbEvents);
+    return overlaid.copyWith(events: merged);
   }
 }
 
@@ -1312,28 +1133,6 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
 
     final previousDive = await repository.getPreviousDiveTimes(diveId);
     if (previousDive == null) return 0.0;
-
-    // Short-circuit: if the legend's CNS source is set to computer and the
-    // previous dive has computer CNS, use its last CNS sample directly
-    // instead of full analysis. The profile is fetched only when this
-    // branch is taken (times-only lookup otherwise).
-    // Use select() to avoid invalidating on unrelated legend state changes.
-    final cnsSource = ref.watch(
-      profileLegendProvider.select((s) => s.cnsSource),
-    );
-    final useComputerCns = cnsSource == MetricDataSource.computer;
-    if (useComputerCns) {
-      final previousProfile = await repository.getMergedProfile(
-        previousDive.id,
-      );
-      final prevComputerCns = extractComputerCns(previousProfile);
-      if (prevComputerCns != null) {
-        return CnsTable.cnsAfterSurfaceInterval(
-          prevComputerCns.cnsEnd,
-          surfaceInterval.inMinutes,
-        );
-      }
-    }
 
     // Read (not watch) the previous dive's full analysis to avoid cascading
     // Riverpod invalidations. Each profileAnalysisProvider independently
@@ -1582,10 +1381,9 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
 
 /// Provider for profile analysis using a Dive object directly.
 ///
-/// Note: This synchronous provider always uses [MetricDataSource.computer]
-/// for all four metrics (NDL, ceiling, TTS, CNS) when data is present.
-/// It does not read per-metric source preferences from the legend state.
-/// Use [profileAnalysisProvider] (by diveId) for preference-aware handling.
+/// Every decompression metric is the app's own calculation, exactly as in
+/// [profileAnalysisProvider]; only resolved rebreather sensor data is
+/// overlaid.
 final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
   ref,
   dive,
@@ -1703,18 +1501,11 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
     );
 
     // Overlay computer-reported deco data where available
-    final (overlaid, _) = overlayComputerDecoData(
+    return overlayRebreatherSensorData(
       analysis,
       dive.profile,
-      ndlSource: MetricDataSource.computer,
-      ceilingSource: MetricDataSource.computer,
-      ttsSource: MetricDataSource.computer,
-      cnsSource: MetricDataSource.computer,
-      decoStopSource: MetricDataSource.computer,
-      gtrSource: MetricDataSource.computer,
       rebreatherPpO2: rebreatherPpO2,
     );
-    return overlaid;
   } catch (e, stackTrace) {
     _log.error(
       'Failed to analyze profile for dive: ${dive.id}',

@@ -24,7 +24,6 @@ import 'package:submersion/features/dive_sites/domain/services/site_location_bac
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/place_name_language_picker.dart';
 import 'package:submersion/features/settings/presentation/widgets/visibility_scale_picker.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/bathymetry_refresh_tile.dart';
@@ -1299,77 +1298,6 @@ class _DecompressionSectionContent extends ConsumerWidget {
           const SizedBox(height: 24),
           _buildSectionHeader(
             context,
-            context.l10n.settings_decompression_header_dataSources,
-          ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              context.l10n.settings_decompression_header_dataSources_subtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                _buildSourceDropdownTile(
-                  context,
-                  title: context.l10n.settings_decompression_ndlSource,
-                  value: settings.defaultNdlSource,
-                  onChanged: (source) => ref
-                      .read(settingsProvider.notifier)
-                      .setDefaultNdlSource(source),
-                ),
-                const Divider(height: 1),
-                // No Ceiling Source tile: the ceiling line always renders the
-                // exact calculated curve (issue #755). The Computer/Calculated
-                // choice remains meaningful for the deco stop schedule below.
-                _buildSourceDropdownTile(
-                  context,
-                  title: context.l10n.settings_decompression_decoStopSource,
-                  value: settings.defaultDecoStopSource,
-                  onChanged: (source) => ref
-                      .read(settingsProvider.notifier)
-                      .setDefaultDecoStopSource(source),
-                ),
-                const Divider(height: 1),
-                _buildSourceDropdownTile(
-                  context,
-                  title: context.l10n.settings_decompression_ttsSource,
-                  value: settings.defaultTtsSource,
-                  onChanged: (source) => ref
-                      .read(settingsProvider.notifier)
-                      .setDefaultTtsSource(source),
-                ),
-                const Divider(height: 1),
-                _buildSourceDropdownTile(
-                  context,
-                  title: context.l10n.settings_decompression_gtrSource,
-                  value: settings.defaultGtrSource,
-                  onChanged: (source) => ref
-                      .read(settingsProvider.notifier)
-                      .setDefaultGtrSource(source),
-                ),
-                const Divider(height: 1),
-                _buildGtrReserveTile(context, ref, settings),
-                const Divider(height: 1),
-                _buildSourceDropdownTile(
-                  context,
-                  title: context.l10n.settings_decompression_cnsSource,
-                  value: settings.defaultCnsSource,
-                  onChanged: (source) => ref
-                      .read(settingsProvider.notifier)
-                      .setDefaultCnsSource(source),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          _buildSectionHeader(
-            context,
             context.l10n.settings_decompression_header_narcosis,
           ),
           const SizedBox(height: 8),
@@ -1422,65 +1350,53 @@ class _DecompressionSectionContent extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Card(
-            child: ListTile(
-              leading: const Icon(Icons.swap_vert),
-              title: Text(context.l10n.settings_decompression_ascentGasLabel),
-              dense: true,
-              trailing: DropdownButton<AscentGasSet>(
-                value: settings.ascentGasSet,
-                underline: const SizedBox.shrink(),
-                items: [
-                  DropdownMenuItem(
-                    value: AscentGasSet.allCarried,
-                    child: Text(
-                      context.l10n.settings_decompression_ascentGas_allCarried,
-                    ),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.swap_vert),
+                  title: Text(
+                    context.l10n.settings_decompression_ascentGasLabel,
                   ),
-                  DropdownMenuItem(
-                    value: AscentGasSet.decoStageOnly,
-                    child: Text(
-                      context.l10n.settings_decompression_ascentGas_decoStage,
-                    ),
+                  dense: true,
+                  trailing: DropdownButton<AscentGasSet>(
+                    value: settings.ascentGasSet,
+                    underline: const SizedBox.shrink(),
+                    items: [
+                      DropdownMenuItem(
+                        value: AscentGasSet.allCarried,
+                        child: Text(
+                          context
+                              .l10n
+                              .settings_decompression_ascentGas_allCarried,
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: AscentGasSet.decoStageOnly,
+                        child: Text(
+                          context
+                              .l10n
+                              .settings_decompression_ascentGas_decoStage,
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        ref
+                            .read(settingsProvider.notifier)
+                            .setAscentGasSet(value);
+                      }
+                    },
                   ),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    ref.read(settingsProvider.notifier).setAscentGasSet(value);
-                  }
-                },
-              ),
+                ),
+                const Divider(height: 1),
+                // Re-homed from the retired Data Source Preferences section:
+                // the reserve is what the diver wants left on surfacing, so it
+                // belongs with the other ascent gas settings.
+                _buildGtrReserveTile(context, ref, settings),
+              ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSourceDropdownTile(
-    BuildContext context, {
-    required String title,
-    required MetricDataSource value,
-    required ValueChanged<MetricDataSource> onChanged,
-  }) {
-    return ListTile(
-      title: Text(title),
-      dense: true,
-      trailing: DropdownButton<MetricDataSource>(
-        value: value,
-        underline: const SizedBox.shrink(),
-        items: [
-          DropdownMenuItem(
-            value: MetricDataSource.calculated,
-            child: Text(context.l10n.settings_decompression_sourceCalculated),
-          ),
-          DropdownMenuItem(
-            value: MetricDataSource.computer,
-            child: Text(context.l10n.settings_decompression_sourceComputer),
-          ),
-        ],
-        onChanged: (newValue) {
-          if (newValue != null) onChanged(newValue);
-        },
       ),
     );
   }

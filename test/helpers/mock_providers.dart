@@ -14,7 +14,6 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -278,21 +277,6 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setAscentGasSet(AscentGasSet value) async =>
       state = state.copyWith(ascentGasSet: value);
   @override
-  Future<void> setDefaultNdlSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultNdlSource: value);
-  @override
-  Future<void> setDefaultCeilingSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultCeilingSource: value);
-  @override
-  Future<void> setDefaultDecoStopSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultDecoStopSource: value);
-  @override
-  Future<void> setDefaultTtsSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultTtsSource: value);
-  @override
-  Future<void> setDefaultCnsSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultCnsSource: value);
-  @override
   Future<void> setCnsCalculationMethod(CnsCalculationMethod value) async =>
       state = state.copyWith(cnsCalculationMethod: value);
   @override
@@ -421,10 +405,6 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultShowGtr(bool value) async =>
       state = state.copyWith(defaultShowGtr: value);
-
-  @override
-  Future<void> setDefaultGtrSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultGtrSource: value);
 
   @override
   Future<void> setGtrReservePressure(double value) async =>

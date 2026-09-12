@@ -6385,12 +6385,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
-  String get diveLog_legend_source_dc => 'DC';
-
-  @override
-  String get diveLog_legend_source_calc => 'Calc.';
-
-  @override
   String get diveLog_chartSection_overlays => 'Superposiciones';
 
   @override
@@ -34823,42 +34817,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tanque de deco/etapa + gas principal';
 
   @override
-  String get settings_decompression_cnsSource => 'Origen del CNS';
-
-  @override
-  String get settings_decompression_decoStopSource =>
-      'Origen de las paradas de descompresión';
-
-  @override
   String get settings_decompression_header_ascent =>
       'Planificación del ascenso';
 
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'A qué tanques llevados puede cambiar el ascenso simulado (TTS, techo y paradas) en cada profundidad. Solo se tienen en cuenta los gases registrados en la inmersión.';
-
-  @override
-  String get settings_decompression_header_dataSources =>
-      'Preferencias de origen de los datos';
-
-  @override
-  String get settings_decompression_header_dataSources_subtitle =>
-      'Cuando se selecciona Ordenador de buceo, la app usa los datos informados por el ordenador de buceo cuando están disponibles. Si no hay datos del ordenador, recurre a los valores calculados.';
-
-  @override
-  String get settings_decompression_ndlSource => 'Origen del NDL';
-
-  @override
-  String get settings_decompression_sourceCalculated => 'Calculado';
-
-  @override
-  String get settings_decompression_sourceComputer => 'Ordenador de buceo';
-
-  @override
-  String get settings_decompression_ttsSource => 'Origen del TTS';
-
-  @override
-  String get settings_decompression_gtrSource => 'Origen del GTR';
 
   @override
   String get settings_decompression_gtrReserve => 'Presión de reserva del GTR';

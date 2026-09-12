@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -83,7 +82,7 @@ void main() {
     expect(_inDialog(find.text('GTR')), findsOneWidget);
   });
 
-  testWidgets('the options dialog gives GTR a computer/calculated selector', (
+  testWidgets('the options dialog renders GTR as a plain visibility toggle', (
     tester,
   ) async {
     await _pumpLegend(
@@ -94,7 +93,19 @@ void main() {
     await _openDialog(tester);
 
     expect(_inDialog(find.text('GTR')), findsOneWidget);
-    // TTS and GTR: both are source-capable.
-    expect(find.byType(SegmentedButton<MetricDataSource>), findsNWidgets(2));
+    // Every metric is calculated now, so the row is an ordinary check box
+    // with no Computer/Calculated selector beside it.
+    final gtrRow = find
+        .ancestor(of: _inDialog(find.text('GTR')), matching: find.byType(Row))
+        .first;
+    expect(
+      find.descendant(
+        of: gtrRow,
+        matching: find.byIcon(Icons.check_box_outline_blank),
+      ),
+      findsOneWidget,
+    );
+    expect(_inDialog(find.text('DC')), findsNothing);
+    expect(_inDialog(find.text('Calc')), findsNothing);
   });
 }

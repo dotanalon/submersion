@@ -4909,12 +4909,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         }
       }
 
-      // Ceiling, from this source's own computed analysis (already resolved
-      // computer-vs-calculated the same way the active ceiling line is, via
-      // overlayComputerDecoData) -- reading the raw device field directly
-      // here instead would show a different resolution than the active
-      // line's default and, for a computer whose raw ceiling is noisy,
-      // render as a jagged mess instead of the smoothed calculated curve.
+      // Ceiling, from this source's own computed analysis -- reading the raw
+      // device field directly here instead would, for a computer whose raw
+      // ceiling is noisy, render as a jagged mess instead of the smoothed
+      // calculated curve the active ceiling line shows.
       if (_showCeiling) {
         final ceilingCurve = overlay.analysis?.ceilingCurve;
         if (ceilingCurve != null && ceilingCurve.isNotEmpty) {
