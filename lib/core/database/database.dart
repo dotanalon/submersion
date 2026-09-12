@@ -7896,7 +7896,7 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  /// v208: dive_plans.stop_minimums_json (replan-this-dive minimum stop
+  /// v211: dive_plans.stop_minimums_json (replan-this-dive minimum stop
   /// durations). Additive, nullable column, no backfill: an existing plan
   /// reads back with no minimums set, exactly its prior behavior.
   Future<void> _assertPlanStopMinimumsColumn() async {
@@ -7909,7 +7909,7 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  /// v209: dive_plans gas-options columns (Subsurface parity: SAC factor,
+  /// v212: dive_plans gas-options columns (Subsurface parity: SAC factor,
   /// problem solving time, bottom/deco ppO2 overrides, best-mix END, O2
   /// narcotic override). Additive; the two non-nullable columns backfill
   /// existing rows with the same defaults [DivePlan] already assumes when a
@@ -12151,12 +12151,12 @@ class AppDatabase extends _$AppDatabase {
         // v204 backstop: re-assert diver_settings.group_trips_in_dive_list.
         await _assertGroupTripsInDiveListColumn();
 
-        // v208 backstop: re-assert the dive_plans stop-minimums column. A
+        // v211 backstop: re-assert the dive_plans stop-minimums column. A
         // database that arrives by restore or sync-adopt never runs
         // onUpgrade, and reading a plan without it throws.
         await _assertPlanStopMinimumsColumn();
 
-        // v209 backstop: re-assert the dive_plans gas-options columns. A
+        // v212 backstop: re-assert the dive_plans gas-options columns. A
         // database that arrives by restore or sync-adopt never runs
         // onUpgrade, and reading a plan without them throws.
         await _assertPlanGasOptionColumns();

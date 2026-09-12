@@ -13884,7 +13884,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_label_sacRate.
   ///
   /// In en, this message translates to:
-  /// **'SAC'**
+  /// **'RMV:'**
   String get divePlanner_label_sacRate;
 
   /// No description provided for @divePlanner_label_salinity.
@@ -13899,16 +13899,22 @@ abstract class AppLocalizations {
   /// **'Gas options'**
   String get divePlanner_gasOptions_title;
 
+  /// No description provided for @divePlanner_gasOptions_sacBottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom RMV'**
+  String get divePlanner_gasOptions_sacBottom;
+
   /// No description provided for @divePlanner_gasOptions_sacDeco.
   ///
   /// In en, this message translates to:
-  /// **'Deco SAC'**
+  /// **'Deco RMV'**
   String get divePlanner_gasOptions_sacDeco;
 
   /// No description provided for @divePlanner_gasOptions_sacFactor.
   ///
   /// In en, this message translates to:
-  /// **'SAC factor'**
+  /// **'RMV factor'**
   String get divePlanner_gasOptions_sacFactor;
 
   /// No description provided for @divePlanner_gasOptions_problemSolvingMinutes.
@@ -59776,7 +59782,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_semantics_sacRate.
   ///
   /// In en, this message translates to:
-  /// **'SAC: {value} {volumeSymbol} per minute'**
+  /// **'RMV: {value} {volumeSymbol} per minute'**
   String divePlanner_semantics_sacRate(Object value, Object volumeSymbol);
 
   /// No description provided for @divePlanner_semantics_reservePressure.

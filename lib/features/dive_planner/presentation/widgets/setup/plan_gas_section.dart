@@ -12,10 +12,14 @@ import 'package:submersion/features/planner/presentation/providers/plan_canvas_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Gas settings for the Setup accordion: Bottom SAC (with one-tap logged
+/// Gas settings for the Setup accordion: Bottom RMV (with one-tap logged
 /// average), reserve pressure, and the Subsurface-style Gas options
-/// ([PlanGasOptionsSection]: Deco SAC, SAC factor, problem solving time,
+/// ([PlanGasOptionsSection]: Deco RMV, RMV factor, problem solving time,
 /// bottom/deco ppO2, best-mix END, O2 narcotic).
+///
+/// The app calls the volume rate RMV (AMV in German) and reserves SAC for the
+/// pressure rate, so these labels say RMV even though the state field and the
+/// stored columns keep their historical `sac` names.
 class PlanGasSection extends ConsumerWidget {
   const PlanGasSection({super.key});
 
@@ -29,7 +33,7 @@ class PlanGasSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PlanGasOptionNumberField(
-          label: context.l10n.divePlanner_label_sacRate,
+          label: context.l10n.divePlanner_gasOptions_sacBottom,
           value: units.convertVolume(planState.sacRate),
           hintValue: units.convertVolume(15),
           suffixText: units.rmvSymbol,

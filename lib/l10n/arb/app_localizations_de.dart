@@ -8352,13 +8352,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_label_runtime => 'Laufzeit';
 
   @override
-  String get divePlanner_label_sacRate => 'AMV';
+  String get divePlanner_label_sacRate => 'AMV:';
 
   @override
   String get divePlanner_label_salinity => 'Salzgehalt';
 
   @override
   String get divePlanner_gasOptions_title => 'Gas options';
+
+  @override
+  String get divePlanner_gasOptions_sacBottom => 'Grund-AMV';
 
   @override
   String get divePlanner_gasOptions_sacDeco => 'Deko-AMV';

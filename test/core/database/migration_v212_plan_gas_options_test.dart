@@ -4,13 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v209 is the current schema version and is in the ladder', () {
-    // Renumbered again: trip grouping (204) and the gear-junction updated_at
-    // (207) landed on main while this branch was open, 205 and 206 are
-    // claimed by the condition-intelligence branches, and stop-minimums took
-    // 208.
-    expect(AppDatabase.currentSchemaVersion, 209);
-    expect(AppDatabase.migrationVersions, contains(209));
+  test('v212 is the current schema version and is in the ladder', () {
+    // Renumbered again: main shipped 210 while this branch was open, so the
+    // 209 it had reserved for this branch would never run, and stop-minimums
+    // took 211.
+    expect(AppDatabase.currentSchemaVersion, 212);
+    expect(AppDatabase.migrationVersions, contains(212));
   });
 
   test('a fresh database has the dive_plans gas-options columns with the '
@@ -44,7 +43,7 @@ void main() {
   });
 
   test(
-    'a database stranded before v209 gains the columns via beforeOpen',
+    'a database stranded before v212 gains the columns via beforeOpen',
     () async {
       final nativeDb = NativeDatabase.memory(
         setup: (rawDb) {

@@ -131,12 +131,12 @@ void main() {
     expect(container.read(divePlanNotifierProvider).lastStopDepth, 4.0);
   });
 
-  testWidgets('gas section shows SAC field and reserve field with unit', (
+  testWidgets('gas section shows RMV field and reserve field with unit', (
     tester,
   ) async {
     await tester.pumpWidget(_harness(const PlanGasSection()));
     await tester.pumpAndSettle();
-    expect(find.text('SAC'), findsOneWidget);
+    expect(find.text('Bottom RMV'), findsOneWidget);
     expect(find.byType(Slider), findsNothing);
     expect(find.text('50'), findsOneWidget);
     expect(find.textContaining('bar'), findsWidgets);
