@@ -4,13 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v208 is at or below the current schema version and in the ladder', () {
-    // Renumbered again: trip grouping (204) and the gear-junction updated_at
-    // (207) landed on main while this branch was open, and 205 and 206 are
-    // claimed by the condition-intelligence branches. Relaxed now that the
-    // gas-options rung sits on top; the newest rung owns the exact assertion.
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(208));
-    expect(AppDatabase.migrationVersions, contains(208));
+  test('v211 is at or below the current schema version and in the ladder', () {
+    // Renumbered again: main shipped 210 while this branch was open, so the
+    // 209 it had reserved for this branch sits at or below the shipped
+    // version and would never run. Relaxed now that the gas-options rung
+    // sits on top; the newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(211));
+    expect(AppDatabase.migrationVersions, contains(211));
   });
 
   test(
@@ -34,7 +34,7 @@ void main() {
   );
 
   test(
-    'a database stranded before v201 gains the column via beforeOpen',
+    'a database stranded before v211 gains the column via beforeOpen',
     () async {
       final nativeDb = NativeDatabase.memory(
         setup: (rawDb) {

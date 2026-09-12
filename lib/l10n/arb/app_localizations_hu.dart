@@ -8364,7 +8364,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_label_runtime => 'Futási idő';
 
   @override
-  String get divePlanner_label_sacRate => 'SAC';
+  String get divePlanner_label_sacRate => 'RMV:';
 
   @override
   String get divePlanner_label_salinity => 'Sótartalom';
@@ -8373,10 +8373,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_gasOptions_title => 'Gas options';
 
   @override
-  String get divePlanner_gasOptions_sacDeco => 'Deco SAC';
+  String get divePlanner_gasOptions_sacBottom => 'Bottom RMV';
 
   @override
-  String get divePlanner_gasOptions_sacFactor => 'SAC factor';
+  String get divePlanner_gasOptions_sacDeco => 'Deco RMV';
+
+  @override
+  String get divePlanner_gasOptions_sacFactor => 'RMV factor';
 
   @override
   String get divePlanner_gasOptions_problemSolvingMinutes =>
@@ -36453,7 +36456,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String divePlanner_semantics_sacRate(Object value, Object volumeSymbol) {
-    return 'SAC: $value $volumeSymbol percenként';
+    return 'RMV: $value $volumeSymbol percenként';
   }
 
   @override

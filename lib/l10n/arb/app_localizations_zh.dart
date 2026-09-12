@@ -7978,7 +7978,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_label_runtime => '运行时间';
 
   @override
-  String get divePlanner_label_sacRate => 'SAC';
+  String get divePlanner_label_sacRate => 'RMV:';
 
   @override
   String get divePlanner_label_salinity => '盐度';
@@ -7987,10 +7987,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_gasOptions_title => 'Gas options';
 
   @override
-  String get divePlanner_gasOptions_sacDeco => 'Deco SAC';
+  String get divePlanner_gasOptions_sacBottom => 'Bottom RMV';
 
   @override
-  String get divePlanner_gasOptions_sacFactor => 'SAC factor';
+  String get divePlanner_gasOptions_sacDeco => 'Deco RMV';
+
+  @override
+  String get divePlanner_gasOptions_sacFactor => 'RMV factor';
 
   @override
   String get divePlanner_gasOptions_problemSolvingMinutes =>
@@ -34509,7 +34512,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String divePlanner_semantics_sacRate(Object value, Object volumeSymbol) {
-    return 'SAC：每分钟 $value $volumeSymbol';
+    return 'RMV：每分钟 $value $volumeSymbol';
   }
 
   @override

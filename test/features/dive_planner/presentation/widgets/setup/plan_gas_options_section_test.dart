@@ -33,14 +33,16 @@ Widget _harness({DepthUnit depthUnit = DepthUnit.meters}) => testApp(
 );
 
 void main() {
-  testWidgets('editing SAC factor updates the notifier state', (tester) async {
+  testWidgets('editing the RMV factor updates the notifier state', (
+    tester,
+  ) async {
     await tester.pumpWidget(_harness());
     await tester.pumpAndSettle();
 
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PlanGasOptionsSection)),
     );
-    // Declaration order in PlanGasOptionsSection: Deco SAC, SAC factor,
+    // Declaration order in PlanGasOptionsSection: Deco RMV, RMV factor,
     // problem solving time, ppO2 bottom, ppO2 deco, best-mix END.
     final fields = tester
         .widgetList<TextField>(find.byType(TextField))
