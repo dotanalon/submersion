@@ -262,6 +262,80 @@ void main() {
       }
     });
 
+    test('a gas switch between samples is a waypoint at its exact time', () {
+      // Samples are 10 s apart, so 785 falls between two of them. Snapping it
+      // to the nearer sample would move the switch by up to half an interval
+      // and charge that slice of the dive to the wrong tank.
+      final profile = _multilevelProfile();
+      final switches = [
+        GasSwitch(
+          id: 'sw1',
+          diveId: 'dive-1',
+          timestamp: 785,
+          tankId: 'deco',
+          createdAt: DateTime.now(),
+        ),
+      ];
+
+      for (var levels = 1; levels <= 5; levels++) {
+        final points = converter.breakpoints(
+          profile: profile,
+          gasSwitches: switches,
+          levels: levels,
+        );
+        expect(
+          points.map((p) => p.timeSeconds),
+          contains(785),
+          reason: 'levels=$levels',
+        );
+      }
+    });
+
+    test('an off-sample switch charges every leg to the tank truly in use', () {
+      final profile = _multilevelProfile();
+      const backGas = DiveTank(
+        id: 'back',
+        gasMix: GasMix(o2: 21, he: 0),
+        role: TankRole.backGas,
+        order: 0,
+      );
+      const deco = DiveTank(
+        id: 'deco',
+        gasMix: GasMix(o2: 50, he: 0),
+        role: TankRole.deco,
+        order: 1,
+      );
+      final switches = [
+        GasSwitch(
+          id: 'sw1',
+          diveId: 'dive-1',
+          timestamp: 785,
+          tankId: deco.id,
+          createdAt: DateTime.now(),
+        ),
+      ];
+
+      for (var levels = 1; levels <= 5; levels++) {
+        final result = run(
+          profile,
+          levels,
+          tanks: [backGas, deco],
+          switches: switches,
+        );
+        var elapsed = 0;
+        for (final seg in result.segments) {
+          expect(
+            seg.tankId,
+            elapsed >= 785 ? 'deco' : 'back',
+            reason: 'levels=$levels elapsed=$elapsed',
+          );
+          elapsed += seg.durationSeconds;
+        }
+        // The switch is a segment boundary, so no leg straddles it.
+        expect(result.segments.any((s) => s.tankId == 'deco'), isTrue);
+      }
+    });
+
     test('breakpoints match the segments the plan is built from', () {
       final profile = _multilevelProfile();
       final points = converter.breakpoints(

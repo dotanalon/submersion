@@ -52,6 +52,7 @@ Future<DivePlanNotifier> _pumpSheet(WidgetTester tester) async {
   final notifier = DivePlanNotifier(PlanCalculatorService());
   await tester.pumpWidget(
     testApp(
+      locale: const Locale('en'),
       overrides: [
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         activePlanOutcomeProvider.overrideWithValue(_outcomeWithStop()),

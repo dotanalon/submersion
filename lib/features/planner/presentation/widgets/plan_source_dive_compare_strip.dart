@@ -24,6 +24,9 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
     final actualTtsSeconds = ref
         .watch(sourceDiveTtsSecondsProvider)
         .valueOrNull;
+    final actualDecoSeconds = ref
+        .watch(sourceDiveDecoSecondsProvider)
+        .valueOrNull;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final theme = Theme.of(context);
 
@@ -46,6 +49,16 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
         actual: actualTtsSeconds == null
             ? '--'
             : '${(actualTtsSeconds / 60).round()}′',
+      ),
+      // The hanging inside that TTS. TTS also carries the ascent travel, which
+      // the diver's ascent rates set rather than the gas or depth they came
+      // here to vary, so the deco figure is the one that isolates the change.
+      _CompareRow(
+        label: context.l10n.plannerCanvas_compare_deco,
+        planned: '${(outcome.totalDecoSeconds / 60).round()}′',
+        actual: actualDecoSeconds == null
+            ? '--'
+            : '${(actualDecoSeconds / 60).round()}′',
       ),
       for (final tank in dive.tanks)
         if (tank.pressureUsed != null && tank.volume != null)

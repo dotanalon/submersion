@@ -167,9 +167,10 @@ class DiveToPlanConverter {
     if (sorted.length < 2) return const [];
 
     final t0 = sorted.first.timestamp;
-    final pts = [
-      for (final p in sorted) _Point((p.timestamp - t0).toDouble(), p.depth),
-    ];
+    final pts = _withSwitchPoints(
+      [for (final p in sorted) _Point((p.timestamp - t0).toDouble(), p.depth)],
+      [for (final g in gasSwitches) (g.timestamp - t0).toDouble()],
+    );
 
     final maxDepth = pts.fold(0.0, (m, p) => math.max(m, p.y));
     if (maxDepth <= 0) return const [];
@@ -300,8 +301,8 @@ class DiveToPlanConverter {
 
     final switches = <int>{};
     for (final t in gasSwitchTimes) {
-      final idx = _nearestIndex(pts, t.toDouble());
-      if (idx > 0 && idx < endIndex) switches.add(idx);
+      final idx = _indexAtTime(pts, t.toDouble());
+      if (idx != null && idx > 0 && idx < endIndex) switches.add(idx);
     }
 
     final all = <int>{0, bottomStart, ...switches, bottomEnd, endIndex}.toList()
@@ -309,17 +310,48 @@ class DiveToPlanConverter {
     return _Anchors(all: all, bottomStart: bottomStart, bottomEnd: bottomEnd);
   }
 
-  int _nearestIndex(List<_Point> pts, double time) {
-    var best = 0;
-    var bestDist = double.infinity;
-    for (var i = 0; i < pts.length; i++) {
-      final d = (pts[i].x - time).abs();
-      if (d < bestDist) {
-        bestDist = d;
-        best = i;
-      }
+  /// The profile with an interpolated sample added at every gas-switch time
+  /// that falls between two samples, so a switch is always a waypoint at the
+  /// second it was logged. Snapping it to the nearest sample instead would
+  /// move the segment boundary by up to half a sampling interval and charge
+  /// that slice of the dive to the wrong tank.
+  ///
+  /// An inserted point sits exactly on the line between its neighbours, so the
+  /// RDP passes never pick it as a detail point; only [_anchorIndices] uses it.
+  List<_Point> _withSwitchPoints(List<_Point> pts, List<double> switchTimes) {
+    if (switchTimes.isEmpty || pts.length < 2) return pts;
+    final known = {for (final p in pts) p.x};
+    final inserted = <_Point>[];
+    for (final time in switchTimes) {
+      if (time <= pts.first.x || time >= pts.last.x) continue;
+      if (!known.add(time)) continue;
+      inserted.add(_Point(time, _interpolatedDepth(pts, time)));
     }
-    return best;
+    if (inserted.isEmpty) return pts;
+    return [...pts, ...inserted]..sort((a, b) => a.x.compareTo(b.x));
+  }
+
+  /// Depth at [time], linearly between the samples bracketing it. Only called
+  /// for a time strictly inside the profile, so a bracket always exists.
+  double _interpolatedDepth(List<_Point> pts, double time) {
+    for (var i = 1; i < pts.length; i++) {
+      if (pts[i].x < time) continue;
+      final before = pts[i - 1];
+      final after = pts[i];
+      final span = after.x - before.x;
+      if (span <= 0) return after.y;
+      return before.y + (after.y - before.y) * (time - before.x) / span;
+    }
+    return pts.last.y;
+  }
+
+  /// Index of the sample at exactly [time], or null when the profile has none.
+  /// [_withSwitchPoints] guarantees one for every switch inside the profile.
+  int? _indexAtTime(List<_Point> pts, double time) {
+    for (var i = 0; i < pts.length; i++) {
+      if (pts[i].x == time) return i;
+    }
+    return null;
   }
 
   static const _uuid = Uuid();

@@ -46,10 +46,12 @@ void main() {
   ) async {
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           sourceDiveForPlanProvider.overrideWith((ref) async => null),
           sourceDiveTtsSecondsProvider.overrideWith((ref) async => null),
+          sourceDiveDecoSecondsProvider.overrideWith((ref) async => null),
         ],
         child: const PlanSourceDiveCompareStrip(),
       ),
@@ -82,10 +84,12 @@ void main() {
 
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           sourceDiveForPlanProvider.overrideWith((ref) async => dive),
           sourceDiveTtsSecondsProvider.overrideWith((ref) async => 28 * 60),
+          sourceDiveDecoSecondsProvider.overrideWith((ref) async => 22 * 60),
           activePlanOutcomeProvider.overrideWithValue(_outcome()),
         ],
         child: const PlanSourceDiveCompareStrip(),
@@ -99,5 +103,11 @@ void main() {
     expect(find.text('TTS'), findsOneWidget);
     expect(find.text('5′'), findsOneWidget); // planned TTS
     expect(find.text('28′'), findsOneWidget); // actual computer TTS
+    // TTS is the whole tail to the surface; deco time is only the hanging in
+    // it, so the two are separate rows rather than one standing in for the
+    // other.
+    expect(find.text('Deco time'), findsOneWidget);
+    expect(find.text('4′'), findsOneWidget); // planned: the 240 s stop
+    expect(find.text('22′'), findsOneWidget); // actual, from the profile
   });
 }

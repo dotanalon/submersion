@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -138,4 +139,112 @@ void main() {
       );
     },
   );
+
+  testWidgets('the preview and the opened plan see the same gas switches', (
+    tester,
+  ) async {
+    const back = DiveTank(
+      id: 'back',
+      name: 'Primary',
+      volume: 11.1,
+      startPressure: 200,
+      gasMix: GasMix(o2: 21, he: 0),
+      role: TankRole.backGas,
+      order: 0,
+    );
+    const deco = DiveTank(
+      id: 'deco',
+      name: 'Deco',
+      volume: 7,
+      startPressure: 200,
+      gasMix: GasMix(o2: 50, he: 0),
+      role: TankRole.deco,
+      order: 1,
+    );
+    final multiGasDive = dive.copyWith(tanks: const [back, deco]);
+    // Samples are 10 s apart, so 785 falls between two of them.
+    final switches = [
+      GasSwitchWithTank(
+        gasSwitch: GasSwitch(
+          id: 'sw1',
+          diveId: 'dive-7',
+          timestamp: 785,
+          tankId: 'deco',
+          createdAt: DateTime(2026, 7, 1, 9),
+        ),
+        tankName: 'Deco',
+        gasMix: 'EAN50',
+        o2Fraction: 0.5,
+      ),
+    ];
+
+    final router = GoRouter(
+      initialLocation: '/dives/dive-7',
+      routes: [
+        GoRoute(
+          path: '/dives/:id',
+          builder: (_, _) => Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => showWhatIfSheet(context, multiGasDive),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/planning/dive-planner',
+          builder: (_, _) => const Scaffold(body: Text('planner page')),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        locale: const Locale('en'),
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          diveProvider.overrideWith((ref, id) async => multiGasDive),
+          divesProvider.overrideWith((ref) async => <Dive>[]),
+          diveProfileProvider.overrideWith((ref, id) async => profile),
+          gasSwitchesProvider.overrideWith((ref, id) async => switches),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.text('open')),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    // The sketch the diver approves is drawn from the same converter call the
+    // plan is built from, switches included, so both show the switch.
+    final painter = tester
+        .widgetList<CustomPaint>(
+          find.descendant(
+            of: find.byType(WhatIfSheet),
+            matching: find.byType(CustomPaint),
+          ),
+        )
+        .map((p) => p.painter)
+        .whereType<WhatIfPreviewPainter>()
+        .single;
+    expect(painter.gasSwitches.single.timestamp, 785);
+    expect(painter.waypoints.map((w) => w.timeSeconds), contains(785));
+
+    await tester.tap(find.text('Open in planner'));
+    await tester.pumpAndSettle();
+
+    final state = container.read(divePlanNotifierProvider);
+    var elapsed = 0;
+    for (final segment in state.segments) {
+      expect(segment.tankId, elapsed >= 785 ? 'deco' : 'back');
+      elapsed += segment.durationSeconds;
+    }
+    expect(state.segments.any((s) => s.tankId == 'deco'), isTrue);
+  });
 }

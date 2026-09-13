@@ -5,6 +5,7 @@ import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -46,6 +47,15 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
     final profileAsync = ref.watch(diveProfileProvider(widget.dive.id));
+    // The preview must be drawn from the same converter input "Open in
+    // planner" uses: switches are mandatory waypoints, so a preview without
+    // them would sketch a path the plan does not follow.
+    final gasSwitches = [
+      for (final g
+          in ref.watch(gasSwitchesProvider(widget.dive.id)).value ??
+              const <GasSwitchWithTank>[])
+        g.gasSwitch,
+    ];
     final precedingAsync = ref.watch(
       _precedingDiveWithin24hProvider(widget.dive.id),
     );
@@ -68,6 +78,7 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
             profileAsync.when(
               data: (profile) => _WhatIfPreview(
                 profile: profile,
+                gasSwitches: gasSwitches,
                 levels: _levels,
                 units: units,
               ),
@@ -237,11 +248,13 @@ final _precedingDiveWithin24hProvider = FutureProvider.family<Dive?, String>((
 class _WhatIfPreview extends StatelessWidget {
   const _WhatIfPreview({
     required this.profile,
+    required this.gasSwitches,
     required this.levels,
     required this.units,
   });
 
   final List<DiveProfilePoint> profile;
+  final List<GasSwitch> gasSwitches;
   final int levels;
   final UnitFormatter units;
 
@@ -253,8 +266,9 @@ class _WhatIfPreview extends StatelessWidget {
     return SizedBox(
       height: 140,
       child: CustomPaint(
-        painter: _WhatIfPreviewPainter(
+        painter: WhatIfPreviewPainter(
           profile: profile,
+          gasSwitches: gasSwitches,
           levels: levels,
           units: units,
           actualColor: scheme.onSurfaceVariant,
@@ -266,20 +280,33 @@ class _WhatIfPreview extends StatelessWidget {
   }
 }
 
-class _WhatIfPreviewPainter extends CustomPainter {
-  _WhatIfPreviewPainter({
+/// Draws the logged profile with the waypoints the plan will be built from
+/// overlaid. Public so a test can read [waypoints] back.
+@visibleForTesting
+class WhatIfPreviewPainter extends CustomPainter {
+  WhatIfPreviewPainter({
     required this.profile,
+    required this.gasSwitches,
     required this.levels,
     required this.units,
     required this.actualColor,
     required this.levelColor,
-  });
+  }) : waypoints = const DiveToPlanConverter().breakpoints(
+         profile: profile,
+         gasSwitches: gasSwitches,
+         levels: levels,
+       );
 
   final List<DiveProfilePoint> profile;
+  final List<GasSwitch> gasSwitches;
   final int levels;
   final UnitFormatter units;
   final Color actualColor;
   final Color levelColor;
+
+  /// The waypoints the converter will actually produce, as elapsed seconds
+  /// from the first sample, so the sketch matches the plan that is opened.
+  final List<PlanBreakpoint> waypoints;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -332,25 +359,21 @@ class _WhatIfPreviewPainter extends CustomPainter {
     }
 
     // Simplified level overlay, recomputed live as the slider moves.
-    final simplified = _simplifyForPreview(profile, levels);
-    if (simplified.length >= 2) {
+    if (waypoints.length >= 2) {
       final levelPaint = Paint()
         ..color = levelColor
         ..strokeWidth = 2.5
         ..style = PaintingStyle.stroke;
-      final levelPath = Path()
-        ..moveTo(
-          toOffset(
-            simplified.first.$1 + profile.first.timestamp,
-            simplified.first.$2,
-          ).dx,
-          toOffset(
-            simplified.first.$1 + profile.first.timestamp,
-            simplified.first.$2,
-          ).dy,
+      final start = toOffset(
+        waypoints.first.timeSeconds + profile.first.timestamp,
+        waypoints.first.depth,
+      );
+      final levelPath = Path()..moveTo(start.dx, start.dy);
+      for (final point in waypoints.skip(1)) {
+        final o = toOffset(
+          point.timeSeconds + profile.first.timestamp,
+          point.depth,
         );
-      for (final (t, d) in simplified.skip(1)) {
-        final o = toOffset(t + profile.first.timestamp, d);
         levelPath.lineTo(o.dx, o.dy);
       }
       canvas.drawPath(levelPath, levelPaint);
@@ -358,21 +381,8 @@ class _WhatIfPreviewPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _WhatIfPreviewPainter oldDelegate) =>
-      oldDelegate.levels != levels || oldDelegate.profile != profile;
-}
-
-/// The waypoints the converter will actually produce, as (elapsed seconds,
-/// depth) pairs relative to the first sample, so the sketch matches the plan.
-List<(int, double)> _simplifyForPreview(
-  List<DiveProfilePoint> profile,
-  int levels,
-) {
-  if (profile.length < 2) return const [];
-  final points = const DiveToPlanConverter().breakpoints(
-    profile: profile,
-    gasSwitches: const [],
-    levels: levels,
-  );
-  return [for (final p in points) (p.timeSeconds, p.depth)];
+  bool shouldRepaint(covariant WhatIfPreviewPainter oldDelegate) =>
+      oldDelegate.levels != levels ||
+      oldDelegate.profile != profile ||
+      oldDelegate.gasSwitches != gasSwitches;
 }
