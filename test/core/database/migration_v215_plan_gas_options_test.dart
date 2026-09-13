@@ -4,12 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v212 is the current schema version and is in the ladder', () {
-    // Renumbered again: main shipped 210 while this branch was open, so the
-    // 209 it had reserved for this branch would never run, and stop-minimums
-    // took 211.
-    expect(AppDatabase.currentSchemaVersion, 212);
-    expect(AppDatabase.migrationVersions, contains(212));
+  test('v215 is the current schema version and is in the ladder', () {
+    // Renumbered repeatedly (202, 212) as main shipped 211 and 213 while this
+    // branch was open, including the 212 main had reserved for it: a rung at
+    // or below the shipped version never runs its onUpgrade step.
+    // Stop-minimums took 214. The newest rung owns the exact assertion;
+    // relax it to greaterThanOrEqualTo when the next one lands.
+    expect(AppDatabase.currentSchemaVersion, 215);
+    expect(AppDatabase.migrationVersions, contains(215));
   });
 
   test('a fresh database has the dive_plans gas-options columns with the '
@@ -43,7 +45,7 @@ void main() {
   });
 
   test(
-    'a database stranded before v212 gains the columns via beforeOpen',
+    'a database stranded before v215 gains the columns via beforeOpen',
     () async {
       final nativeDb = NativeDatabase.memory(
         setup: (rawDb) {
