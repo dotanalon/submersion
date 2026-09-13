@@ -8076,9 +8076,6 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  /// Idempotent DDL for diver_settings.auto_tag_imports (v211, issue #998).
-  /// Existing rows default to on, matching the wizard's prior behavior of
-  /// always pre-filling an import tag.
   /// v218: move the per-metric data-source preferences from calculated (1)
   /// to the new computer (0) default, so an existing log reads the way a
   /// fresh install now does. A diver who prefers the app's own curve can set
@@ -8110,6 +8107,9 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
+  /// Idempotent DDL for diver_settings.auto_tag_imports (v211, issue #998).
+  /// Existing rows default to on, matching the wizard's prior behavior of
+  /// always pre-filling an import tag.
   Future<void> _assertAutoTagImportsColumn() async {
     final cols = await customSelect(
       "PRAGMA table_info('diver_settings')",
