@@ -75,7 +75,9 @@ void main() {
         )
         .getSingle();
     expect(row.read<int>('default_show_gtr'), 0);
-    expect(row.read<int>('default_gtr_source'), 1);
+    // v177 seeds calculated (1); the v218 rung, which this 176 -> current
+    // ladder also runs, moves it on to computer (0).
+    expect(row.read<int>('default_gtr_source'), 0);
     expect(row.read<double>('gtr_reserve_pressure'), 50.0);
   });
 
