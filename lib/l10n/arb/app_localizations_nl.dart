@@ -20185,6 +20185,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tags_action_deleteTag => 'Tag verwijderen';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Duiken met tag \"$tagName\" tonen';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Weet je zeker dat je \"$tagName\" wilt verwijderen? Dit verwijdert het van alle duiken.';
   }
@@ -22156,9 +22161,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => 'Als nieuw importeren';
-
-  @override
-  String get universalImport_label_importComplete => 'Import voltooid';
 
   @override
   String get universalImport_label_importing => 'Importeren';
@@ -25006,6 +25008,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gebruik de duiknummers uit het geïmporteerde bestand in plaats van automatisch toewijzen';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Deze bron levert geen duiknummers, dus duiken worden automatisch genummerd';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'Deze import automatisch taggen';
 
@@ -26771,11 +26777,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Geen duiken met een geregistreerde pakdikte';
+      'Geen duiken met een gekoppeld wetsuit of droogpak';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Kan pakdiktegegevens niet laden';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'Onbekend';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Pakdikte (mm)';
@@ -39015,6 +39024,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Zenders toewijzen';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Duiknummers al in gebruik';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Deze duiken hebben het nummer uit hun bron behouden, maar andere duiken in je logboek gebruiken dezelfde nummers al. Open Duiknummering in het menu van de duiklijst om ze opnieuw te nummeren.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>

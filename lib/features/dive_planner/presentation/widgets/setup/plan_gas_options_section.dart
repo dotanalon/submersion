@@ -40,11 +40,12 @@ class PlanGasOptionsSection extends ConsumerWidget {
         PlanGasOptionNumberField(
           label: context.l10n.divePlanner_gasOptions_sacDeco,
           value: state.sacDeco != null
-              ? units.convertVolume(state.sacDeco!)
+              ? units.convertRmv(state.sacDeco!)
               : null,
-          hintValue: units.convertVolume(15),
+          hintValue: units.convertRmv(15),
           suffixText: units.rmvSymbol,
-          decimals: 1,
+          // Same precision as Bottom RMV: 2 decimals for cuft/min (#1823).
+          decimals: units.rmvDecimals,
           onChanged: (value) => notifier.updateGasOptions(
             sacDeco: value != null ? units.volumeToLiters(value) : null,
             clearSacDeco: value == null,

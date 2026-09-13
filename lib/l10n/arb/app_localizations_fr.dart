@@ -20445,6 +20445,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tags_action_deleteTag => 'Supprimer l\'étiquette';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Afficher les plongées avec l\'étiquette « $tagName »';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Voulez-vous vraiment supprimer « $tagName » ? Cela la supprimera de toutes les plongées.';
   }
@@ -22432,9 +22437,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => 'Importer comme nouveau';
-
-  @override
-  String get universalImport_label_importComplete => 'Import terminé';
 
   @override
   String get universalImport_label_importing => 'Import';
@@ -25302,6 +25304,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Utiliser les numéros de plongée du fichier importé au lieu de les attribuer automatiquement';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Cette source ne fournit pas de numéros de plongée, les plongées sont donc numérotées automatiquement';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'Étiqueter automatiquement cet import';
 
@@ -27073,11 +27079,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Aucune plongée avec une épaisseur de combinaison enregistrée';
+      'Aucune plongée liée à une combinaison humide ou étanche';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Impossible de charger les données d\'épaisseur';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown => 'Inconnue';
 
   @override
   String get diveLog_filter_sectionSuitThickness =>
@@ -39394,6 +39403,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Associer les émetteurs';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Numéros de plongée déjà utilisés';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Ces plongées ont conservé le numéro de leur source, mais d\'autres plongées de votre carnet utilisent déjà ces numéros. Ouvrez Numérotation des plongées dans le menu de la liste des plongées pour les renuméroter.';
 
   @override
   String get dataQuality_detector_unknown_transmitter => 'Émetteur non associé';

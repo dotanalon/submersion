@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
@@ -32,14 +33,20 @@ class PlanGasSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // The plan keeps its RMV in L/min; the field shows it in the diver's
+        // volume unit at rmvDecimals, so an imperial 0.55 cuft/min is not
+        // re-seeded as "0.6" mid-entry (#1823).
         PlanGasOptionNumberField(
           label: context.l10n.divePlanner_gasOptions_sacBottom,
-          value: units.convertVolume(planState.sacRate),
-          hintValue: units.convertVolume(15),
+          value: units.convertRmv(planState.sacRate),
+          hintValue: units.convertRmv(15),
           suffixText: units.rmvSymbol,
-          decimals: 1,
+          decimals: units.rmvDecimals,
           semanticsLabel: context.l10n.divePlanner_semantics_sacRate(
-            planState.sacRate.toStringAsFixed(0),
+            formatFixedForDisplay(
+              units.convertRmv(planState.sacRate),
+              units.rmvDecimals,
+            ),
             units.volumeSymbol,
           ),
           onChanged: (value) {
@@ -86,16 +93,17 @@ class _LoggedRmvButton extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final display =
-        '${units.convertVolume(loggedRmv).toStringAsFixed(1)} '
-        '${units.volumeSymbol}/min';
     return Align(
       alignment: Alignment.centerLeft,
       child: TextButton.icon(
         icon: const Icon(Icons.history, size: 18),
-        label: Text(context.l10n.plannerCanvas_sac_useLogged(display)),
+        label: Text(
+          context.l10n.plannerCanvas_sac_useLogged(units.formatRmv(loggedRmv)),
+        ),
         onPressed: () => ref
             .read(divePlanNotifierProvider.notifier)
+            // Clamped in L/min, not in the diver's unit, so the plan gets the
+            // same RMV whichever unit the diver reads.
             .updateSacRate(loggedRmv.clamp(8.0, 30.0)),
       ),
     );

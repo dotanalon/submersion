@@ -20359,6 +20359,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tags_action_deleteTag => 'Elimina tag';
 
   @override
+  String tags_action_showDives(String tagName) {
+    return 'Mostra immersioni con tag \"$tagName\"';
+  }
+
+  @override
   String tags_dialog_deleteMessage(Object tagName) {
     return 'Sei sicuro di voler eliminare \"$tagName\"? Questo lo rimuoverà da tutte le immersioni.';
   }
@@ -22339,9 +22344,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get universalImport_label_importAsNew => 'Importa come nuovo';
-
-  @override
-  String get universalImport_label_importComplete => 'Importazione Completata';
 
   @override
   String get universalImport_label_importing => 'Importazione';
@@ -25205,6 +25207,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Usa i numeri di immersione dal file importato invece di assegnarli automaticamente';
 
   @override
+  String get universalImport_label_retainDiveNumbersUnavailable =>
+      'Questa sorgente non fornisce i numeri di immersione, quindi le immersioni vengono numerate automaticamente';
+
+  @override
   String get universalImport_label_autoTagThisImport =>
       'Tagga automaticamente questa importazione';
 
@@ -26976,11 +26982,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_progression_divesBySuitThickness_empty =>
-      'Nessuna immersione con spessore della muta registrato';
+      'Nessuna immersione collegata a una muta umida o stagna';
 
   @override
   String get statistics_progression_divesBySuitThickness_error =>
       'Impossibile caricare i dati sullo spessore';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_unknown =>
+      'Sconosciuto';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Spessore della muta (mm)';
@@ -39280,6 +39290,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Assegna trasmettitori';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictTitle =>
+      'Numeri di immersione già in uso';
+
+  @override
+  String get universalImport_summary_noticeDiveNumberConflictBody =>
+      'Queste immersioni hanno mantenuto il numero della loro sorgente, ma altre immersioni del tuo registro usano già gli stessi numeri. Apri Numerazione immersioni dal menu dell\'elenco immersioni per rinumerarle.';
 
   @override
   String get dataQuality_detector_unknown_transmitter =>
