@@ -812,6 +812,9 @@ class Dives extends Table {
       text().nullable()(); // "buhlmann", "vpm", "rgbm", "dciem"
   IntColumn get decoConservatism =>
       integer().nullable()(); // Personal adjustment (0=neutral)
+  // Tissue state the dive computer itself reported (v225): the JSON of
+  // ComputerTissueSnapshot.toJson, or null when the source carried none.
+  TextColumn get computerTissueJson => text().nullable()();
   // Dive computer that logged this dive (for display/export, separate from computerId relation)
   TextColumn get diveComputerModel => text().nullable()();
   TextColumn get diveComputerSerial => text().nullable()();
@@ -4946,10 +4949,16 @@ class AppDatabase extends _$AppDatabase {
     // Renumbered from 223, which buddy profile links took while this was
     // in review.
     224,
+    // v225: dives.computer_tissue_json, the tissue state a dive computer
+    // reports for the dive (import of Garmin, Shearwater, Suunto, Ratio and
+    // UDDF tissue data). Additive nullable column, no backfill. Takes 225,
+    // not 224: main shipped 224 (media fact clocks) while this branch was
+    // open, and a rung at or below the shipped version never runs its
+    // onUpgrade step, so this one sits above it.
+    225,
     // v226: media.cloud_asset_id, the PhotoKit cloud identifier (media sync
     // program spec 6.2). Column only; the one-time backfill runs after a
     // sync, not here. Additive and nullable, so the floor stays at 224.
-    // 225 is held by PR #1978 (tissue loading import).
     226,
   ];
 
@@ -6484,6 +6493,20 @@ class AppDatabase extends _$AppDatabase {
     if (!names.contains('site_detail_layout')) {
       await customStatement(
         'ALTER TABLE diver_settings ADD COLUMN site_detail_layout TEXT',
+      );
+    }
+  }
+
+  /// v225: dives.computer_tissue_json. Idempotent, so it is safe to call
+  /// from both onUpgrade and the beforeOpen backstop, and a no-op when the
+  /// table does not exist yet.
+  Future<void> _assertComputerTissueColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dives')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('computer_tissue_json')) {
+      await customStatement(
+        'ALTER TABLE dives ADD COLUMN computer_tissue_json TEXT',
       );
     }
   }
@@ -12542,6 +12565,14 @@ class AppDatabase extends _$AppDatabase {
           await _backfillMediaFactClocks();
         }
         if (from < 224) await reportProgress();
+        // v225: dives.computer_tissue_json. Column-only rung, no backfill:
+        // null reads as "the computer reported no tissue state". Takes 225,
+        // not 224: main shipped 224 (media fact clocks) while this branch
+        // was open.
+        if (from < 225) {
+          await _assertComputerTissueColumn();
+        }
+        if (from < 225) await reportProgress();
         // v226: media.cloud_asset_id. Column only, no backfill.
         if (from < 226) {
           await _assertMediaCloudAssetIdColumn();
@@ -12929,6 +12960,11 @@ class AppDatabase extends _$AppDatabase {
         // arrives by restore or sync-adopt without them would throw on the
         // first read.
         await _assertBuddyProfileDiveLinkColumns();
+
+        // v225 backstop: re-assert dives.computer_tissue_json. Every dive
+        // read selects the whole row, so a database that arrives by restore
+        // or sync-adopt without it would throw on the first read.
+        await _assertComputerTissueColumn();
         // v182 backstop: re-assert the packed profile series tables, then
         // pack any dive that still has legacy rows and no series row. A
         // schema-version collision with a parallel branch skips the rung on
