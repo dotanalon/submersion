@@ -31,8 +31,14 @@ Finder _field(String label) => find.descendant(
 String _text(WidgetTester tester, String label) =>
     tester.widget<TextField>(_field(label)).controller!.text;
 
-Widget _harness({DepthUnit depthUnit = DepthUnit.meters}) => testApp(
-  locale: const Locale('en'),
+bool _hasError(WidgetTester tester, String label) =>
+    tester.widget<TextField>(_field(label)).decoration?.errorText != null;
+
+Widget _harness({
+  DepthUnit depthUnit = DepthUnit.meters,
+  Locale locale = const Locale('en'),
+}) => testApp(
+  locale: locale,
   overrides: [
     settingsProvider.overrideWith(
       (ref) => _TestSettingsNotifier(depthUnit: depthUnit),
@@ -112,5 +118,85 @@ void main() {
       tester.widget<TextField>(_field('Depth:')).decoration?.errorText,
       isNotNull,
     );
+  });
+
+  // A touch on a button does not take focus from a text field, so tapping
+  // Create straight after typing leaves the edit uncommitted: the box is red
+  // and the dialog still holds the value from before the edit.
+  testWidgets('Create settles a pending out-of-range depth', (tester) async {
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SimplePlanDialog)),
+    );
+
+    await tester.enterText(_field('Depth:'), '80');
+    await tester.pumpAndSettle();
+    expect(_hasError(tester, 'Depth:'), isTrue);
+
+    await tester.tap(find.text('Create'));
+    await tester.pumpAndSettle();
+
+    // The nearest legal depth, as a blur would have settled it, not the 18 m
+    // the dialog held before the edit.
+    final segments = container.read(divePlanNotifierProvider).segments;
+    expect(segments.map((s) => s.targetDepth), contains(40));
+    expect(segments.map((s) => s.targetDepth), isNot(contains(18)));
+  });
+
+  testWidgets('Create settles a pending out-of-range bottom time', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SimplePlanDialog)),
+    );
+
+    await tester.enterText(_field('Time:'), '200');
+    await tester.pumpAndSettle();
+    expect(_hasError(tester, 'Time:'), isTrue);
+
+    await tester.tap(find.text('Create'));
+    await tester.pumpAndSettle();
+
+    final segments = container.read(divePlanNotifierProvider).segments;
+    expect(
+      segments.any((s) => s.targetDepth == 18 && s.durationSeconds == 120 * 60),
+      isTrue,
+    );
+  });
+
+  testWidgets('imperial depth band never admits a depth outside 5-40 m', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness(depthUnit: DepthUnit.feet));
+    await tester.pumpAndSettle();
+
+    // 5 m is 16.4 ft and 40 m is 131.2 ft: the whole-foot bounds narrow
+    // inward to 17 and 131, so 16 ft (4.88 m) and 132 ft (40.2 m) are out.
+    await tester.enterText(_field('Depth:'), '16');
+    await tester.pumpAndSettle();
+    expect(_hasError(tester, 'Depth:'), isTrue);
+
+    await tester.enterText(_field('Depth:'), '17');
+    await tester.pumpAndSettle();
+    expect(_hasError(tester, 'Depth:'), isFalse);
+
+    await tester.enterText(_field('Depth:'), '132');
+    await tester.pumpAndSettle();
+    expect(_hasError(tester, 'Depth:'), isTrue);
+
+    await tester.enterText(_field('Depth:'), '131');
+    await tester.pumpAndSettle();
+    expect(_hasError(tester, 'Depth:'), isFalse);
+  });
+
+  testWidgets('the minute unit follows the app language', (tester) async {
+    await tester.pumpWidget(_harness(locale: const Locale('de')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Min.'), findsOneWidget);
+    expect(find.text('min'), findsNothing);
   });
 }

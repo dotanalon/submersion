@@ -63,7 +63,7 @@ class PlanGasOptionsSection extends ConsumerWidget {
           label: context.l10n.divePlanner_gasOptions_problemSolvingMinutes,
           value: state.problemSolvingMinutes.toDouble(),
           hintValue: 2,
-          suffixText: 'min',
+          suffixText: context.l10n.divePlanner_label_minutesUnit,
           isInteger: true,
           onChanged: (value) => notifier.updateGasOptions(
             problemSolvingMinutes: (value ?? 2).round(),

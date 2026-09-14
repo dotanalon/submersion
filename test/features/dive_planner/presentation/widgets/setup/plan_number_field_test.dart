@@ -14,11 +14,13 @@ Widget _harness({
   bool isInteger = true,
   int decimals = 0,
   bool allowEmpty = true,
+  Key? fieldKey,
 }) => testApp(
   locale: const Locale('en'),
   child: Column(
     children: [
       PlanNumberField(
+        key: fieldKey,
         label: 'Ascent rate',
         value: value,
         hintValue: 9,
@@ -109,6 +111,75 @@ void main() {
 
     expect(reported, 30);
     expect(_field(tester).controller!.text, '30');
+    expect(_hasError(tester), isFalse);
+  });
+
+  testWidgets('commit settles a pending edit without any focus change', (
+    tester,
+  ) async {
+    final key = GlobalKey<PlanNumberFieldState>();
+    double? reported;
+    await tester.pumpWidget(
+      _harness(
+        value: 9,
+        min: 1,
+        max: 30,
+        fieldKey: key,
+        onChanged: (v) => reported = v,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '99');
+    await tester.pumpAndSettle();
+    // A button tap on a touch screen leaves focus in the box, so a dialog's
+    // submit action has to settle the edit itself, the same way a blur would.
+    key.currentState!.commit();
+    await tester.pumpAndSettle();
+
+    expect(reported, 30);
+    expect(_field(tester).controller!.text, '30');
+    expect(_hasError(tester), isFalse);
+  });
+
+  testWidgets('a new value from the parent clears a stale out-of-range mark', (
+    tester,
+  ) async {
+    var value = 9.0;
+    late StateSetter setOuter;
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            setOuter = setState;
+            return PlanNumberField(
+              label: 'Ascent rate',
+              value: value,
+              hintValue: 9,
+              suffixText: 'm/min',
+              decimals: 0,
+              isInteger: true,
+              min: 1,
+              max: 30,
+              onChanged: (_) {},
+            );
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '99');
+    await tester.pumpAndSettle();
+    expect(_hasError(tester), isTrue);
+
+    // A plan reload or a unit switch reseeds the box with a legal value; the
+    // red border belonged to the text it replaced.
+    setOuter(() => value = 12);
+    await tester.pumpAndSettle();
+
+    expect(_field(tester).controller!.text, '12');
     expect(_hasError(tester), isFalse);
   });
 

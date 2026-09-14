@@ -162,4 +162,60 @@ void main() {
       closeTo(33 / 3.28084, 0.001),
     );
   });
+
+  group('imperial rate band', () {
+    Widget feetHarness() => testApp(
+      locale: const Locale('en'),
+      overrides: [
+        settingsProvider.overrideWith(
+          (ref) => _TestSettingsNotifier(depthUnit: DepthUnit.feet),
+        ),
+      ],
+      child: const SingleChildScrollView(child: PlanRatesSection()),
+    );
+
+    bool hasError(WidgetTester tester, String label) =>
+        tester.widget<TextField>(_field(label)).decoration?.errorText != null;
+
+    testWidgets('accepts exactly the whole ft/min values inside the band', (
+      tester,
+    ) async {
+      await tester.pumpWidget(feetHarness());
+      await tester.pumpAndSettle();
+
+      // Every accepted box value must map inside the canonical band, so the
+      // whole-foot bounds narrow inward: 2 ft/min (0.61 m/min) and 99 ft/min
+      // (30.2 m/min) are out, 3 and 98 are in.
+      for (final (text, outOfRange) in [
+        ('2', true),
+        ('3', false),
+        ('98', false),
+        ('99', true),
+      ]) {
+        await tester.enterText(_field(_ascent), text);
+        await tester.pumpAndSettle();
+        expect(hasError(tester, _ascent), outOfRange, reason: '$text ft/min');
+      }
+    });
+
+    testWidgets('the seeded 3 ft/min final rate survives a tap in and out', (
+      tester,
+    ) async {
+      await tester.pumpWidget(feetHarness());
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanRatesSection)),
+      );
+
+      // The 1 m/min default shows as 3 ft/min. If the box floor sat above
+      // that, merely visiting the box would clamp and rewrite the plan.
+      await tester.tap(_field(_finalAscent('10ft')));
+      await tester.pumpAndSettle();
+      await tester.tap(_field(_descent));
+      await tester.pumpAndSettle();
+
+      expect(_text(tester, _finalAscent('10ft')), '3');
+      expect(container.read(divePlanNotifierProvider).finalAscentRate, 1.0);
+    });
+  });
 }

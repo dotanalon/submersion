@@ -67,10 +67,12 @@ class PlanNumberField extends StatefulWidget {
   final ValueChanged<double?> onChanged;
 
   @override
-  State<PlanNumberField> createState() => _PlanNumberFieldState();
+  State<PlanNumberField> createState() => PlanNumberFieldState();
 }
 
-class _PlanNumberFieldState extends State<PlanNumberField> {
+/// Public so a form that submits without moving focus can reach [commit]
+/// through a `GlobalKey<PlanNumberFieldState>`.
+class PlanNumberFieldState extends State<PlanNumberField> {
   late TextEditingController _controller;
   late FocusNode _focusNode;
   bool _outOfRange = false;
@@ -95,6 +97,9 @@ class _PlanNumberFieldState extends State<PlanNumberField> {
       final newText = widget.value != null ? _seed(widget.value!) : '';
       if (_controller.text != newText) {
         _controller.text = newText;
+        // The red border belonged to the text just replaced; a value from the
+        // parent is one the plan holds. build() follows, so no setState.
+        _outOfRange = false;
       }
     }
   }
@@ -137,12 +142,18 @@ class _PlanNumberFieldState extends State<PlanNumberField> {
     widget.onChanged(parsed);
   }
 
-  /// Leaving the field commits it: out-of-range text settles on the nearest
-  /// legal value, and text that is not a number at all falls back to the value
-  /// the plan still holds, so no box is left showing something the plan does
-  /// not have.
   void _handleFocusChange() {
-    if (_focusNode.hasFocus) return;
+    if (!_focusNode.hasFocus) commit();
+  }
+
+  /// Commits the box: out-of-range text settles on the nearest legal value,
+  /// and text that is not a number at all falls back to the value the plan
+  /// still holds, so no box is left showing something the plan does not have.
+  ///
+  /// Leaving the field does this on its own. A submit button has to call it
+  /// first, because on a touch screen tapping a button does not take focus
+  /// from the box.
+  void commit() {
     final text = _controller.text;
     if (text.trim().isEmpty) {
       if (widget.allowEmpty || widget.value == null) return;

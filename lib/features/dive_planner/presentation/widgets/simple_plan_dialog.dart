@@ -30,12 +30,27 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
   double _depth = 18;
   int _bottomTime = 45;
 
+  final _depthField = GlobalKey<PlanNumberFieldState>();
+  final _timeField = GlobalKey<PlanNumberFieldState>();
+
   // The band the quick plan covers, in metres and minutes. Anything outside
   // it is a dive that wants real segments rather than a rectangle.
   static const _minDepthMeters = 5.0;
   static const _maxDepthMeters = 40.0;
   static const _minBottomTime = 5.0;
   static const _maxBottomTime = 120.0;
+
+  void _create() {
+    // Tapping Create on a touch screen leaves focus in whichever box was
+    // being edited, so settle both the way leaving them would before reading
+    // _depth and _bottomTime.
+    _depthField.currentState?.commit();
+    _timeField.currentState?.commit();
+    ref
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: _depth, bottomTimeMinutes: _bottomTime);
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,14 +73,17 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
           // Depth and bottom time as number boxes, on the same two columns
           // as the Setup accordion's rows.
           PlanNumberField(
+            key: _depthField,
             label: l10n.divePlanner_quickPlan_depthLabel,
             value: units.convertDepth(_depth),
             hintValue: units.convertDepth(_depth),
             suffixText: units.depthSymbol,
             isInteger: true,
             allowEmpty: false,
-            min: units.convertDepth(_minDepthMeters).roundToDouble(),
-            max: units.convertDepth(_maxDepthMeters).roundToDouble(),
+            // Narrowed inward so every whole number the box accepts is inside
+            // 5-40 m: 16.4-131.2 ft becomes 17-131 ft, never 16 (4.88 m).
+            min: units.convertDepth(_minDepthMeters).ceilToDouble(),
+            max: units.convertDepth(_maxDepthMeters).floorToDouble(),
             semanticsLabel: l10n.divePlanner_quickPlan_depthSemantics(
               units.formatDepth(_depth),
             ),
@@ -75,10 +93,11 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
             },
           ),
           PlanNumberField(
+            key: _timeField,
             label: l10n.divePlanner_quickPlan_timeLabel,
             value: _bottomTime.toDouble(),
             hintValue: _bottomTime.toDouble(),
-            suffixText: 'min',
+            suffixText: l10n.divePlanner_label_minutesUnit,
             isInteger: true,
             allowEmpty: false,
             min: _minBottomTime,
@@ -148,15 +167,7 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
           child: Text(l10n.common_action_cancel),
         ),
         FilledButton(
-          onPressed: () {
-            ref
-                .read(divePlanNotifierProvider.notifier)
-                .addSimplePlan(
-                  maxDepth: _depth,
-                  bottomTimeMinutes: _bottomTime,
-                );
-            Navigator.pop(context);
-          },
+          onPressed: _create,
           child: Text(l10n.divePlanner_quickPlan_create),
         ),
       ],

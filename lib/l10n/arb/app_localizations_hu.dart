@@ -8349,6 +8349,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_label_max => 'Max';
 
   @override
+  String get divePlanner_label_minutesUnit => 'perc';
+
+  @override
   String get divePlanner_label_ndl => 'NDL';
 
   @override
@@ -36571,11 +36574,6 @@ class AppLocalizationsHu extends AppLocalizations {
       one: 'Fenéken töltött idő: 1 perc',
     );
     return '$_temp0';
-  }
-
-  @override
-  String divePlanner_quickPlan_minutes(int minutes) {
-    return '$minutes perc';
   }
 
   @override
