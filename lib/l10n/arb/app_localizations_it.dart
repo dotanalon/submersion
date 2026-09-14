@@ -8974,6 +8974,64 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tissue_title => 'Carico tissutale';
 
   @override
+  String get diveLog_computerTissue_title => 'Computer subacqueo';
+
+  @override
+  String get diveLog_computerTissue_algorithm => 'Algoritmo';
+
+  @override
+  String diveLog_computerTissue_compartments(Object count) {
+    return '$count compartimenti';
+  }
+
+  @override
+  String diveLog_computerTissue_compartmentsWithAlgorithm(
+    Object count,
+    Object algorithm,
+  ) {
+    return '$count compartimenti $algorithm';
+  }
+
+  @override
+  String diveLog_computerTissue_compartment(Object number) {
+    return 'C$number';
+  }
+
+  @override
+  String get diveLog_computerTissue_endLoading =>
+      'Saturazione a fine immersione';
+
+  @override
+  String get diveLog_computerTissue_endTensions =>
+      'Tensioni tissutali a fine immersione';
+
+  @override
+  String get diveLog_computerTissue_columnStart => 'Inizio';
+
+  @override
+  String get diveLog_computerTissue_columnEnd => 'Fine';
+
+  @override
+  String get diveLog_computerTissue_rowN2Load => 'Carico N₂';
+
+  @override
+  String get diveLog_computerTissue_rowCns => 'CNS';
+
+  @override
+  String get diveLog_computerTissue_rowOtu => 'OTU';
+
+  @override
+  String get diveLog_computerTissue_rgbmNitrogen => 'Fattore N₂ RGBM';
+
+  @override
+  String get diveLog_computerTissue_rgbmHelium => 'Fattore He RGBM';
+
+  @override
+  String diveLog_computerTissue_calculated(Object value) {
+    return 'calcolato $value';
+  }
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(media, calcolato)';
 
   @override
@@ -45394,4 +45452,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Crea un profilo subacqueo per salvare le query';
+
+  @override
+  String get diveLog_tissue_legend_n2 => 'N₂';
+
+  @override
+  String get diveLog_tissue_legend_he => 'He';
 }

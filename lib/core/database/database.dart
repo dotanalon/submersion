@@ -212,7 +212,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 240;
+  static const int currentSchemaVersion = 241;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -960,6 +960,13 @@ class AppDatabase extends _$AppDatabase {
     // to 240. Renumbered from 233 and then 235: main shipped 233 (#1921),
     // 234 (#2046) and 239 (#2275) while this was open.
     240,
+    // v241: dives.computer_tissue_json, the tissue state a dive computer
+    // reports for the dive (import of Garmin, Shearwater, Suunto, Ratio and
+    // UDDF tissue data). Additive nullable column, no backfill, so the floor
+    // stays. Renumbered from 220: main shipped 220 to 240 while this was
+    // open, and a rung at or below the shipped version never runs its
+    // onUpgrade step.
+    241,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
