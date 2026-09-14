@@ -2110,6 +2110,7 @@ class DiverSettings extends Table {
   // v218: these six default to computer (0), so a dive computer's own
   // readings lead wherever it recorded them and the calculated curve stands
   // in only where it did not.
+  // coverage:ignore-start
   IntColumn get defaultNdlSource => integer().withDefault(const Constant(0))();
   IntColumn get defaultCeilingSource =>
       integer().withDefault(const Constant(0))();
@@ -2118,6 +2119,7 @@ class DiverSettings extends Table {
   // Gas time remaining on the profile chart (v177). Source is a
   // MetricDataSource index: 0 = computer, 1 = calculated. Reserve is bar.
   IntColumn get defaultGtrSource => integer().withDefault(const Constant(0))();
+  // coverage:ignore-end
   RealColumn get gtrReservePressure =>
       real().withDefault(const Constant(50.0))();
   // CNS calculation method: 'classic' | 'shearwater' | 'subsurface' (v113)
@@ -2127,8 +2129,10 @@ class DiverSettings extends Table {
   // index: 0 = computer, 1 = calculated.
   BoolColumn get showDecoStopsOnProfile =>
       boolean().withDefault(const Constant(true))();
+  // coverage:ignore-start
   IntColumn get defaultDecoStopSource =>
       integer().withDefault(const Constant(0))();
+  // coverage:ignore-end
   // Post-dive safety review (safety features phase 1, v123)
   BoolColumn get safetyReviewEnabled =>
       boolean().withDefault(const Constant(true))();
