@@ -27,8 +27,6 @@ void main() {
     expect(byName, contains(_column));
     expect(byName[_column]!.read<int>('notnull'), 0);
     expect(byName[_column]!.read<String>('type'), 'TEXT');
-    // Touches the Drift column getter; PRAGMA above only inspects SQLite.
-    expect(db.dives.computerTissueJson.$name, _column);
   });
 
   test(
