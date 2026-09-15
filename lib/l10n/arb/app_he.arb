@@ -12214,5 +12214,7 @@
   "diveLog_computerTissue_rowOtu": "OTU",
   "diveLog_computerTissue_rgbmNitrogen": "מקדם N₂ של RGBM",
   "diveLog_computerTissue_rgbmHelium": "מקדם He של RGBM",
-  "diveLog_computerTissue_calculated": "מחושב {value}"
+  "diveLog_computerTissue_calculated": "מחושב {value}",
+  "numberInput_invalidValue": "הזן מספר תקין"
+
 }

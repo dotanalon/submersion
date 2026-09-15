@@ -12214,5 +12214,7 @@
   "diveLog_computerTissue_rowOtu": "OTU",
   "diveLog_computerTissue_rgbmNitrogen": "RGBM-N₂-Faktor",
   "diveLog_computerTissue_rgbmHelium": "RGBM-He-Faktor",
-  "diveLog_computerTissue_calculated": "berechnet {value}"
+  "diveLog_computerTissue_calculated": "berechnet {value}",
+  "numberInput_invalidValue": "Geben Sie eine gültige Zahl ein"
+
 }

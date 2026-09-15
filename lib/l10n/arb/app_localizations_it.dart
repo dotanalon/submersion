@@ -40712,4 +40712,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
+
+  @override
+  String get numberInput_invalidValue => 'Inserisci un numero valido';
 }
