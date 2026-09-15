@@ -14,13 +14,13 @@ const _sourceColumns = [
   'default_gtr_source',
 ];
 
-/// Minimal pre-v219 shape: a diver_settings table carrying the source
-/// columns at their old calculated default, stamped at v218 so only the
-/// v219 rung runs.
-NativeDatabase _dbAt218({int stored = 1}) {
+/// Minimal pre-v222 shape: a diver_settings table carrying the source
+/// columns at their old calculated default, stamped at v221 so only the
+/// v222 rung runs.
+NativeDatabase _dbAt221({int stored = 1}) {
   return NativeDatabase.memory(
     setup: (rawDb) {
-      rawDb.execute('PRAGMA user_version = 218');
+      rawDb.execute('PRAGMA user_version = 221');
       rawDb.execute('''
         CREATE TABLE diver_settings (
           id TEXT NOT NULL PRIMARY KEY,
@@ -43,11 +43,12 @@ Future<Map<String, int>> _storedSources(AppDatabase db) async {
 }
 
 void main() {
-  test('v219 is the current schema version and is in the ladder', () {
+  test('v222 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 219);
-    expect(AppDatabase.migrationVersions, contains(219));
+    expect(AppDatabase.currentSchemaVersion, 222);
+    expect(AppDatabase.migrationVersions, contains(222));
+    expect(AppDatabase.migrationStepCount(221), 1);
   });
 
   test('a fresh database defaults every source column to computer', () async {
@@ -67,24 +68,24 @@ void main() {
     }
   });
 
-  test('a database stranded before v219 is moved to computer', () async {
-    final db = AppDatabase(_dbAt218());
+  test('stored calculated sources survive the upgrade to v222', () async {
+    final db = AppDatabase(_dbAt221());
     addTearDown(db.close);
 
-    expect(await _storedSources(db), {for (final c in _sourceColumns) c: 0});
+    expect(await _storedSources(db), {for (final c in _sourceColumns) c: 1});
   });
 
   test('rows already on computer are left alone', () async {
-    final db = AppDatabase(_dbAt218(stored: 0));
+    final db = AppDatabase(_dbAt221(stored: 0));
     addTearDown(db.close);
 
     expect(await _storedSources(db), {for (final c in _sourceColumns) c: 0});
   });
 
-  test('the migration is a no-op when the table is absent', () async {
+  test('a database at v221 without diver_settings still opens', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 218');
+        rawDb.execute('PRAGMA user_version = 221');
         rawDb.execute('CREATE TABLE unrelated (id TEXT)');
       },
     );

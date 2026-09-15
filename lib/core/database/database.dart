@@ -2107,9 +2107,10 @@ class DiverSettings extends Table {
   RealColumn get endLimit => real().withDefault(const Constant(30.0))();
   BoolColumn get useDiveComputerCnsData =>
       boolean().withDefault(const Constant(false))();
-  // v218: these six default to computer (0), so a dive computer's own
+  // v222: these six default to computer (0), so a dive computer's own
   // readings lead wherever it recorded them and the calculated curve stands
-  // in only where it did not.
+  // in only where it did not. Existing libraries keep whatever they stored;
+  // only a fresh CREATE TABLE picks up this default.
   // coverage:ignore-start
   IntColumn get defaultNdlSource => integer().withDefault(const Constant(0))();
   IntColumn get defaultCeilingSource =>
@@ -4888,12 +4889,12 @@ class AppDatabase extends _$AppDatabase {
     // compatibility floor stays. Sits above v220 (#1980), which shipped
     // while this was in review.
     221,
-    // v222: the per-metric data-source defaults flip from calculated to
-    // computer, columns and stored rows alike, so a dive computer's own
-    // readings lead. Data-only backfill on diver_settings. Renumbered from
-    // 214, 216, 218, 219 and 220: main shipped the planner rungs (214, 215),
-    // site types and tags (217), the site detail sections (218), equipment
-    // tags (219), computer-set auto-apply (220) and rental gear memory (221)
+    // v222: the per-metric data-source column defaults flip from calculated
+    // to computer for fresh installs only. Existing libraries keep their
+    // stored preferences; there is no row rewrite. Renumbered from 214, 216,
+    // 218, 219, 220 and 221: main shipped the planner rungs (214, 215), site
+    // types and tags (217), the site detail sections (218), equipment tags
+    // (219), computer-set auto-apply (220) and rental gear memory (221)
     // while this branch was open.
     222,
   ];
@@ -8194,37 +8195,6 @@ class AppDatabase extends _$AppDatabase {
       'ALTER TABLE diver_settings ADD COLUMN group_trips_in_dive_list '
       'INTEGER NOT NULL DEFAULT 0',
     );
-  }
-
-  /// v218: move the per-metric data-source preferences from calculated (1)
-  /// to the new computer (0) default, so an existing log reads the way a
-  /// fresh install now does. A diver who prefers the app's own curve can set
-  /// any metric back in Settings > Decompression > Data Sources; computer
-  /// data is only ever preferred where the computer recorded it, and each
-  /// metric falls back to the calculated value otherwise.
-  ///
-  /// Deliberately absent from the beforeOpen backstop: re-running it on
-  /// every open would overwrite that choice each time. PRAGMA-guarded so a
-  /// partial schema skips the columns it does not have.
-  Future<void> _migrateMetricSourceDefaultsToComputer() async {
-    const sourceColumns = [
-      'default_ndl_source',
-      'default_ceiling_source',
-      'default_deco_stop_source',
-      'default_tts_source',
-      'default_cns_source',
-      'default_gtr_source',
-    ];
-    final cols = await customSelect(
-      "PRAGMA table_info('diver_settings')",
-    ).get();
-    if (cols.isEmpty) return;
-    final names = cols.map((c) => c.read<String>('name')).toSet();
-    for (final column in sourceColumns.where(names.contains)) {
-      await customStatement(
-        'UPDATE diver_settings SET $column = 0 WHERE $column = 1',
-      );
-    }
   }
 
   /// Idempotent DDL for diver_settings.auto_tag_imports (v211, issue #998).
@@ -12413,12 +12383,11 @@ class AppDatabase extends _$AppDatabase {
           await _assertDiveCenterGearNotesSchema();
         }
         if (from < 221) await reportProgress();
-        // v222: move the stored per-metric data-source preferences to the
-        // new computer default. Upgrade-only, never a beforeOpen backstop
-        // (see _migrateMetricSourceDefaultsToComputer).
-        if (from < 222) {
-          await _migrateMetricSourceDefaultsToComputer();
-        }
+        // v222: the per-metric data-source column defaults flip from
+        // calculated to computer for fresh installs only. Existing
+        // libraries keep their stored preferences; there is no row rewrite.
+        // The bump exists so CREATE TABLE and a later schema cannot share
+        // 221 with two different defaults.
         if (from < 222) await reportProgress();
       },
       beforeOpen: (details) async {

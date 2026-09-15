@@ -85,7 +85,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      // Default legend state (computer, since v218): the raw DC ceiling must
+      // Default legend state (computer, since v222): the raw DC ceiling must
       // reach decoStopCurve verbatim, and the published source info says so.
       final overlaid = await container.read(
         profileAnalysisProvider(diveId).future,
