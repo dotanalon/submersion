@@ -110,6 +110,7 @@ void main() {
         cnsPercent: 8,
         otu: 21.4,
         rgbmNitrogen: 0.95,
+        rgbmHelium: 1.02,
       ),
     );
     await tester.pumpWidget(
@@ -142,10 +143,10 @@ void main() {
     expect(find.text('calculated 41%'), findsOneWidget);
     expect(find.text('calculated 70%'), findsOneWidget);
     expect(find.text('calculated 7%'), findsOneWidget);
-    // RGBM factors, He absent.
     expect(find.text('RGBM N₂ factor'), findsOneWidget);
     expect(find.text('0.95'), findsOneWidget);
-    expect(find.text('RGBM He factor'), findsNothing);
+    expect(find.text('RGBM He factor'), findsOneWidget);
+    expect(find.text('1.02'), findsOneWidget);
   });
 
   testWidgets('omits the calculated line when there is nothing to compare', (
