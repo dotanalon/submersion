@@ -8,9 +8,7 @@ import 'package:submersion/features/universal_import/data/services/shearwater_db
 /// timestamps normally coincide but are not guaranteed to. Each sample takes
 /// the GF99 point nearest in time, provided it lies within half the sample
 /// interval; a sample with no point that close is left without `gf99`.
-class ShearwaterGf99Aligner {
-  const ShearwaterGf99Aligner._();
-
+abstract final class ShearwaterGf99Aligner {
   /// Returns new sample maps, each carrying `'gf99'` (whole percent, `int`)
   /// when a series point lies close enough. The input maps are not mutated.
   static List<Map<String, dynamic>> apply(

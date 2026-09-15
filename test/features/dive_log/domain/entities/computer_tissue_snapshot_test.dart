@@ -78,6 +78,10 @@ void main() {
       expect(changed.n2Bar, full.end!.n2Bar);
       expect(changed.otu, full.end!.otu);
     });
+
+    test('copyWith with no arguments keeps every field', () {
+      expect(full.end!.copyWith(), full.end);
+    });
   });
 
   group('ComputerTissueSnapshot', () {
@@ -211,6 +215,10 @@ void main() {
       expect(changed.algorithm, 'buhlmann');
       expect(changed.start, full.start);
       expect(changed.end, full.end);
+    });
+
+    test('copyWith with no arguments keeps algorithm, start and end', () {
+      expect(full.copyWith(), full);
     });
   });
 }

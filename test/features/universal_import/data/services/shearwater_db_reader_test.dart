@@ -8,6 +8,51 @@ import 'package:submersion/features/universal_import/data/services/shearwater_db
 import 'shearwater_test_helpers.dart';
 
 void main() {
+  group('ShearwaterGf99Sample', () {
+    const a = ShearwaterGf99Sample(timeSeconds: 10, gf99: 42);
+    const b = ShearwaterGf99Sample(timeSeconds: 10, gf99: 42);
+    const c = ShearwaterGf99Sample(timeSeconds: 11, gf99: 42);
+    const d = ShearwaterGf99Sample(timeSeconds: 10, gf99: 41);
+
+    test('value equality is by time and gf99', () {
+      expect(a, b);
+      expect(a, isNot(c));
+      expect(a, isNot(d));
+      expect(a, isNot(10));
+    });
+
+    test('hashCode matches equality', () {
+      expect(a.hashCode, b.hashCode);
+      expect(a.hashCode, isNot(c.hashCode));
+    });
+
+    test('toString includes seconds and percent', () {
+      expect(a.toString(), 'ShearwaterGf99Sample(10 s, 42%)');
+    });
+  });
+
+  group('ShearwaterDbReader.decoModelName', () {
+    test('returns null for null, blank, and unknown codes', () {
+      expect(ShearwaterDbReader.decoModelName(null), isNull);
+      expect(ShearwaterDbReader.decoModelName(''), isNull);
+      expect(ShearwaterDbReader.decoModelName('  '), isNull);
+      expect(ShearwaterDbReader.decoModelName(42), isNull);
+      expect(ShearwaterDbReader.decoModelName('99'), isNull);
+    });
+
+    test('spells integer codes and numeric strings the same way', () {
+      expect(ShearwaterDbReader.decoModelName(0), 'GF');
+      expect(ShearwaterDbReader.decoModelName('0'), 'GF');
+      expect(ShearwaterDbReader.decoModelName(2), 'VPM-B/GFS');
+      expect(ShearwaterDbReader.decoModelName('2'), 'VPM-B/GFS');
+    });
+
+    test('passes a non-numeric name through', () {
+      expect(ShearwaterDbReader.decoModelName('VPM-B/GFS'), 'VPM-B/GFS');
+      expect(ShearwaterDbReader.decoModelName('  GF  '), 'GF');
+    });
+  });
+
   group('ShearwaterDbReader', () {
     group('isShearwaterCloudDb', () {
       test('returns true for valid Shearwater Cloud database', () async {

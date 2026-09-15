@@ -373,7 +373,8 @@ ORDER BY currentTime
 
   /// Spells `dive_logs.decoModel`: an integer code in every export seen so
   /// far, passed through when an export already stores a name.
-  static String? _decoModelName(dynamic value) {
+  @visibleForTesting
+  static String? decoModelName(dynamic value) {
     if (value == null) return null;
     if (value is int) return _decoModelNames[value];
     final text = value.toString().trim();
@@ -430,7 +431,7 @@ ORDER BY currentTime
       startGFS: _double(_headerValue(header, 'startGFS')),
       gfMin: _int(_headerValue(header, 'gfMin')),
       gfMax: _int(_headerValue(header, 'gfMax')),
-      decoModel: _decoModelName(_headerValue(header, 'decoModel')),
+      decoModel: decoModelName(_headerValue(header, 'decoModel')),
       startCNS: _double(_headerValue(header, 'startCNS')),
       endCNS: _double(_headerValue(header, 'endCNS')),
     );
