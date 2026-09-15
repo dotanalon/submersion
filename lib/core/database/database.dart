@@ -814,7 +814,10 @@ class Dives extends Table {
       integer().nullable()(); // Personal adjustment (0=neutral)
   // Tissue state the dive computer itself reported (v225): the JSON of
   // ComputerTissueSnapshot.toJson, or null when the source carried none.
+  // Drift replaces this getter with a generated field at runtime.
+  // coverage:ignore-start
   TextColumn get computerTissueJson => text().nullable()();
+  // coverage:ignore-end
   // Dive computer that logged this dive (for display/export, separate from computerId relation)
   TextColumn get diveComputerModel => text().nullable()();
   TextColumn get diveComputerSerial => text().nullable()();
