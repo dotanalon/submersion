@@ -67,11 +67,11 @@ void main() {
     }
   });
 
-  test('a database stranded before v219 is moved to computer', () async {
+  test('stored calculated sources survive the upgrade to v219', () async {
     final db = AppDatabase(_dbAt218());
     addTearDown(db.close);
 
-    expect(await _storedSources(db), {for (final c in _sourceColumns) c: 0});
+    expect(await _storedSources(db), {for (final c in _sourceColumns) c: 1});
   });
 
   test('rows already on computer are left alone', () async {
@@ -81,7 +81,7 @@ void main() {
     expect(await _storedSources(db), {for (final c in _sourceColumns) c: 0});
   });
 
-  test('the migration is a no-op when the table is absent', () async {
+  test('a database at v218 without diver_settings still opens', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = 218');

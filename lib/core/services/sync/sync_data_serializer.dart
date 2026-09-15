@@ -7376,7 +7376,7 @@ class SyncDataSerializer {
       'o2Narcotic': true,
       'endLimit': 30.0,
       'useDiveComputerCnsData': false,
-      // v218: computer (0) is the default for every per-metric source, so a
+      // v219: computer (0) is the default for every per-metric source, so a
       // payload from a peer predating these columns hydrates to it too.
       'defaultNdlSource': 0,
       'defaultCeilingSource': 0,
@@ -7434,7 +7434,7 @@ class SyncDataSerializer {
       // v177: GTR settings; seed them so payloads predating the columns
       // hydrate instead of throwing in DiverSetting.fromJson.
       'defaultShowGtr': false,
-      // v218: computer (0) is the default source.
+      // v219: computer (0) is the default source.
       'defaultGtrSource': 0,
       'gtrReservePressure': 50.0,
       // v166: seed it so payloads predating the column hydrate instead of
@@ -7452,7 +7452,7 @@ class SyncDataSerializer {
       // v133: non-nullable columns; seed them so payloads predating the
       // columns hydrate instead of throwing in DiverSetting.fromJson.
       'showDecoStopsOnProfile': true,
-      // v218: computer (0) is the default source.
+      // v219: computer (0) is the default source.
       'defaultDecoStopSource': 0,
       // additional non-nullable
       'safetyReviewEnabled': true,
