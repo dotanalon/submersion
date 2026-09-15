@@ -40030,9 +40030,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'How equipment is grouped and sorted on a dive';
 
   @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
-
-  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override

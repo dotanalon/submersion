@@ -1090,14 +1090,14 @@ class UddfEntityImporter {
       if (existing != null) {
         if (uddfId != null) idMapping[uddfId] = existing.id;
         // Keep every use the file gives the tag.
-        if (appliesToSites && !existing.appliesToSites) {
+        if (appliesToSites && !existing.appliesTo(TagScope.sites)) {
           await repository.getOrCreateTag(
             name,
             diverId: diverId,
             scope: TagScope.sites,
           );
         }
-        if (appliesToDives && !existing.appliesToDives) {
+        if (appliesToDives && !existing.appliesTo(TagScope.dives)) {
           await repository.getOrCreateTag(name, diverId: diverId);
         }
         continue;
@@ -1116,8 +1116,10 @@ class UddfEntityImporter {
         updatedAt: now,
         // A tag must apply somewhere; a file claiming neither is read as a
         // dive tag.
-        appliesToDives: appliesToDives || !appliesToSites,
-        appliesToSites: appliesToSites,
+        scopes: {
+          if (appliesToDives || !appliesToSites) TagScope.dives,
+          if (appliesToSites) TagScope.sites,
+        },
       );
 
       await repository.createTag(tag);
@@ -1224,7 +1226,7 @@ class UddfEntityImporter {
     ];
     for (final tagId in tagIds) {
       final tag = await repos.tagRepository.getTagById(tagId);
-      if (tag != null && !tag.appliesToSites) {
+      if (tag != null && !tag.appliesTo(TagScope.sites)) {
         await repos.tagRepository.getOrCreateTag(
           tag.name,
           diverId: tag.diverId,
