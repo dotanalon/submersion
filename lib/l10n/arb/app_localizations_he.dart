@@ -15629,6 +15629,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'הרחבת תפריט';
 
   @override
+  String get nav_tooltip_reorderMenu => 'סידור מחדש של התפריט';
+
+  @override
+  String get nav_tooltip_doneReordering => 'סיום הסידור';
+
+  @override
   String get nav_transfer => 'העברה';
 
   @override

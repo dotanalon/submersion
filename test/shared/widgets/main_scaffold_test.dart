@@ -1037,6 +1037,73 @@ void main() {
       expect(download.cancelled, isTrue);
     });
 
+    testWidgets('the desktop rail exposes an in-place reorder control', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(await buildHarness(repo: _FakeRepo()));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('navRailReorderButton')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the phone bar has no rail reorder control', (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(await buildHarness(repo: _FakeRepo()));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('navRailReorderButton')), findsNothing);
+    });
+
+    testWidgets(
+      'reordering from the rail persists and updates the destinations',
+      (tester) async {
+        tester.view.physicalSize = const Size(1400, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final repo = _FakeRepo();
+        await tester.pumpWidget(await buildHarness(repo: repo));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const ValueKey('navRailReorderButton')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('Move Sites up'));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.byKey(const ValueKey('navRailReorderDoneButton')),
+        );
+        await tester.pumpAndSettle();
+
+        expect(repo.storedRail!.take(2).toList(), ['sites', 'dives']);
+
+        String labelOf(NavigationRailDestination d) {
+          final label = d.label;
+          if (label is Text) return label.data ?? '';
+          return label.toString();
+        }
+
+        final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+        expect(rail.destinations.take(3).map(labelOf).toList(), [
+          'Home',
+          'Sites',
+          'Dives',
+        ]);
+      },
+    );
+
     testWidgets('tapping a customized primary item navigates to its route', (
       tester,
     ) async {

@@ -26164,6 +26164,18 @@ abstract class AppLocalizations {
   /// **'Expand menu'**
   String get nav_tooltip_expandMenu;
 
+  /// Tooltip for the button that lets the user rearrange destinations on the wide-screen navigation rail.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder menu'**
+  String get nav_tooltip_reorderMenu;
+
+  /// Tooltip for the button that leaves rail reorder mode and returns to normal navigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Done reordering'**
+  String get nav_tooltip_doneReordering;
+
   /// Navigation label for data transfer section
   ///
   /// In en, this message translates to:

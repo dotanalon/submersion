@@ -4995,6 +4995,8 @@
   "nav_tooltip_closeMenu": "Cerrar menú",
   "nav_tooltip_collapseMenu": "Contraer menú",
   "nav_tooltip_expandMenu": "Expandir menú",
+  "nav_tooltip_reorderMenu": "Reordenar menú",
+  "nav_tooltip_doneReordering": "Terminar de reordenar",
   "nav_transfer": "Transferencia",
   "nav_trips": "Viajes",
   "plannerCanvas_bailout_available": "Disponible {liters}",

@@ -9826,6 +9826,8 @@
   "nav_tooltip_closeMenu": "Close menu",
   "nav_tooltip_collapseMenu": "Collapse menu",
   "nav_tooltip_expandMenu": "Expand menu",
+  "nav_tooltip_reorderMenu": "Reorder menu",
+  "nav_tooltip_doneReordering": "Done reordering",
   "nav_transfer": "Transfer",
   "nav_trips": "Trips",
   "@nav_buddies": {
@@ -9884,6 +9886,12 @@
   },
   "@nav_tooltip_expandMenu": {
     "description": "Tooltip for the expand navigation rail button"
+  },
+  "@nav_tooltip_reorderMenu": {
+    "description": "Tooltip for the button that lets the user rearrange destinations on the wide-screen navigation rail."
+  },
+  "@nav_tooltip_doneReordering": {
+    "description": "Tooltip for the button that leaves rail reorder mode and returns to normal navigation."
   },
   "@nav_transfer": {
     "description": "Navigation label for data transfer section"

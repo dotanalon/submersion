@@ -4893,6 +4893,8 @@
   "nav_tooltip_closeMenu": "Menü bezárása",
   "nav_tooltip_collapseMenu": "Menu osszecsuklasa",
   "nav_tooltip_expandMenu": "Menu kinyitasa",
+  "nav_tooltip_reorderMenu": "Menü átrendezése",
+  "nav_tooltip_doneReordering": "Átrendezés kész",
   "nav_transfer": "Átvitel",
   "nav_trips": "Utak",
   "plannerCanvas_bailout_available": "Elérhető {liters}",

@@ -16015,6 +16015,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'Expandir menu';
 
   @override
+  String get nav_tooltip_reorderMenu => 'Reorganizar menu';
+
+  @override
+  String get nav_tooltip_doneReordering => 'Concluir reorganização';
+
+  @override
   String get nav_transfer => 'Transferir';
 
   @override

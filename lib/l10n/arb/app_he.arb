@@ -4893,6 +4893,8 @@
   "nav_tooltip_closeMenu": "סגירת תפריט",
   "nav_tooltip_collapseMenu": "כיווץ תפריט",
   "nav_tooltip_expandMenu": "הרחבת תפריט",
+  "nav_tooltip_reorderMenu": "סידור מחדש של התפריט",
+  "nav_tooltip_doneReordering": "סיום הסידור",
   "nav_transfer": "העברה",
   "nav_trips": "טיולים",
   "plannerCanvas_bailout_available": "זמין {liters}",

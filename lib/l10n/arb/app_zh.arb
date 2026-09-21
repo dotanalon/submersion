@@ -5161,6 +5161,8 @@
   "nav_tooltip_closeMenu": "关闭菜单",
   "nav_tooltip_collapseMenu": "折叠菜单",
   "nav_tooltip_expandMenu": "展开菜单",
+  "nav_tooltip_reorderMenu": "重新排列菜单",
+  "nav_tooltip_doneReordering": "完成重新排列",
   "nav_transfer": "传输",
   "nav_trips": "旅行",
   "plannerCanvas_bailout_available": "可用 {liters}",

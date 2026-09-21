@@ -5099,6 +5099,8 @@
   "nav_tooltip_closeMenu": "Menü schließen",
   "nav_tooltip_collapseMenu": "Menü einklappen",
   "nav_tooltip_expandMenu": "Menü ausklappen",
+  "nav_tooltip_reorderMenu": "Menü neu anordnen",
+  "nav_tooltip_doneReordering": "Anordnung übernehmen",
   "nav_transfer": "Übertragung",
   "nav_trips": "Reisen",
   "plannerCanvas_bailout_available": "Verfügbar {liters}",

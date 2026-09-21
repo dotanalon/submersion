@@ -15740,6 +15740,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'توسيع القائمة';
 
   @override
+  String get nav_tooltip_reorderMenu => 'إعادة ترتيب القائمة';
+
+  @override
+  String get nav_tooltip_doneReordering => 'إنهاء إعادة الترتيب';
+
+  @override
   String get nav_transfer => 'نقل البيانات';
 
   @override

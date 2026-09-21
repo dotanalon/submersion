@@ -15967,6 +15967,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'Menu kinyitasa';
 
   @override
+  String get nav_tooltip_reorderMenu => 'Menü átrendezése';
+
+  @override
+  String get nav_tooltip_doneReordering => 'Átrendezés kész';
+
+  @override
   String get nav_transfer => 'Átvitel';
 
   @override

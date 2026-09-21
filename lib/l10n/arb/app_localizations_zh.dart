@@ -15256,6 +15256,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_tooltip_expandMenu => '展开菜单';
 
   @override
+  String get nav_tooltip_reorderMenu => '重新排列菜单';
+
+  @override
+  String get nav_tooltip_doneReordering => '完成重新排列';
+
+  @override
   String get nav_transfer => '传输';
 
   @override

@@ -15997,6 +15997,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'Menü ausklappen';
 
   @override
+  String get nav_tooltip_reorderMenu => 'Menü neu anordnen';
+
+  @override
+  String get nav_tooltip_doneReordering => 'Anordnung übernehmen';
+
+  @override
   String get nav_transfer => 'Übertragung';
 
   @override

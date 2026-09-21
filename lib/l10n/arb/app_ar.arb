@@ -4995,6 +4995,8 @@
   "nav_tooltip_closeMenu": "إغلاق القائمة",
   "nav_tooltip_collapseMenu": "طي القائمة",
   "nav_tooltip_expandMenu": "توسيع القائمة",
+  "nav_tooltip_reorderMenu": "إعادة ترتيب القائمة",
+  "nav_tooltip_doneReordering": "إنهاء إعادة الترتيب",
   "nav_transfer": "نقل البيانات",
   "nav_trips": "الرحلات",
   "plannerCanvas_bailout_available": "المتاح {liters}",

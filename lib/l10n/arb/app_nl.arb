@@ -4995,6 +4995,8 @@
   "nav_tooltip_closeMenu": "Menu sluiten",
   "nav_tooltip_collapseMenu": "Menu inklappen",
   "nav_tooltip_expandMenu": "Menu uitklappen",
+  "nav_tooltip_reorderMenu": "Menu herschikken",
+  "nav_tooltip_doneReordering": "Klaar met herschikken",
   "nav_transfer": "Overdracht",
   "nav_trips": "Reizen",
   "plannerCanvas_bailout_available": "Beschikbaar {liters}",

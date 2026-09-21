@@ -15754,6 +15754,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'Expand menu';
 
   @override
+  String get nav_tooltip_reorderMenu => 'Reorder menu';
+
+  @override
+  String get nav_tooltip_doneReordering => 'Done reordering';
+
+  @override
   String get nav_transfer => 'Transfer';
 
   @override
