@@ -24,6 +24,8 @@ void main() {
     FakeAppSettingsRepository? repo,
     ValueChanged<int>? onSelected,
     bool extended = true,
+    List<NavDestination>? destinations,
+    List<dynamic> extraOverrides = const [],
   }) async {
     tester.view.physicalSize = const Size(1400, 900);
     tester.view.devicePixelRatio = 1.0;
@@ -33,8 +35,20 @@ void main() {
     final resolved = repo ?? FakeAppSettingsRepository();
     await tester.pumpWidget(
       testApp(
-        overrides: [appSettingsRepositoryProvider.overrideWithValue(resolved)],
-        child: _RailHost(extended: extended, onSelected: onSelected),
+        overrides: [
+          appSettingsRepositoryProvider.overrideWithValue(resolved),
+          ...extraOverrides,
+        ],
+        child: destinations == null
+            ? _RailHost(extended: extended, onSelected: onSelected)
+            : AppNavigationRail(
+                destinations: destinations,
+                selectedIndex: 0,
+                onDestinationSelected: onSelected ?? (_) {},
+                extended: extended,
+                labelsHidden: !extended,
+                accentOf: (_) => null,
+              ),
       ),
     );
     await tester.pumpAndSettle();
@@ -157,6 +171,110 @@ void main() {
 
     expect(taps, isEmpty);
   });
+
+  testWidgets('move-down writes the new rail order through the repository', (
+    tester,
+  ) async {
+    final repo = await pumpRail(tester);
+
+    await tester.tap(find.byKey(const ValueKey('navRailReorderButton')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Move Dives down'));
+    await tester.pumpAndSettle();
+
+    expect(repo.navRailIds!.take(2).toList(), ['sites', 'dives']);
+  });
+
+  testWidgets('a failed reorder save rolls the row back and reports it', (
+    tester,
+  ) async {
+    await pumpRail(tester, repo: _WriteFailsRepo());
+
+    await tester.tap(find.byKey(const ValueKey('navRailReorderButton')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Move Sites up'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Could not save navigation layout. Please try again.'),
+      findsOneWidget,
+    );
+    expect(_firstMovableId(tester), 'dives');
+  });
+
+  testWidgets('a failed reset keeps the custom order and reports it', (
+    tester,
+  ) async {
+    final repo = _WriteFailsRepo()..navRailIds = ['settings', 'statistics'];
+    await pumpRail(tester, repo: repo);
+
+    await tester.tap(find.byKey(const ValueKey('navRailReorderButton')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('navRailReorderResetButton')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Could not save navigation layout. Please try again.'),
+      findsOneWidget,
+    );
+    expect(_firstMovableId(tester), 'settings');
+  });
+
+  testWidgets(
+    'an unknown id in the live order renders a missing-row placeholder',
+    (tester) async {
+      await pumpRail(
+        tester,
+        destinations: [
+          _destination('dashboard'),
+          _destination('dives'),
+          _destination('sites'),
+        ],
+        extraOverrides: [
+          movableNavIdsProvider.overrideWithValue(['dives', 'sites', 'ghost']),
+        ],
+      );
+
+      await tester.tap(find.byKey(const ValueKey('navRailReorderButton')));
+      await tester.pumpAndSettle();
+      // Persist a reorder so the notifier normalizes in the extra movable
+      // id; the listen then puts 'ghost' on screen with no destination.
+      await tester.tap(find.byTooltip('Move Sites up'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('nav-rail-missing-ghost')),
+        findsOneWidget,
+      );
+    },
+  );
+}
+
+NavDestination _destination(String id) {
+  return kNavDestinations.firstWhere((destination) => destination.id == id);
+}
+
+/// Id of the topmost movable reorder row, read off its ValueKey.
+String _firstMovableId(WidgetTester tester) {
+  const prefix = 'nav-rail-item-';
+  final key = tester
+      .widgetList(
+        find.byWidgetPredicate((widget) {
+          final key = widget.key;
+          return key is ValueKey<String> && key.value.startsWith(prefix);
+        }),
+      )
+      .map((widget) => widget.key! as ValueKey<String>)
+      .first;
+  return key.value.substring(prefix.length);
+}
+
+/// Fake whose rail writes always fail, so the reorder rollback path runs.
+class _WriteFailsRepo extends FakeAppSettingsRepository {
+  @override
+  Future<void> setNavRailIds(List<String> ids) async =>
+      throw StateError('write failed');
 }
 
 /// Rebuilds [AppNavigationRail] from [navRailDestinationsProvider] so a
