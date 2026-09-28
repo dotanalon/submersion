@@ -1883,6 +1883,8 @@ class DiveComputerRepository {
                 tankId: Value(tankId),
                 depth: Value(sw.depth),
                 createdAt: Value(now),
+                // The downloading computer's own switch (v241).
+                computerId: Value(computerId),
               ),
             );
           }

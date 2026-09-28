@@ -70,5 +70,15 @@ extension RungsFromV231 on AppDatabase {
       await _assertProfileEventsDiveIdIndex();
     }
     if (from < 240) await reportProgress();
+    // v241: dive_tanks.shared_computer_ids and gas_switches.computer_id,
+    // then infer the shared tanks of dives consolidated before the fold
+    // recorded them. Older switches stay unattributed: nothing on the row
+    // says which computer logged one, and null applies to every computer.
+    // The columns are re-asserted in beforeOpen; the backfill runs once.
+    if (from < 241) {
+      await _assertGasPlanAttributionColumns();
+      await backfillTankSharedComputers(this);
+    }
+    if (from < 241) await reportProgress();
   }
 }

@@ -9,6 +9,10 @@ extension BeforeOpenBackstops on AppDatabase {
   Future<void> _beforeOpen(OpeningDetails details) async {
     // v240 backstop: the events-by-dive index.
     await _assertProfileEventsDiveIdIndex();
+    // v241 backstop: dive_tanks.shared_computer_ids and
+    // gas_switches.computer_id. Every read of either selects the whole row, so a database that arrives by restore or
+    // sync-adopt without it would throw on the first read.
+    await _assertGasPlanAttributionColumns();
 
     // v237 backstop: the dive figure switch.
     await _assertShowDiveFigureColumn();

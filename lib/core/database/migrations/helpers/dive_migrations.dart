@@ -2,6 +2,23 @@ part of '../app_database_migrations.dart';
 
 /// Dives, dive tanks and the values derived from a dive.
 extension DiveMigrations on AppDatabase {
+  /// v241: dive_tanks.shared_computer_ids and gas_switches.computer_id, the
+  /// per-computer attribution of a consolidated dive's gas plan. Idempotent,
+  /// so it is safe to call from both onUpgrade and the beforeOpen backstop,
+  /// and a no-op for a table that does not exist yet.
+  Future<void> _assertGasPlanAttributionColumns() async {
+    await _addColumnIfMissing('dive_tanks', 'shared_computer_ids', 'TEXT');
+    // A partial-schema fixture may lack dive_computers, and SQLite then
+    // refuses every later insert into a table whose FK parent is missing.
+    await _addColumnIfMissing(
+      'gas_switches',
+      'computer_id',
+      await _tableExists('dive_computers')
+          ? 'TEXT REFERENCES dive_computers(id) ON DELETE SET NULL'
+          : 'TEXT',
+    );
+  }
+
   /// Idempotent DDL for dive_tanks.source_tank_index (v200, issue #1314).
   Future<void> _assertDiveTankSourceIndexColumn() async {
     final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();

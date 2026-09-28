@@ -1121,6 +1121,13 @@ class DiveTank extends Equatable {
   /// user edits never rewrite it.
   final int? sourceTankIndex;
 
+  /// The other computers on a consolidated dive that logged this same
+  /// cylinder (v241): consolidation keeps one row per physical cylinder,
+  /// attributed to [computerId], and lists here the computers merged into
+  /// it. Computer-owned identity, like [computerId]: user edits never
+  /// rewrite it.
+  final List<String> sharedComputerIds;
+
   /// The regulator this cylinder was breathed through (v202), so high-O2
   /// contact reaches the regulator's service clocks. User-authored: the
   /// tank editor sets it and downloads never touch it.
@@ -1167,12 +1174,20 @@ class DiveTank extends Equatable {
     this.computerId,
     this.transmitterSerial,
     this.sourceTankIndex,
+    this.sharedComputerIds = const [],
     this.regulatorEquipmentId,
     this.tripCylinderId,
     this.equipmentId,
     this.decoSwitchDepth,
     this.isTravelGas = false,
   });
+
+  /// Whether [computer] breathed this cylinder: it owns it, shares it, or
+  /// the tank belongs to the whole dive (unattributed).
+  bool isUsedBy(String computer) =>
+      computerId == null ||
+      computerId == computer ||
+      sharedComputerIds.contains(computer);
 
   /// Pressure consumed during dive
   double? get pressureUsed {
@@ -1200,6 +1215,7 @@ class DiveTank extends Equatable {
     bool clearTransmitterSerial = false,
     int? sourceTankIndex,
     bool clearSourceTankIndex = false,
+    List<String>? sharedComputerIds,
     String? regulatorEquipmentId,
     String? equipmentId,
     bool clearRegulatorEquipmentId = false,
@@ -1228,6 +1244,7 @@ class DiveTank extends Equatable {
       sourceTankIndex: clearSourceTankIndex
           ? null
           : (sourceTankIndex ?? this.sourceTankIndex),
+      sharedComputerIds: sharedComputerIds ?? this.sharedComputerIds,
       regulatorEquipmentId: clearRegulatorEquipmentId
           ? null
           : (regulatorEquipmentId ?? this.regulatorEquipmentId),
@@ -1258,6 +1275,7 @@ class DiveTank extends Equatable {
     computerId,
     transmitterSerial,
     sourceTankIndex,
+    sharedComputerIds,
     regulatorEquipmentId,
     equipmentId,
     tripCylinderId,

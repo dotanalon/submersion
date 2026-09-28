@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.d
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -1610,6 +1611,9 @@ class DiveRepository {
                   validTripCylinderLink(tank.tripCylinderId, validSlots),
                 ),
                 sourceTankIndex: Value(tank.sourceTankIndex),
+                sharedComputerIds: Value(
+                  encodeSharedComputerIds(tank.sharedComputerIds),
+                ),
               ),
             );
           }
@@ -1951,6 +1955,9 @@ class DiveRepository {
                       validTripCylinderLink(tank.tripCylinderId, validSlots),
                     ),
                     sourceTankIndex: Value(tank.sourceTankIndex),
+                    sharedComputerIds: Value(
+                      encodeSharedComputerIds(tank.sharedComputerIds),
+                    ),
                   ),
                 );
             await _syncRepository.markRecordPending(
@@ -3813,6 +3820,7 @@ class DiveRepository {
               tripCylinderId: t.tripCylinderId,
               equipmentId: t.equipmentId,
               sourceTankIndex: t.sourceTankIndex,
+              sharedComputerIds: decodeSharedComputerIds(t.sharedComputerIds),
             ),
           )
           .toList(),
@@ -4238,6 +4246,7 @@ class DiveRepository {
           tripCylinderId: t.tripCylinderId,
           equipmentId: t.equipmentId,
           sourceTankIndex: t.sourceTankIndex,
+          sharedComputerIds: decodeSharedComputerIds(t.sharedComputerIds),
         );
       }).toList(),
       profile: seriesProfile,
@@ -4650,6 +4659,7 @@ class DiveRepository {
         tankId: gs.tankId,
         depth: gs.depth,
         createdAt: DateTime.fromMillisecondsSinceEpoch(gs.createdAt),
+        computerId: gs.computerId,
       ),
       tankName: tank.tankName ?? 'Tank ${tank.tankOrder + 1}',
       gasMix: _formatGasMixName(tank.o2Percent, tank.hePercent),
@@ -4679,6 +4689,7 @@ class DiveRepository {
               tankId: Value(gasSwitch.tankId),
               depth: Value(gasSwitch.depth),
               createdAt: Value(now),
+              computerId: Value(gasSwitch.computerId),
             ),
           );
 
@@ -4798,6 +4809,7 @@ class DiveRepository {
                 tankId: Value(gs.tankId),
                 depth: Value(gs.depth),
                 createdAt: Value(now),
+                computerId: Value(gs.computerId),
               ),
             );
         await _syncRepository.markRecordPending(
@@ -6543,6 +6555,11 @@ class DiveRepository {
     // template copied from a linked tank must not stamp that cylinder onto
     // every dive it lands on, so only a restore writes it.
     equipmentId: withLink ? Value(t.equipmentId) : const Value.absent(),
+    // Names the computers of the dive the tank came from, so a template
+    // must not carry it either.
+    sharedComputerIds: withLink
+        ? Value(encodeSharedComputerIds(t.sharedComputerIds))
+        : const Value.absent(),
   );
 
   /// Append [tanks] to each dive (fresh ids, appended after existing tanks).

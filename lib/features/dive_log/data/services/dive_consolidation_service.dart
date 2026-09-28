@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_ser
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
+import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 
 /// Result of a successful consolidation: the target dive id plus the
 /// pre-consolidation snapshot needed to undo it.
@@ -106,6 +107,25 @@ class DiveConsolidationService {
           targetRow.computerId!,
           now: now,
         );
+        // The target's switches are its own computer's gas plan: stamp them
+        // so the secondary's analysis does not pick them up (#2560).
+        final unstampedSwitches =
+            await (_db.select(_db.gasSwitches)..where(
+                  (t) => t.diveId.equals(targetDiveId) & t.computerId.isNull(),
+                ))
+                .get();
+        for (final row in unstampedSwitches) {
+          await (_db.update(
+            _db.gasSwitches,
+          )..where((t) => t.id.equals(row.id))).write(
+            GasSwitchesCompanion(computerId: Value(targetRow.computerId)),
+          );
+          await _sync.markRecordPending(
+            entityType: 'gasSwitches',
+            recordId: row.id,
+            localUpdatedAt: now,
+          );
+        }
         // With a fresh clock: stamping moves these events into any scope
         // tombstone the computer already has on this dive (#1926), and with
         // their old clocks a relayed copy of that scope would delete them.
@@ -126,6 +146,15 @@ class DiveConsolidationService {
               .fold<int>(-1, (m, r) => r.tankOrder > m ? r.tankOrder : m) +
           1;
       final tankIdMap = <String, String>{}; // old secondary id -> id on target
+      // The computers sharing each target tank, seeded from what the tanks
+      // already record (a target consolidated before) and grown by every
+      // secondary tank merged into one below.
+      final sharedByTargetTank = <String, List<String>>{
+        for (final r in snapshot.tankRows.where(
+          (r) => r.diveId == targetDiveId,
+        ))
+          r.id: decodeSharedComputerIds(r.sharedComputerIds),
+      };
 
       // Junction/child tables the snapshot also captures but a fold
       // previously left behind for bulkDeleteDives' cascade to drop (#449
@@ -303,6 +332,14 @@ class DiveConsolidationService {
           final mergeInto = plan.tankMerges[tank.id];
           if (mergeInto != null) {
             tankIdMap[tank.id] = mergeInto;
+            // One row now stands for a cylinder both computers logged:
+            // record the secondary on it, or its analysis loses the gas.
+            await _recordSharedTank(
+              mergeInto,
+              secRow.computerId,
+              sharedByTargetTank,
+              now: now,
+            );
           } else {
             final freshId = _uuid.v4();
             tankIdMap[tank.id] = freshId;
@@ -405,6 +442,8 @@ class DiveConsolidationService {
                       diveId: Value(targetDiveId),
                       tankId: Value(newTankId),
                       timestamp: Value(row.timestamp + offset),
+                      // The secondary computer's own switch (#2560).
+                      computerId: Value(row.computerId ?? secRow.computerId),
                     ),
               );
           await _sync.markRecordPending(
@@ -652,6 +691,36 @@ class DiveConsolidationService {
     return DiveConsolidationOutcome(
       targetDiveId: targetDiveId,
       snapshot: snapshot,
+    );
+  }
+
+  /// Adds [computerId] to the computers sharing target tank [tankId], unless
+  /// it owns the tank or is already listed. [shared] tracks the lists across
+  /// the whole fold so a second secondary builds on the first's write.
+  Future<void> _recordSharedTank(
+    String tankId,
+    String? computerId,
+    Map<String, List<String>> shared, {
+    required int now,
+  }) async {
+    if (computerId == null) return;
+    final current = shared[tankId] ?? const <String>[];
+    if (current.contains(computerId)) return;
+    final owner = await (_db.select(
+      _db.diveTanks,
+    )..where((t) => t.id.equals(tankId))).getSingleOrNull();
+    if (owner == null || owner.computerId == computerId) return;
+    final next = [...current, computerId];
+    shared[tankId] = next;
+    await (_db.update(_db.diveTanks)..where((t) => t.id.equals(tankId))).write(
+      DiveTanksCompanion(
+        sharedComputerIds: Value(encodeSharedComputerIds(next)),
+      ),
+    );
+    await _sync.markRecordPending(
+      entityType: 'diveTanks',
+      recordId: tankId,
+      localUpdatedAt: now,
     );
   }
 

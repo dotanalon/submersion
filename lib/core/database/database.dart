@@ -212,7 +212,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 240;
+  static const int currentSchemaVersion = 241;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -960,6 +960,13 @@ class AppDatabase extends _$AppDatabase {
     // to 240. Renumbered from 233 and then 235: main shipped 233 (#1921),
     // 234 (#2046) and 239 (#2275) while this was open.
     240,
+    // v241: dive_tanks.shared_computer_ids (the other computers on a
+    // consolidated dive that logged the same cylinder) and
+    // gas_switches.computer_id, so each computer on a consolidated dive is
+    // analysed on its own gas plan (issue #2560). Additive nullable columns
+    // plus a local, deterministic backfill of the shared tanks; the floor
+    // stays.
+    241,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -263,6 +263,11 @@ class DiveTanks extends Table {
   // takes no parsed tank, which is what a reassignment leaves behind.
   IntColumn get sourceTankIndex => integer().nullable()();
 
+  /// v241: the other computers on a consolidated dive that logged this same
+  /// cylinder, as a JSON array of computer ids (tank_shared_computers.dart).
+  /// Computer-owned like [computerId]: the fold writes it, edits never do.
+  TextColumn get sharedComputerIds => text().nullable()();
+
   /// v202: the regulator breathed from this cylinder, so high-O2 exposure
   /// reaches the regulator's service clocks. User-authored; downloads and
   /// re-parses never write it.
@@ -331,6 +336,15 @@ class GasSwitches extends Table {
       text().references(DiveTanks, #id, onDelete: KeyAction.cascade)();
   RealColumn get depth => real().nullable()(); // depth at switch (meters)
   IntColumn get createdAt => integer()();
+
+  /// v241: the computer that logged this switch. On a consolidated dive each
+  /// computer's analysis uses only its own switches; null (manual entries,
+  /// file imports, switches written before v241) applies to every computer.
+  TextColumn get computerId => text().nullable().references(
+    DiveComputers,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
 
   @override
   Set<Column> get primaryKey => {id};
