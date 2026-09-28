@@ -5,7 +5,9 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
@@ -51,6 +53,8 @@ class SyncRepository {
     'liveaboardDetails': (table: 'liveaboard_detail_records', pk: 'id'),
     'itineraryDays': (table: 'trip_itinerary_days', pk: 'id'),
     'tripDayWeather': (table: 'trip_day_weather', pk: 'id'),
+    'tripCylinders': (table: 'trip_cylinders', pk: 'id'),
+    'tripCylinderEvents': (table: 'trip_cylinder_events', pk: 'id'),
     'importedFiles': (table: 'imported_files', pk: 'id'),
     'diveProfileSeries': (table: 'dive_profile_series', pk: 'id'),
     'tankPressureSeries': (table: 'tank_pressure_series', pk: 'id'),
@@ -68,6 +72,7 @@ class SyncRepository {
     'preDiveSessions': (table: 'pre_dive_sessions', pk: 'id'),
     'preDiveSessionItems': (table: 'pre_dive_session_items', pk: 'id'),
     'gpsTracks': (table: 'gps_tracks', pk: 'id'),
+    'navTracks': (table: 'nav_tracks', pk: 'id'),
     'siteFeatures': (table: 'site_features', pk: 'id'),
     'divePlans': (table: 'dive_plans', pk: 'id'),
     'divePlanTanks': (table: 'dive_plan_tanks', pk: 'id'),
@@ -94,6 +99,9 @@ class SyncRepository {
     // junction above.
     'diveComputers': (table: 'dive_computers', pk: 'id'),
     'transmitters': (table: 'transmitters', pk: 'id'),
+    'cylinderFills': (table: 'cylinder_fills', pk: 'id'),
+    'connectionMaps': (table: 'connection_maps', pk: 'id'),
+    'savedQueries': (table: 'saved_queries', pk: 'id'),
     'tags': (table: 'tags', pk: 'id'),
     'courses': (table: 'courses', pk: 'id'),
     // HLC merge-root only: the courseRequirementDives junction is clockless
@@ -149,6 +157,8 @@ class SyncRepository {
     'siteSiteTypes': (table: 'site_site_types', pk: 'id'),
     'siteTags': (table: 'site_tags', pk: 'id'),
     'equipmentTags': (table: 'equipment_tags', pk: 'id'),
+    'equipmentShares': (table: 'equipment_shares', pk: 'id'),
+    'equipmentOwnershipEvents': (table: 'equipment_ownership_events', pk: 'id'),
     'diveProfileEvents': (table: 'dive_profile_events', pk: 'id'),
     'diveSafetyReviews': (table: 'dive_safety_reviews', pk: 'dive_id'),
     'diveSafetyFindings': (table: 'dive_safety_findings', pk: 'id'),
@@ -539,38 +549,86 @@ class SyncRepository {
   // ============================================================================
 
   /// Mark a record as pending sync
+  /// Set [stampClock] false to open the pending gate without touching any
+  /// clock, for a caller that has already written the clocks it wants. The
+  /// retirement replay does this: it chose per-row whether the row clock
+  /// moves, and a stamp here would undo that choice and republish a stale
+  /// user field over a peer's newer edit (media sync program spec 5.1).
   Future<void> markRecordPending({
     required String entityType,
     required String recordId,
     required int localUpdatedAt,
+    List<SyncFactGroup> alsoStamp = const [],
+    bool stampClock = true,
   }) async {
     try {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final id = '${entityType}_$recordId';
-
       // Mark-pending and the HLC stamp on the entity row are one logical write;
       // run them in a transaction so a crash can't leave the row pending with a
       // stale/absent HLC, and concurrent calls can't interleave the two steps.
       await _db.transaction(() async {
-        await _db
-            .into(_db.syncRecords)
-            .insertOnConflictUpdate(
-              SyncRecordsCompanion(
-                id: Value(id),
-                entityType: Value(entityType),
-                recordId: Value(recordId),
-                localUpdatedAt: Value(localUpdatedAt),
-                syncStatus: const Value('pending'),
-                createdAt: Value(now),
-                updatedAt: Value(now),
-              ),
-            );
+        await _upsertPendingRecord(entityType, recordId, localUpdatedAt);
 
-        await _stampHlc(entityType, recordId);
+        await _stampHlc(
+          entityType,
+          recordId,
+          columns: [
+            if (stampClock) 'hlc',
+            for (final g in alsoStamp) g.clockColumn,
+          ],
+        );
       });
     } catch (e, stackTrace) {
       _log.error(
         'Failed to mark record pending: $entityType/$recordId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// The sync_records half of a pending mark. Callers run it inside the
+  /// transaction that also stamps the clock.
+  Future<void> _upsertPendingRecord(
+    String entityType,
+    String recordId,
+    int localUpdatedAt,
+  ) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final id = '${entityType}_$recordId';
+    await _db
+        .into(_db.syncRecords)
+        .insertOnConflictUpdate(
+          SyncRecordsCompanion(
+            id: Value(id),
+            entityType: Value(entityType),
+            recordId: Value(recordId),
+            localUpdatedAt: Value(localUpdatedAt),
+            syncStatus: const Value('pending'),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+  }
+
+  /// Marks a row pending for a FACT write: stamps [group]'s clock and never
+  /// the row clock, so the write orders only against other writes of the
+  /// same facts (media sync program spec 5.1). Same transaction shape as
+  /// [markRecordPending].
+  Future<void> markFactsPending({
+    required String entityType,
+    required String recordId,
+    required int localUpdatedAt,
+    required SyncFactGroup group,
+  }) async {
+    try {
+      await _db.transaction(() async {
+        await _upsertPendingRecord(entityType, recordId, localUpdatedAt);
+        await _stampHlc(entityType, recordId, columns: [group.clockColumn]);
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to mark facts pending: $entityType/$recordId (${group.name})',
         error: e,
         stackTrace: stackTrace,
       );
@@ -741,26 +799,58 @@ class SyncRepository {
     'equipmentSetItems': 'equipment_id',
   };
 
-  Future<void> _stampHlc(String entityType, String recordId) async {
+  Future<void> _stampHlc(
+    String entityType,
+    String recordId, {
+    List<String> columns = const ['hlc'],
+  }) async {
     final target = hlcTargets[entityType];
-    if (target == null) return;
+    if (target == null || columns.isEmpty) return;
     await ensureSyncClockConfigured();
     final hlc = SyncClock.instance.issue();
     if (hlc == null) return;
+    // Every fact group starts life with a clock, whichever path inserted the
+    // row (createMedia, the network fetch pipeline, a signature insert).
+    // Without this a row keeps null fact clocks until its first fact write,
+    // and the merge's fallback would then read a later caption edit's row
+    // clock as a fresh write to every group and beat a peer's real facts
+    // (media sync program spec 5.1). COALESCE, so an existing clock stands.
+    //
+    // Only on a row-clock write, which is what that fallback is about. A
+    // fact-only write must leave the other groups' null clocks alone: the
+    // v224 beforeOpen backstop adds the columns without backfilling them,
+    // so on such a row an upload stamp would hand this device's untouched
+    // verification facts a brand-new clock and beat a peer's newer
+    // observation. Left null they keep falling back to the row clock, which
+    // is the honest answer for facts nobody has written yet.
+    final factColumns = !columns.contains('hlc')
+        ? const <String>[]
+        : [
+            for (final g in SyncFactGroups.of(entityType))
+              if (!columns.contains(g.clockColumn)) g.clockColumn,
+          ];
+    final set = [
+      ...columns.map((c) => '"$c" = ?'),
+      ...factColumns.map((c) => '"$c" = COALESCE("$c", ?)'),
+    ].join(', ');
+    final values = [
+      for (final _ in columns) hlc,
+      for (final _ in factColumns) hlc,
+    ];
     final second = compositeHlcKeys[entityType];
     if (second != null) {
       final parts = recordId.split('|');
       if (parts.length != 2) return;
       await _db.customStatement(
-        'UPDATE "${target.table}" SET hlc = ? '
+        'UPDATE "${target.table}" SET $set '
         'WHERE "${target.pk}" = ? AND "$second" = ?',
-        [hlc, parts[0], parts[1]],
+        [...values, parts[0], parts[1]],
       );
       return;
     }
     await _db.customStatement(
-      'UPDATE "${target.table}" SET hlc = ? WHERE "${target.pk}" = ?',
-      [hlc, recordId],
+      'UPDATE "${target.table}" SET $set WHERE "${target.pk}" = ?',
+      [...values, recordId],
     );
   }
 
@@ -804,14 +894,20 @@ class SyncRepository {
               .get())
         r.read<String>('name'),
     };
-    final tables = [
+    // Row clocks, plus every fact clock (spec 5.1): a fact write stamps its
+    // group clock, so the seed must see those too or the clock could issue
+    // below a value already on disk.
+    final selects = [
       for (final t in hlcTargets.values)
-        if (present.contains(t.table)) t.table,
+        if (present.contains(t.table)) 'SELECT MAX(hlc) AS h FROM "${t.table}"',
+      for (final e in SyncFactGroups.byEntity.entries)
+        if (present.contains(hlcTargets[e.key]?.table))
+          for (final g in e.value)
+            'SELECT MAX("${g.clockColumn}") AS h '
+                'FROM "${hlcTargets[e.key]!.table}"',
     ];
-    if (tables.isEmpty) return null;
-    final union = tables
-        .map((t) => 'SELECT MAX(hlc) AS h FROM "$t"')
-        .join(' UNION ALL ');
+    if (selects.isEmpty) return null;
+    final union = selects.join(' UNION ALL ');
     final row = await _db
         .customSelect('SELECT MAX(h) AS m FROM ($union)')
         .getSingleOrNull();
@@ -1276,6 +1372,56 @@ class SyncRepository {
       );
       rethrow;
     }
+  }
+
+  /// A fresh clock for a row written outside [markRecordPending]: a batch
+  /// insert, or an UPDATE that moves many rows at once. Newer than every
+  /// clock this device has issued, a scope tombstone's included, so a row
+  /// stamped with it is never covered by a scope logged before it.
+  Future<String> issueRowClock() async {
+    await ensureSyncClockConfigured();
+    // Configured just above, and issue() is null only on an unconfigured
+    // clock.
+    return SyncClock.instance.issue()!;
+  }
+
+  /// One tombstone for a whole set of events (see [EventScopeTombstone]),
+  /// in place of one per row.
+  Future<void> logScopedDeletion(EventScopeTombstone scope) => logDeletion(
+    entityType: EventScopeTombstone.entityType,
+    recordId: scope.encode(),
+  );
+
+  /// Stores a peer's scope tombstone for relay. Unlike
+  /// [logDeletionIfMissing], a stored copy is replaced when the incoming
+  /// delete is newer: a later delete of the same scope covers every row the
+  /// earlier one did and more, so keeping the first copy would relay the
+  /// narrower one.
+  Future<void> relayScopedDeletion({
+    required String recordId,
+    required int deletedAt,
+    String? originHlc,
+  }) async {
+    final existing =
+        await (_db.select(_db.deletionLog)..where(
+              (t) =>
+                  t.entityType.equals(EventScopeTombstone.entityType) &
+                  t.recordId.equals(recordId),
+            ))
+            .get();
+    if (existing.isNotEmpty) {
+      final incoming = tryParseHlc(originHlc);
+      final stored = tryParseHlc(existing.first.originHlc);
+      if (incoming == null) return;
+      if (stored != null && incoming.compareTo(stored) <= 0) return;
+    }
+    await logDeletion(
+      entityType: EventScopeTombstone.entityType,
+      recordId: recordId,
+      deletedAt: deletedAt,
+      relayed: true,
+      originHlc: originHlc,
+    );
   }
 
   DeletionLogCompanion _localTombstone(

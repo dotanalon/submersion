@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -174,6 +175,10 @@ class Dive extends Equatable {
   // Dive planner flag (v1.5)
   final bool isPlanned; // True for planned dives (not yet executed)
 
+  /// Shared id across sibling dives mirrored from one save (issue #2002).
+  /// Null for a dive that was never mirrored.
+  final String? outingId;
+
   // Training course (v1.5)
   final String? courseId; // FK to training course
 
@@ -278,6 +283,7 @@ class Dive extends Equatable {
     this.scrubber,
     // Dive planner (v1.5)
     this.isPlanned = false,
+    this.outingId,
     // Training course (v1.5)
     this.courseId,
     // Import source tracking
@@ -683,6 +689,8 @@ class Dive extends Equatable {
     ScrubberInfo? scrubber,
     // Dive planner
     bool? isPlanned,
+    String? outingId,
+    bool clearOutingId = false,
     // Training course
     String? courseId,
     // Import source tracking
@@ -780,6 +788,7 @@ class Dive extends Equatable {
       scrubber: scrubber ?? this.scrubber,
       // Dive planner
       isPlanned: isPlanned ?? this.isPlanned,
+      outingId: clearOutingId ? null : (outingId ?? this.outingId),
       // Training course
       courseId: courseId ?? this.courseId,
       // Import source tracking
@@ -880,6 +889,7 @@ class Dive extends Equatable {
     scrubber,
     // Dive planner
     isPlanned,
+    outingId,
     // Training course
     courseId,
     // Import source tracking
@@ -1116,6 +1126,12 @@ class DiveTank extends Equatable {
   /// tank editor sets it and downloads never touch it.
   final String? regulatorEquipmentId;
 
+  /// The trip cylinder slot this tank was breathed from (v232, issue
+  /// #2325). User-authored: the tank editor sets it and downloads never
+  /// touch it. Meaningless outside the dive's trip, so the repository drops
+  /// it when the dive moves.
+  final String? tripCylinderId;
+
   /// The gear item this cylinder is (the `dive_tanks.equipment_id` link the
   /// transmitter registry writes when a serial is assigned to an item).
   /// Read-only on the domain side: edit flows rebuild the tank field by
@@ -1152,6 +1168,7 @@ class DiveTank extends Equatable {
     this.transmitterSerial,
     this.sourceTankIndex,
     this.regulatorEquipmentId,
+    this.tripCylinderId,
     this.equipmentId,
     this.decoSwitchDepth,
     this.isTravelGas = false,
@@ -1186,6 +1203,8 @@ class DiveTank extends Equatable {
     String? regulatorEquipmentId,
     String? equipmentId,
     bool clearRegulatorEquipmentId = false,
+    String? tripCylinderId,
+    bool clearTripCylinderId = false,
     double? decoSwitchDepth,
     bool clearDecoSwitchDepth = false,
     bool? isTravelGas,
@@ -1212,6 +1231,9 @@ class DiveTank extends Equatable {
       regulatorEquipmentId: clearRegulatorEquipmentId
           ? null
           : (regulatorEquipmentId ?? this.regulatorEquipmentId),
+      tripCylinderId: clearTripCylinderId
+          ? null
+          : (tripCylinderId ?? this.tripCylinderId),
       equipmentId: equipmentId ?? this.equipmentId,
       decoSwitchDepth: clearDecoSwitchDepth
           ? null
@@ -1238,6 +1260,7 @@ class DiveTank extends Equatable {
     sourceTankIndex,
     regulatorEquipmentId,
     equipmentId,
+    tripCylinderId,
     decoSwitchDepth,
     isTravelGas,
   ];
@@ -1267,10 +1290,11 @@ class GasMix extends Equatable {
     return '$roundedO2% O2';
   }
 
-  /// Maximum Operating Depth (MOD) at given ppO2
-  double mod({double ppO2 = 1.4}) {
-    return ((ppO2 / (o2 / 100)) - 1) * 10;
-  }
+  /// Maximum Operating Depth (MOD) at given ppO2, exact and unrounded.
+  ///
+  /// Round it down for display with `UnitFormatter.formatDepthFloor`.
+  double mod({double ppO2 = 1.4}) =>
+      maxOperatingDepthMeters(o2 / 100, maxPpO2: ppO2);
 
   /// Equivalent Narcotic Depth at given depth.
   ///

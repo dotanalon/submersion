@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/accessibility/not_while_typing_activator.dart';
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
@@ -30,6 +31,14 @@ class AppShortcuts {
   AppShortcuts._();
 
   static bool _registered = false;
+
+  /// Forget that the shortcuts were registered, so the next
+  /// [ensureRegistered] fills the catalog again.
+  ///
+  /// [ShortcutCatalog.clear] empties the catalog but cannot reach this flag,
+  /// so a test that clears the catalog resets the flag with it.
+  @visibleForTesting
+  static void debugReset() => _registered = false;
 
   /// Register all global shortcuts with the [ShortcutCatalog].
   ///
@@ -72,7 +81,7 @@ class AppShortcuts {
         isGlobal: true,
       ),
       ShortcutEntry(
-        label: 'Go to Statistics',
+        label: 'Go to Insights',
         category: 'Navigation',
         activator: platformShortcut(LogicalKeyboardKey.digit4),
         isGlobal: true,
@@ -120,11 +129,18 @@ class AppShortcuts {
         isGlobal: true,
       ),
 
-      // Help
+      // Help. Bare "?" is ignored while typing in a text field; the modified
+      // key works everywhere, including inside one (#2145).
       const ShortcutEntry(
         label: 'Keyboard shortcuts',
         category: 'Help',
         activator: SingleActivator(LogicalKeyboardKey.question),
+        isGlobal: true,
+      ),
+      ShortcutEntry(
+        label: 'Keyboard shortcuts',
+        category: 'Help',
+        activator: platformShortcut(LogicalKeyboardKey.slash),
         isGlobal: true,
       ),
     ]);
@@ -143,7 +159,7 @@ class AppShortcuts {
       // top-level sections SHOULD reset the stack. The child routes here use
       // `push`, because these bindings are mounted around the entire shell and
       // `go` into a `/dives` child would rebuild the stack as [dive list, X],
-      // stranding a user who pressed the key from Media or Statistics.
+      // stranding a user who pressed the key from Media or Insights.
       platformShortcut(LogicalKeyboardKey.keyN): () {
         // PUSH (not go): the digit shortcuts below switch tabs, but this
         // opens a sub-page and must stay poppable (#647).
@@ -159,7 +175,7 @@ class AppShortcuts {
         context.go('/equipment');
       },
       platformShortcut(LogicalKeyboardKey.digit4): () {
-        context.go('/statistics');
+        context.go('/insights');
       },
       platformShortcut(LogicalKeyboardKey.digit5): () {
         context.go('/settings');
@@ -183,8 +199,13 @@ class AppShortcuts {
         showDiverSwitcherSheet(context);
       },
 
-      // Help overlay (bare "?" key, no modifier — matches convention)
-      const CharacterActivator('?'): () {
+      // Help overlay. Bare "?" follows the common convention, but it must not
+      // fire while the diver is typing, or no field could ever contain a "?"
+      // (#2145). Ctrl+/ (Cmd+/ on macOS) opens the help from anywhere.
+      const NotWhileTypingActivator(CharacterActivator('?')): () {
+        showShortcutsHelpDialog(context);
+      },
+      platformShortcut(LogicalKeyboardKey.slash): () {
         showShortcutsHelpDialog(context);
       },
     };

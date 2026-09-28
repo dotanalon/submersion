@@ -4,11 +4,14 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/equipment/presentation/utils/usable_set_items.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -41,6 +44,7 @@ import 'package:submersion/features/equipment/presentation/helpers/gear_expansio
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_set_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/geofence_suggestion_banner.dart';
@@ -68,7 +72,9 @@ import 'package:submersion/features/media/presentation/providers/photo_picker_pr
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -144,7 +150,7 @@ const _createNewTripSentinel = '__create_new_trip__';
 /// [value] rendered with exactly [fractionDigits] decimals in the diver's
 /// locale, for seeding an editable field.
 ///
-/// Every field seeded here is read back with [parseUserDecimal], and the two
+/// Every field seeded here is read back with [readNumber], and the two
 /// halves must share one convention. `toStringAsFixed` always emits a dot, and
 /// under de/es/it that dot is the GROUPING separator, so a diver who opened a
 /// dive and saved it untouched would store ten times the depth (#1091).
@@ -168,9 +174,29 @@ String _seedDecimal(double value, int fractionDigits) =>
 String _seedWeight(double displayValue) =>
     formatRoundedForInput(displayValue, 3);
 
-/// [value] rendered for seeding a whole-number field, paired with
-/// [parseUserInt]. Grouping is off, so this is digit-only text.
+/// [value] rendered for seeding a whole-number field, read back with
+/// [readNumber]. Grouping is off, so this is digit-only text.
 String _seedInt(int value) => _seedDecimal(value.toDouble(), 0);
+
+extension on double? {
+  /// This value through [convert], or null when there is none.
+  double? map(double Function(double) convert) {
+    final value = this;
+    return value == null ? null : convert(value);
+  }
+}
+
+/// [controller]'s number for saving. Blank means "not recorded" for every
+/// numeric field on this page; unreadable text never reaches here, because
+/// each field's validator has already stopped the save (#1900).
+double? _savedNumber(
+  TextEditingController controller, {
+  bool integer = false,
+}) => switch (readNumber(controller.text, integer: integer)) {
+  NumberValue(:final value) => value,
+  NumberBlank() => null,
+  NumberInvalid() => null, // unreachable: validate() blocked the save
+};
 
 /// Whether "Apply last dive" must ask before replacing the form's weights
 /// and tanks (issue #2075): whenever the form holds any. A weight row with
@@ -338,6 +364,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   GasMix? _diluentGas;
   String? _scrubberType;
   int? _scrubberDurationMinutes;
+
+  /// Text controllers for the bulk rebreather number fields, created on first
+  /// build by [_bulkNumberField].
+  final Map<BulkField, TextEditingController> _bulkNumberControllers = {};
   int? _scrubberRemainingMinutes;
   double? _loopVolume;
   // SCR settings
@@ -353,6 +383,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   // Existing dive for editing
   Dive? _existingDive;
+
+  /// Planned dive, awaiting its dive computer data (issue #2002). A planned
+  /// dive holds no number; turning the switch off on an existing planned
+  /// dive promotes it on save.
+  bool _isPlanned = false;
+
+  /// A dive holding downloaded data cannot be marked planned, so the switch
+  /// is hidden once a primary data source exists.
+  bool _hasPrimarySource = false;
 
   // Current device location (for new dives - to suggest nearby sites)
   LocationResult? _currentLocation;
@@ -408,7 +447,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       _entryTime.hour,
       _entryTime.minute,
     );
-    final runtimeMinutes = parseUserInt(_runtimeController.text);
+    final runtimeMinutes = switch (readNumber(
+      _runtimeController.text,
+      integer: true,
+    )) {
+      NumberValue(:final value) => value.toInt(),
+      // No exit to derive; the runtime field shows its own error.
+      NumberBlank() || NumberInvalid() => null,
+    };
     if (runtimeMinutes == null || runtimeMinutes <= 0) return null;
     return entry.add(Duration(minutes: runtimeMinutes));
   }
@@ -477,8 +523,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     } else {
       // For new dives, capture GPS in the background to suggest nearby sites
       _captureLocationForNearby();
-      if (widget.prefill?.diveNumber == null) {
-        // The async suggestion would overwrite a prefilled number.
+      _isPlanned = widget.prefill?.isPlanned ?? false;
+      if (widget.prefill?.diveNumber == null && !_isPlanned) {
+        // The async suggestion would overwrite a prefilled number, and a
+        // planned dive takes none.
         _suggestNextDiveNumber();
       }
       _applyPrefill();
@@ -611,7 +659,42 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     if (p.waterTempCelsius != null || p.airTempCelsius != null) {
       _expanded['conditions'] = true;
     }
-    if (p.startPressureBar != null ||
+    if (p.tank case final t?) {
+      final base = _tanks.isNotEmpty ? _tanks.first : null;
+      // A tag that gives a volume describes the cylinder itself: its spec is
+      // taken whole, never mixed with the default tank's. A tag with no
+      // volume keeps the default cylinder, preset and all.
+      final describesCylinder = t.volume != null;
+      _tanks = [
+        DiveTank(
+          id: base?.id ?? _uuid.v4(),
+          name: t.name,
+          volume: describesCylinder ? t.volume : base?.volume,
+          workingPressure: describesCylinder
+              ? t.workingPressure
+              : t.workingPressure ?? base?.workingPressure,
+          startPressure: t.startPressure ?? base?.startPressure,
+          endPressure: t.endPressure ?? base?.endPressure,
+          gasMix: t.gasMix,
+          role: t.role,
+          material: describesCylinder
+              ? t.material
+              : t.material ?? base?.material,
+          order: 0,
+          presetName: describesCylinder ? t.presetName : base?.presetName,
+        ),
+        ..._tanks.skip(1),
+      ];
+      // A custom default preset loads asynchronously and replaces an
+      // untouched first tank. A cylinder described by its tag must survive
+      // that; a tag that describes nothing leaves the default free to load.
+      if (t.name != null ||
+          t.volume != null ||
+          t.workingPressure != null ||
+          t.material != null) {
+        _tanksDirty = true;
+      }
+    } else if (p.startPressureBar != null ||
         p.endPressureBar != null ||
         p.o2Percent != null ||
         p.cylinderVolumeLiters != null) {
@@ -670,8 +753,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           );
         }
 
+        final hasPrimarySource = await ref
+            .read(diveRepositoryProvider)
+            .hasPrimaryDataSource(dive.id);
+        if (!mounted) return;
         setState(() {
           _existingDive = dive;
+          _isPlanned = dive.isPlanned;
+          _hasPrimarySource = hasPrimarySource;
           _diverRoleId = dive.diverRoleId;
           _diveNumberController.text = dive.diveNumber != null
               ? _seedInt(dive.diveNumber!)
@@ -892,6 +981,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   @override
   void dispose() {
+    for (final controller in _bulkNumberControllers.values) {
+      controller.dispose();
+    }
     _diveNumberController.dispose();
     _durationController.dispose();
     _runtimeController.dispose();
@@ -952,6 +1044,24 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           // the left column and the contextual ones fill the right on wide
           // windows. ResponsiveFormColumns owns the scroll view, so it
           // needs the bounded height Expanded provides.
+          if (!_hasPrimarySource && !widget.isBulk)
+            SwitchListTile(
+              key: const Key('dive_edit_planned_switch'),
+              value: _isPlanned,
+              title: Text(context.l10n.diveLog_edit_planned_switch),
+              subtitle: Text(context.l10n.diveLog_edit_planned_switchSubtitle),
+              secondary: const Icon(Icons.event_available_outlined),
+              onChanged: (value) {
+                setState(() {
+                  _isPlanned = value;
+                  if (value) _diveNumberController.clear();
+                });
+                _markDirty();
+                if (!value && _diveNumberController.text.isEmpty) {
+                  _suggestNextDiveNumber();
+                }
+              },
+            ),
           Expanded(
             child: ResponsiveFormColumns(
               splitIndex: 2,
@@ -1209,32 +1319,20 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       visibilityMeters: _visibilityMetersInput(units),
       currentDirection: _currentDirection?.name,
       currentStrength: _currentStrength?.name,
-      swellHeight: _swellHeightController.text.isNotEmpty
-          ? units.depthToMeters(
-              parseUserDecimal(_swellHeightController.text) ?? 0,
-            )
-          : null,
+      swellHeight: _savedNumber(
+        _swellHeightController,
+      ).map(units.depthToMeters),
       entryMethod: _entryMethod?.name,
       exitMethod: _exitMethod?.name,
-      altitude: _altitudeController.text.isNotEmpty
-          ? units.altitudeToMeters(
-              parseUserDecimal(_altitudeController.text) ?? 0,
-            )
-          : null,
-      surfacePressure: _surfacePressureController.text.isNotEmpty
-          ? (parseUserDecimal(_surfacePressureController.text) ?? 0) / 1000
-          : null,
-      windSpeed: _windSpeedController.text.isNotEmpty
-          ? units.windSpeedToMs(
-              parseUserDecimal(_windSpeedController.text) ?? 0,
-            )
-          : null,
+      altitude: _savedNumber(_altitudeController).map(units.altitudeToMeters),
+      surfacePressure: _savedNumber(_surfacePressureController).map(
+        (mbar) => mbar / 1000, // Convert mbar to bar
+      ),
+      windSpeed: _savedNumber(_windSpeedController).map(units.windSpeedToMs),
       windDirection: _windDirection?.name,
       cloudCover: _cloudCover?.name,
       precipitation: _precipitation?.name,
-      humidity: _humidityController.text.isNotEmpty
-          ? (parseUserDecimal(_humidityController.text) ?? 0)
-          : null,
+      humidity: _savedNumber(_humidityController),
       weatherDescription: _weatherDescriptionController.text.isNotEmpty
           ? _weatherDescriptionController.text
           : null,
@@ -1418,6 +1516,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final total = widget.bulkDiveIds!.length;
     final labels = diveBulkMembershipLabels(l10n);
     const ownedModes = [BulkCollectionMode.add, BulkCollectionMode.replace];
+    // Only an assembly or a part gets a chip row, as on the equipment list;
+    // plain gear keeps the status line as its whole subtitle.
+    final componentIndex = ref.watch(equipmentComponentsIndexProvider).value;
     return FormSection(
       label: context.l10n.diveLog_bulkEdit_groupCollections,
       expanded: true,
@@ -1455,8 +1556,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ),
           onChanged: (d) => setState(() => _equipmentDelta = d),
           ensureOn: _equipmentEnsureOn,
-          // Assembly and part-of chips, as on the equipment list (#1487).
-          trailingBuilder: (item) => AssemblyChips(itemId: item.id),
+          // Assembly and part-of chips, as on the equipment list (#1487). They
+          // go under the name, not in the trailing slot: a long assembly name
+          // there squeezed the row to one character per line (#2276).
+          detailBuilder: (item) =>
+              componentIndex != null &&
+                  (componentIndex.isAssembly(item.id) ||
+                      componentIndex.parentIdsOf(item.id).isNotEmpty)
+              ? AssemblyChips(itemId: item.id)
+              : null,
         ),
         BulkMembershipEditor(
           title: l10n.diveLog_edit_group_buddies,
@@ -1692,6 +1800,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             controller: _visibilityController,
             suffixText: UnitFormatter(ref.read(settingsProvider)).depthSymbol,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputValidator: _bulkValidator(BulkField.visibility),
           ),
         ),
         _gatedRow(
@@ -1726,6 +1835,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             suffixText: units.depthSymbol,
             keyboardType: TextInputType.number,
             alwaysEditing: true,
+            inputValidator: _bulkValidator(BulkField.swellHeight),
           ),
         ),
         _gatedRow(
@@ -1759,6 +1869,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             controller: _altitudeController,
             keyboardType: TextInputType.number,
             alwaysEditing: true,
+            inputValidator: _bulkValidator(BulkField.altitude),
           ),
         ),
         _gatedRow(
@@ -1768,6 +1879,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             controller: _surfacePressureController,
             keyboardType: TextInputType.number,
             alwaysEditing: true,
+            inputValidator: _bulkValidator(BulkField.surfacePressure),
           ),
         ),
       ],
@@ -1787,6 +1899,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             controller: _windSpeedController,
             keyboardType: TextInputType.number,
             alwaysEditing: true,
+            inputValidator: _bulkValidator(BulkField.windSpeed),
           ),
         ),
         _gatedRow(
@@ -1832,6 +1945,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             controller: _humidityController,
             keyboardType: TextInputType.number,
             alwaysEditing: true,
+            inputValidator: _bulkValidator(BulkField.humidity),
           ),
         ),
         _gatedRow(
@@ -1846,11 +1960,35 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  Widget _bulkNumberField(ValueChanged<String> onChanged) {
-    return TextFormField(
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+  /// The number validator for bulk row [field], or none while the row is
+  /// switched off: text in a row that will not be written must not block
+  /// the save (#1900 review).
+  FormFieldValidator<String>? _bulkValidator(BulkField field) =>
+      _bulkEnabled.contains(field) ? numberValidator(context) : null;
+
+  /// A bulk-edit number. It has no controller of its own, so it owns one
+  /// through [_bulkNumberControllers]; [_saveBulk] validates the form first,
+  /// so unreadable text never reaches the bulk write.
+  Widget _bulkNumberField(
+    BulkField field,
+    ValueChanged<double?> onChanged, {
+    bool integer = false,
+  }) {
+    final controller = _bulkNumberControllers.putIfAbsent(
+      field,
+      TextEditingController.new,
+    );
+    return NumberField(
+      controller: controller,
+      integer: integer,
+      // A switched-off row is not written, so it cannot block the save.
+      validates: _bulkEnabled.contains(field),
       decoration: const InputDecoration(isDense: true),
-      onChanged: onChanged,
+      onChanged: (read) => switch (read) {
+        NumberValue(:final value) => onChanged(value),
+        NumberBlank() => onChanged(null), // clears the setting, as before
+        NumberInvalid() => null, // keep the last readable value
+      },
     );
   }
 
@@ -1876,21 +2014,30 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           BulkField.setpointLow,
           FormRow.custom(
             label: context.l10n.diveLog_bulkEdit_fieldSetpointLow,
-            child: _bulkNumberField((v) => _setpointLow = parseUserDecimal(v)),
+            child: _bulkNumberField(
+              BulkField.setpointLow,
+              (v) => _setpointLow = v,
+            ),
           ),
         ),
         _gatedRow(
           BulkField.setpointHigh,
           FormRow.custom(
             label: context.l10n.diveLog_bulkEdit_fieldSetpointHigh,
-            child: _bulkNumberField((v) => _setpointHigh = parseUserDecimal(v)),
+            child: _bulkNumberField(
+              BulkField.setpointHigh,
+              (v) => _setpointHigh = v,
+            ),
           ),
         ),
         _gatedRow(
           BulkField.setpointDeco,
           FormRow.custom(
             label: context.l10n.diveLog_bulkEdit_fieldSetpointDeco,
-            child: _bulkNumberField((v) => _setpointDeco = parseUserDecimal(v)),
+            child: _bulkNumberField(
+              BulkField.setpointDeco,
+              (v) => _setpointDeco = v,
+            ),
           ),
         ),
         _gatedRow(
@@ -1908,7 +2055,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           FormRow.custom(
             label: context.l10n.diveLog_bulkEdit_fieldScrubberDuration,
             child: _bulkNumberField(
-              (v) => _scrubberDurationMinutes = parseUserInt(v),
+              BulkField.scrubberDuration,
+              (v) => _scrubberDurationMinutes = v?.toInt(),
+              integer: true,
             ),
           ),
         ),
@@ -1917,6 +2066,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Future<void> _saveBulk(UnitFormatter units) async {
+    // An unreadable number must not reach a write across many dives.
+    if (!_formKey.currentState!.validate()) return;
     final l10n = context.l10n;
     final ids = widget.bulkDiveIds!;
 
@@ -2179,6 +2330,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       bottomTimeController: _durationController,
       runtimeController: _runtimeController,
       diveNumberController: _diveNumberController,
+      showDiveNumber: !_isPlanned,
       entryText: _formatEntryText(units),
       onEditEntry: _editEntry,
       exitText: _formatExitText(units),
@@ -2965,6 +3117,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             },
             onRemove: _tanks.length > 1 ? () => _removeTank(i) : null,
             canRemove: _tanks.length > 1,
+            // A scanned own cylinder joins this dive's gear; the tank row
+            // itself never links to it (issue #2335).
+            onCylinderScanned: (item) => _addGear([item]),
+            onScanPending: _trackTankScan,
           ),
       ],
       onAddTank: _addTank,
@@ -3456,6 +3612,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 // pointless reordering of dive_equipment on every save.
                 DiveGearTreeView(
                   links: gearLinksFor(_selectedEquipment, _gearRows),
+                  ownerReferenceDiverId:
+                      _existingDive?.diverId ??
+                      ref.watch(validatedCurrentDiverIdProvider).value,
+                  // The diver is choosing gear right now, so today's
+                  // service state is exactly what they need to see.
+                  showServiceStatus: true,
                   onRemoveSet: (setId) =>
                       _setGear(GearExpander.removeSet(_gearRows, setId)),
                   onRemoveSubtree: (id) =>
@@ -3514,24 +3676,80 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// Every way gear reaches this page funnels here so an assembly expands
   /// identically whether it came from the picker, a set, a geofence
   /// suggestion or the on-empty default (issue #1487).
+  /// The latest gear add, if one may still be running. Adds run one at a
+  /// time (each merges into the list the one before it produced), and Save
+  /// waits for them, so gear added a moment before Save (a scanned cylinder,
+  /// a set) is not left out of the saved dive.
+  Future<void>? _pendingGearAdd;
+
+  /// Tank tag scans still resolving. Save waits for them before the gear
+  /// adds, since a scan's gear add only starts once its lookup finishes.
+  final Set<Future<void>> _pendingTankScans = {};
+
+  void _trackTankScan(Future<void> scan) {
+    _pendingTankScans.add(scan);
+    unawaited(scan.whenComplete(() => _pendingTankScans.remove(scan)));
+  }
+
   Future<void> _addGear(
     List<EquipmentItem> items, {
     String? viaSetId,
     bool markDirty = true,
+  }) {
+    final previous = _pendingGearAdd;
+    final run = () async {
+      // The previous add's failure is its own caller's to report.
+      if (previous != null) await previous.then((_) {}, onError: (_) {});
+      await _addGearNow(items, viaSetId: viaSetId, markDirty: markDirty);
+    }();
+    _pendingGearAdd = run;
+    return run;
+  }
+
+  Future<void> _addGearNow(
+    List<EquipmentItem> items, {
+    String? viaSetId,
+    required bool markDirty,
   }) async {
     if (items.isEmpty) return;
+    // A set can list gear no longer shared with this dive's diver; it stays
+    // in the set but is not applied (issue #2046). The same diver scopes the
+    // parts an added assembly brings along.
+    var toAdd = items;
+    String? diverId = _existingDive?.diverId;
+    if (diverId == null) {
+      // An unreadable diver adds unscoped, as before sharing, rather than
+      // failing the add.
+      try {
+        diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      } catch (_) {
+        diverId = null;
+      }
+      if (!mounted) return;
+    }
+    if (viaSetId != null) {
+      if (diverId != null) {
+        final usable = await EquipmentRepository().usableSetMemberIds([
+          for (final i in items) i.id,
+        ], diverId);
+        if (!mounted) return;
+        toAdd = usableSetItems(items, usable.toSet());
+      }
+    }
+    if (toAdd.isEmpty) return;
     final merged = [
       ..._selectedEquipment,
-      for (final item in items)
+      for (final item in toAdd)
         if (!_selectedEquipment.any((e) => e.id == item.id)) item,
     ];
     final expansion = await expandGearOnPage(
       ref,
       additions: [
-        for (final i in items) (equipmentId: i.id, viaSetId: viaSetId),
+        for (final i in toAdd) (equipmentId: i.id, viaSetId: viaSetId),
       ],
       existing: _gearRows,
       existingItems: merged,
+      diverId: diverId,
     );
     if (!mounted) return;
     setState(() {
@@ -4143,6 +4361,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             controller: _visibilityController,
             suffixText: units.depthSymbol,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            // No input filter: stripping '-' would turn "-5", which saves as
+            // unknown, into 5 m. Unreadable text would otherwise save as
+            // "unknown" too and erase a measured visibility (#1900).
+            inputValidator: numberValidator(context),
             onChanged: (_) => setState(() {}),
           ),
           if (_visibilityCaption(units) case final caption?)
@@ -4181,6 +4403,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         controller: _swellHeightController,
         suffixText: units.depthSymbol,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: numberInputFormatters(),
+        inputValidator: numberValidator(context),
       ),
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -4189,7 +4413,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             label: l10n.diveLog_edit_label_altitude,
             controller: _altitudeController,
             suffixText: units.altitudeSymbol,
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(
+              decimal: true,
+              signed: true,
+            ),
+            inputFormatters: numberInputFormatters(),
+            inputValidator: numberValidator(context),
             onChanged: (_) => setState(() {}),
           ),
           if (altitudeWarning != null)
@@ -4256,12 +4485,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         controller: _humidityController,
         suffixText: '%',
         keyboardType: TextInputType.number,
+        inputFormatters: numberInputFormatters(),
+        inputValidator: numberValidator(context),
       ),
       FormRow.text(
         label: l10n.diveLog_edit_label_windSpeed,
         controller: _windSpeedController,
         suffixText: units.windSpeedSymbol,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: numberInputFormatters(),
+        inputValidator: numberValidator(context),
       ),
       EnumPickerRow<CurrentDirection>(
         label: l10n.diveLog_edit_label_windDirection,
@@ -4276,6 +4509,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         suffixText: 'mbar',
         placeholder: l10n.diveLog_edit_surfacePressureDefault,
         keyboardType: TextInputType.number,
+        inputFormatters: numberInputFormatters(),
+        inputValidator: numberValidator(context),
       ),
       EnumPickerRow<CloudCover>(
         label: l10n.diveLog_edit_label_cloudCover,
@@ -4597,6 +4832,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  inputFormatters: numberInputFormatters(),
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: numberValidator(context),
                   onChanged: (_) => _markDirty(),
                 ),
               ],
@@ -4763,8 +5001,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              inputFormatters: numberInputFormatters(),
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              validator: numberValidator(context),
               onChanged: (value) {
-                final displayValue = parseUserDecimal(value) ?? 0;
+                final displayValue = switch (readNumber(value)) {
+                  NumberValue(:final value) => value,
+                  NumberBlank() => 0.0, // an empty amount is 0 kg, as before
+                  // Keep the last readable amount; the error blocks save.
+                  NumberInvalid() => null,
+                };
+                if (displayValue == null) return;
                 // Convert back to kg for storage
                 final amountKg = units.weightToKg(displayValue);
                 _weights[index] = weight.copyWith(amountKg: amountKg);
@@ -5096,6 +5343,21 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       await pendingSnap;
       if (!mounted) return;
     }
+    // Wait for tank scans still resolving (each ends with its gear add),
+    // then for gear still being added; work started meanwhile is waited for
+    // too. A failed add was reported by its caller and adds nothing.
+    while (_pendingTankScans.isNotEmpty) {
+      await Future.wait(_pendingTankScans.toList());
+      if (!mounted) return;
+    }
+    for (
+      var pending = _pendingGearAdd;
+      pending != null;
+      pending = identical(pending, _pendingGearAdd) ? null : _pendingGearAdd
+    ) {
+      await pending.then((_) {}, onError: (_) {});
+      if (!mounted) return;
+    }
     // Collapsed sections un-mount their fields, hiding them from
     // Form.validate(); expand everything first so no error can hide.
     final anyCollapsed = [
@@ -5117,7 +5379,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _expanded[key] = true;
         }
       });
-      await Future<void>.delayed(Duration.zero);
+      // A zero-length delay resolves before the frame that builds the
+      // expanded sections, so their fields would miss validate() (#1900).
+      await WidgetsBinding.instance.endOfFrame;
       if (!mounted) return;
     }
     if (!_formKey.currentState!.validate()) return;
@@ -5151,65 +5415,55 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (exitDateTime != null) {
         runtime = exitDateTime.difference(entryDateTime);
         if (runtime.isNegative) runtime = null;
-      } else if (_runtimeController.text.isNotEmpty) {
-        runtime = Duration(
-          minutes: (parseUserInt(_runtimeController.text) ?? 0),
-        );
+      } else if (_savedNumber(_runtimeController, integer: true)
+          case final minutes?) {
+        runtime = Duration(minutes: minutes.toInt());
       }
 
       // Bottom time is manually entered (time at depth, excluding descent/ascent)
       Duration? duration;
-      if (_durationController.text.isNotEmpty) {
-        duration = Duration(
-          minutes: (parseUserInt(_durationController.text) ?? 0),
-        );
+      if (_savedNumber(_durationController, integer: true)
+          case final minutes?) {
+        duration = Duration(minutes: minutes.toInt());
       }
 
       // Parse form values and convert to metric for storage
-      final maxDepth = _maxDepthController.text.isNotEmpty
-          ? units.depthToMeters(
-              (parseUserDecimal(_maxDepthController.text) ?? 0),
-            )
-          : null;
-      final avgDepth = _avgDepthController.text.isNotEmpty
-          ? units.depthToMeters(
-              (parseUserDecimal(_avgDepthController.text) ?? 0),
-            )
-          : null;
-      final waterTemp = _waterTempController.text.isNotEmpty
-          ? units.temperatureToCelsius(
-              (parseUserDecimal(_waterTempController.text) ?? 0),
-            )
-          : null;
-      final airTemp = _airTempController.text.isNotEmpty
-          ? units.temperatureToCelsius(
-              (parseUserDecimal(_airTempController.text) ?? 0),
-            )
-          : null;
+      final maxDepth = _savedNumber(
+        _maxDepthController,
+      ).map(units.depthToMeters);
+      final avgDepth = _savedNumber(
+        _avgDepthController,
+      ).map(units.depthToMeters);
+      final waterTemp = _savedNumber(
+        _waterTempController,
+      ).map(units.temperatureToCelsius);
+      final airTemp = _savedNumber(
+        _airTempController,
+      ).map(units.temperatureToCelsius);
 
       // Parse conditions values (convert to metric)
-      final swellHeight = _swellHeightController.text.isNotEmpty
-          ? units.depthToMeters(
-              (parseUserDecimal(_swellHeightController.text) ?? 0),
-            )
-          : null;
-      final altitude = _altitudeController.text.isNotEmpty
-          ? units.altitudeToMeters(
-              (parseUserDecimal(_altitudeController.text) ?? 0),
-            )
-          : null;
-      final surfacePressure = _surfacePressureController.text.isNotEmpty
-          ? (parseUserDecimal(_surfacePressureController.text) ?? 0) /
-                1000 // Convert mbar to bar
-          : null;
+      final swellHeight = _savedNumber(
+        _swellHeightController,
+      ).map(units.depthToMeters);
+      final altitude = _savedNumber(
+        _altitudeController,
+      ).map(units.altitudeToMeters);
+      final surfacePressure = _savedNumber(_surfacePressureController).map(
+        (mbar) => mbar / 1000, // Convert mbar to bar
+      );
 
       // Create dive entity
       final dive = Dive(
         id: widget.diveId ?? '',
         diverId: _existingDive?.diverId, // Preserve diver assignment
-        diveNumber: _diveNumberController.text.isNotEmpty
-            ? (parseUserInt(_diveNumberController.text) ?? 0)
-            : null,
+        // A planned dive never holds a number, and a dive being promoted
+        // leaves numbering to convertPlanToActualDive (issue #2002).
+        diveNumber:
+            _isPlanned ||
+                (_existingDive?.isPlanned ?? false) ||
+                _diveNumberController.text.isEmpty
+            ? null
+            : _savedNumber(_diveNumberController, integer: true)?.toInt(),
         name: _nameController.text.trim().isNotEmpty
             ? _nameController.text.trim()
             : null,
@@ -5250,17 +5504,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         altitude: altitude,
         surfacePressure: surfacePressure,
         // Weather fields
-        windSpeed: _windSpeedController.text.isNotEmpty
-            ? units.windSpeedToMs(
-                (parseUserDecimal(_windSpeedController.text) ?? 0),
-              )
-            : null,
+        windSpeed: _savedNumber(_windSpeedController).map(units.windSpeedToMs),
         windDirection: _windDirection,
         cloudCover: _cloudCover,
         precipitation: _precipitation,
-        humidity: _humidityController.text.isNotEmpty
-            ? (parseUserDecimal(_humidityController.text) ?? 0)
-            : null,
+        humidity: _savedNumber(_humidityController),
         weatherDescription: _weatherDescriptionController.text.isNotEmpty
             ? _weatherDescriptionController.text
             : null,
@@ -5274,9 +5522,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             (_weightingFeedback == WeightingFeedback.overweighted ||
                     _weightingFeedback == WeightingFeedback.underweighted) &&
                 _weightingFeedbackAmountController.text.isNotEmpty
-            ? units.weightToKg(
-                parseUserDecimal(_weightingFeedbackAmountController.text) ?? 0,
-              )
+            ? _savedNumber(
+                _weightingFeedbackAmountController,
+              ).map(units.weightToKg)
             : null,
         // Tags
         tags: _selectedTags,
@@ -5302,7 +5550,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         // (computerId, the entry/exit location pair) are not at risk and are
         // not listed. The census test in dive_edit_save_field_census_test.dart
         // fails when a new field is added to the writer without a carry here.
-        isPlanned: _existingDive?.isPlanned ?? false,
+        // The switch state, except that an existing planned dive being
+        // promoted keeps the flag here: updateDive must not clear it, since
+        // convertPlanToActualDive below is the one path that also numbers.
+        isPlanned: _isPlanned || (_existingDive?.isPlanned ?? false),
+        outingId: _existingDive?.outingId,
         diveComputerModel: _existingDive?.diveComputerModel,
         diveComputerSerial: _existingDive?.diveComputerSerial,
         diveComputerFirmware: _existingDive?.diveComputerFirmware,
@@ -5348,6 +5600,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (widget.isEditing) {
         await notifier.updateDive(dive);
         savedDiveId = widget.diveId;
+        if ((_existingDive?.isPlanned ?? false) && !_isPlanned) {
+          // The switch was turned off: promote through the one path that
+          // clears the flag and assigns the next number (issue #2002).
+          await ref
+              .read(diveRepositoryProvider)
+              .convertPlanToActualDive(widget.diveId!);
+          ref.invalidate(diveNumberingInfoProvider);
+          await notifier.refresh();
+        }
       } else {
         final savedDive = await notifier.addDive(dive);
         savedDiveId = savedDive.id;
@@ -5496,6 +5757,34 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         scheduleSensorSummaryRefresh([savedDiveId]);
       }
 
+      // Offer to log the dive for linked buddies (issue #2002). Runs before
+      // navigation so the dialog has this page's context; the runner uses
+      // the container so its snackbar and refresh outlive this State. A
+      // planned dive never prompts: a mirrored sibling is itself planned
+      // and must not cascade.
+      if (mounted && savedDiveId != null && !_isPlanned && !widget.isBulk) {
+        final candidates = await ref
+            .read(diveMirrorServiceProvider)
+            .candidates(savedDiveId);
+        if (candidates.isNotEmpty && mounted) {
+          final chosenIds = await showMirrorDiveDialog(
+            context,
+            candidates: candidates,
+          );
+          if (chosenIds != null && chosenIds.isNotEmpty && mounted) {
+            await runDiveMirror(
+              context: context,
+              container: ProviderScope.containerOf(context, listen: false),
+              sourceDiveId: savedDiveId,
+              chosen: [
+                for (final c in candidates)
+                  if (chosenIds.contains(c.diver.id)) c,
+              ],
+            );
+          }
+        }
+      }
+
       if (mounted && savedDiveId != null) {
         _hasUnsavedChanges = false;
         if (widget.embedded && widget.onSaved != null) {
@@ -5505,7 +5794,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           // Editing an existing dive: return to whatever pushed this form
           // (normally that dive's own detail page). `go` would rebuild the
           // stack from `/dives` and discard the section the user came from --
-          // Media, Statistics, a trip -- stranding them on the dive list.
+          // Media, Insights, a trip -- stranding them on the dive list.
           context.pop();
         } else {
           // A new dive has no page to return to, so take the form's place
@@ -5533,9 +5822,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   /// Get warning text for altitude dives.
   String? _getAltitudeWarning(UnitFormatter units) {
-    final altitudeText = _altitudeController.text.trim();
-    if (altitudeText.isEmpty) return null;
-    final altitudeInUserUnits = parseUserDecimal(altitudeText);
+    final altitudeInUserUnits = switch (readNumber(_altitudeController.text)) {
+      NumberValue(:final value) => value,
+      // No warning to show; an unreadable field shows its own error.
+      NumberBlank() || NumberInvalid() => null,
+    };
     if (altitudeInUserUnits == null) return null;
 
     final altitudeMeters = units.altitudeToMeters(altitudeInUserUnits);
@@ -5547,9 +5838,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   /// Get warning color for altitude dives based on altitude group.
   Color? _getAltitudeWarningColor(UnitFormatter units) {
-    final altitudeText = _altitudeController.text.trim();
-    if (altitudeText.isEmpty) return null;
-    final altitudeInUserUnits = parseUserDecimal(altitudeText);
+    final altitudeInUserUnits = switch (readNumber(_altitudeController.text)) {
+      NumberValue(:final value) => value,
+      // No warning to show; an unreadable field shows its own error.
+      NumberBlank() || NumberInvalid() => null,
+    };
     if (altitudeInUserUnits == null) return null;
 
     final altitudeMeters = units.altitudeToMeters(altitudeInUserUnits);

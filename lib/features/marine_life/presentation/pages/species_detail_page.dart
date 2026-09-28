@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -17,8 +20,8 @@ import 'package:submersion/features/media/presentation/pages/species_tag_picker_
 import 'package:submersion/features/media/presentation/helpers/species_photo_import_helper.dart';
 import 'package:submersion/features/media/presentation/widgets/species_photos_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/insights/domain/entities/species_insights.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class SpeciesDetailPage extends ConsumerWidget {
@@ -43,23 +46,30 @@ class SpeciesDetailPage extends ConsumerWidget {
             tooltip: context.l10n.marineLife_speciesDetail_editTooltip,
             onPressed: () => context.push('/species/$speciesId/edit'),
           ),
-          // Only a custom species can be suggested: built-ins already are
-          // the catalog.
-          if (speciesAsync.value case final species? when !species.isBuiltIn)
+          if (speciesAsync.value case final species?)
             PopupMenuButton<String>(
               key: const ValueKey('species_detail_menu'),
               onSelected: (value) {
-                if (value == 'suggest') {
+                if (value == kOpenInConnectionsAction) {
+                  openInConnections(
+                    context,
+                    NodeRef(ConnectionKind.species, species.id),
+                  );
+                } else if (value == 'suggest') {
                   _suggestForCatalog(context, ref, species);
                 }
               },
               itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'suggest',
-                  child: Text(
-                    context.l10n.marineLife_speciesDetail_suggestForCatalog,
+                openInConnectionsMenuItem(context),
+                // Only a custom species can be suggested: built-ins
+                // already are the catalog.
+                if (!species.isBuiltIn)
+                  PopupMenuItem(
+                    value: 'suggest',
+                    child: Text(
+                      context.l10n.marineLife_speciesDetail_suggestForCatalog,
+                    ),
                   ),
-                ),
               ],
             ),
         ],
@@ -213,7 +223,7 @@ class SpeciesDetailPage extends ConsumerWidget {
   }
 
   Widget _buildStatisticsSection(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(speciesStatisticsProvider(speciesId));
+    final statsAsync = ref.watch(speciesInsightsProvider(speciesId));
 
     return statsAsync.when(
       loading: () => const Card(
@@ -222,7 +232,32 @@ class SpeciesDetailPage extends ConsumerWidget {
           child: Center(child: CircularProgressIndicator()),
         ),
       ),
-      error: (_, _) => const SizedBox.shrink(),
+      // Says so rather than dropping the section: a failed query is not a
+      // species with nothing to show (issue #1930).
+      error: (_, _) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: Column(
+              children: [
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  context.l10n.marineLife_speciesDetail_statsError,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       data: (stats) {
         if (stats.isEmpty) {
           return Card(
@@ -264,7 +299,7 @@ class SpeciesDetailPage extends ConsumerWidget {
   Widget _buildStatsCards(
     BuildContext context,
     WidgetRef ref,
-    SpeciesStatistics stats,
+    SpeciesInsights stats,
   ) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);

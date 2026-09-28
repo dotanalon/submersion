@@ -1,11 +1,12 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 
 /// Recent dives shown on the home tab (newest 3).
 ///
@@ -127,8 +128,8 @@ class YearInReview {
 
 /// This year vs last year. Null when both years are empty.
 final yearInReviewProvider = FutureProvider<YearInReview?>((ref) async {
-  final repository = ref.watch(statisticsRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchStatisticsChanges());
+  final repository = ref.watch(insightsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges());
   final diverId = ref.watch(currentDiverIdProvider);
   final year = DateTime.now().year;
   final current = await repository.getYearStats(year, diverId: diverId);
@@ -157,12 +158,15 @@ final onThisDayProvider = FutureProvider<List<Dive>>((ref) async {
   return dives;
 });
 
-/// Quick stats data class for dashboard
+/// Quick stats data class for dashboard.
+///
+/// A metric whose query failed is null (unknown), never 0: a count of 0 is a
+/// real answer, and the hero header must not state one it does not have.
 class DashboardQuickStats {
   final String? topBuddyName;
   final int? topBuddyDiveCount;
-  final int countriesVisited;
-  final int speciesDiscovered;
+  final int? countriesVisited;
+  final int? speciesDiscovered;
 
   const DashboardQuickStats({
     this.topBuddyName,
@@ -175,35 +179,61 @@ class DashboardQuickStats {
 /// Quick stats provider for dashboard.
 ///
 /// Deliberately UNFILTERED: the home dashboard has no filter UI, so it must
-/// not inherit whatever filter is active on the (unrelated) Statistics tab.
+/// not inherit whatever filter is active on the (unrelated) Insights tab.
 /// [topBuddiesProvider], [countriesVisitedProvider], and
 /// [uniqueSpeciesCountProvider] themselves stay filter-aware -- they also
-/// back the Statistics Social/Geographic/Marine-Life pages -- so this reads
+/// back the Insights Social/Geographic/Marine-Life pages -- so this reads
 /// the shared repository directly instead of watching those providers, and
 /// re-implements their diver scoping (but not their filter scoping).
 /// The statistics change tick preserves the dive-mutation reactivity that used
 /// to arrive transitively through those three providers.
+///
+/// The three metrics are unrelated and the hero header shows each on its
+/// own, so each loads and fails on its own (issue #1930): a failed buddy
+/// query must not hide a countries count that loaded fine. A failed metric
+/// is logged and left null.
 final dashboardQuickStatsProvider = FutureProvider<DashboardQuickStats>((
   ref,
 ) async {
-  final repository = ref.watch(statisticsRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchStatisticsChanges());
+  final repository = ref.watch(insightsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges());
   final diverId = ref.watch(currentDiverIdProvider);
 
-  // Get top buddy
-  final topBuddies = await repository.getTopBuddies(diverId: diverId);
-  final topBuddy = topBuddies.isNotEmpty ? topBuddies.first : null;
-
-  // Get countries visited
-  final countries = await repository.getCountriesVisited(diverId: diverId);
-
-  // Get species count
-  final speciesCount = await repository.getUniqueSpeciesCount(diverId: diverId);
+  final (topBuddies, countries, speciesCount) = await (
+    _quickStat('top buddy', () => repository.getTopBuddies(diverId: diverId)),
+    // A count, not the top of the ranking: without a limit of -1 (SQLite's
+    // "no upper bound") the ranking's default of 10 capped the count.
+    _quickStat(
+      'countries visited',
+      () => repository.getCountriesVisited(diverId: diverId, limit: -1),
+    ),
+    _quickStat(
+      'species discovered',
+      () => repository.getUniqueSpeciesCount(diverId: diverId),
+    ),
+  ).wait;
+  final topBuddy = topBuddies?.firstOrNull;
 
   return DashboardQuickStats(
     topBuddyName: topBuddy?.name,
     topBuddyDiveCount: topBuddy?.count,
-    countriesVisited: countries.length,
+    countriesVisited: countries?.length,
     speciesDiscovered: speciesCount,
   );
 });
+
+const _quickStatsLog = LoggerService('DashboardQuickStats');
+
+/// One quick-stats metric, or null when its query failed.
+Future<T?> _quickStat<T>(String name, Future<T> Function() load) async {
+  try {
+    return await load();
+  } catch (e, stackTrace) {
+    _quickStatsLog.error(
+      'Failed to load the $name quick stat',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return null;
+  }
+}

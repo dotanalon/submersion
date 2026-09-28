@@ -12,11 +12,19 @@ import 'package:submersion/features/dive_import/data/services/imported_file_recl
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
+    show AppSettings;
 import 'package:submersion/features/divers/data/repositories/diver_delete_steps.dart';
 import 'package:submersion/features/divers/data/repositories/diver_owned_rows.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
+import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
+import 'package:submersion/features/media/data/repositories/media_parent_cascade.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
+import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 
@@ -42,11 +50,28 @@ class DeleteDiverResult {
 }
 
 class DiverRepository {
-  DiverRepository({ImportedFileReclaimer? importedFileReclaimer})
-    : _importedFileReclaimer = importedFileReclaimer ?? ImportedFileReclaimer();
+  DiverRepository({
+    ImportedFileReclaimer? importedFileReclaimer,
+    MediaDeletionCoordinator? mediaDeletionCoordinator,
+  }) : _importedFileReclaimer =
+           importedFileReclaimer ?? ImportedFileReclaimer(),
+       _injectedMediaDeletionCoordinator = mediaDeletionCoordinator;
 
   AppDatabase get _db => DatabaseService.instance.database;
   final ImportedFileReclaimer _importedFileReclaimer;
+  final MediaDeletionCoordinator? _injectedMediaDeletionCoordinator;
+
+  /// Built on first use: most callers construct a DiverRepository only to
+  /// read the active diver, and never delete one. No worker kick from the
+  /// data layer (provider cycles), the rule SiteRepository follows: queued
+  /// intents drain on the next kick, and the Verify Library sweep is the
+  /// backstop.
+  late final MediaDeletionCoordinator _mediaDeletionCoordinator =
+      _injectedMediaDeletionCoordinator ??
+      MediaDeletionCoordinator(
+        mediaRepository: MediaRepository(),
+        queue: () => MediaTransferQueueRepository(),
+      );
   final DiverSettingsRepository _settingsRepository = DiverSettingsRepository();
   final SyncRepository _syncRepository = SyncRepository();
   static const _uuid = Uuid();
@@ -139,57 +164,74 @@ class DiverRepository {
     }
   }
 
-  /// Create a new diver
-  Future<domain.Diver> createDiver(domain.Diver diver) async {
+  /// Create a new diver, with a settings row seeded from [settings] (the
+  /// defaults when omitted).
+  ///
+  /// Pass the diver's real settings here rather than overwriting the row
+  /// afterwards. On a fresh database `CurrentDiverIdNotifier` resolves to
+  /// the new diver on the divers-table tick alone, and the SettingsNotifier
+  /// then loads this row straight away; a row that briefly held the defaults
+  /// could be loaded, and later saved back, in their place (#2298). The two
+  /// inserts share a transaction so no reader sees the diver without its row.
+  Future<domain.Diver> createDiver(
+    domain.Diver diver, {
+    AppSettings? settings,
+  }) async {
     try {
       _log.info('Creating diver: ${diver.name}');
       final id = diver.id.isEmpty ? _uuid.v4() : diver.id;
       final now = DateTime.now();
 
-      await _db
-          .into(_db.divers)
-          .insert(
-            DiversCompanion(
-              id: Value(id),
-              name: Value(diver.name),
-              email: Value(diver.email),
-              phone: Value(diver.phone),
-              photoPath: Value(diver.photoPath),
-              photo: Value(diver.photo),
-              emergencyContactName: Value(diver.emergencyContact.name),
-              emergencyContactPhone: Value(diver.emergencyContact.phone),
-              emergencyContactRelation: Value(diver.emergencyContact.relation),
-              emergencyContact2Name: Value(diver.emergencyContact2.name),
-              emergencyContact2Phone: Value(diver.emergencyContact2.phone),
-              emergencyContact2Relation: Value(
-                diver.emergencyContact2.relation,
+      await _db.transaction(() async {
+        await _db
+            .into(_db.divers)
+            .insert(
+              DiversCompanion(
+                id: Value(id),
+                name: Value(diver.name),
+                email: Value(diver.email),
+                phone: Value(diver.phone),
+                photoPath: Value(diver.photoPath),
+                photo: Value(diver.photo),
+                emergencyContactName: Value(diver.emergencyContact.name),
+                emergencyContactPhone: Value(diver.emergencyContact.phone),
+                emergencyContactRelation: Value(
+                  diver.emergencyContact.relation,
+                ),
+                emergencyContact2Name: Value(diver.emergencyContact2.name),
+                emergencyContact2Phone: Value(diver.emergencyContact2.phone),
+                emergencyContact2Relation: Value(
+                  diver.emergencyContact2.relation,
+                ),
+                medicalNotes: Value(diver.medicalNotes),
+                bloodType: Value(diver.bloodType),
+                allergies: Value(diver.allergies),
+                medications: Value(diver.medications),
+                medicalClearanceExpiryDate: Value(
+                  diver.medicalClearanceExpiryDate?.millisecondsSinceEpoch,
+                ),
+                insuranceProvider: Value(diver.insurance.provider),
+                insurancePolicyNumber: Value(diver.insurance.policyNumber),
+                insuranceExpiryDate: Value(
+                  diver.insurance.expiryDate?.millisecondsSinceEpoch,
+                ),
+                insuranceEmergencyPhone: Value(diver.insurance.emergencyPhone),
+                insurancePhone: Value(diver.insurance.phone),
+                notes: Value(diver.notes),
+                isDefault: Value(diver.isDefault),
+                createdAt: Value(now.millisecondsSinceEpoch),
+                updatedAt: Value(now.millisecondsSinceEpoch),
+                priorDiveCount: Value(diver.priorDiveCount),
+                priorDiveTimeSeconds: Value(diver.priorDiveTimeSeconds),
+                divingSince: Value(diver.divingSince?.year),
               ),
-              medicalNotes: Value(diver.medicalNotes),
-              bloodType: Value(diver.bloodType),
-              allergies: Value(diver.allergies),
-              medications: Value(diver.medications),
-              medicalClearanceExpiryDate: Value(
-                diver.medicalClearanceExpiryDate?.millisecondsSinceEpoch,
-              ),
-              insuranceProvider: Value(diver.insurance.provider),
-              insurancePolicyNumber: Value(diver.insurance.policyNumber),
-              insuranceExpiryDate: Value(
-                diver.insurance.expiryDate?.millisecondsSinceEpoch,
-              ),
-              insuranceEmergencyPhone: Value(diver.insurance.emergencyPhone),
-              insurancePhone: Value(diver.insurance.phone),
-              notes: Value(diver.notes),
-              isDefault: Value(diver.isDefault),
-              createdAt: Value(now.millisecondsSinceEpoch),
-              updatedAt: Value(now.millisecondsSinceEpoch),
-              priorDiveCount: Value(diver.priorDiveCount),
-              priorDiveTimeSeconds: Value(diver.priorDiveTimeSeconds),
-              divingSince: Value(diver.divingSince?.year),
-            ),
-          );
+            );
 
-      // Create default settings for the new diver
-      await _settingsRepository.createSettingsForDiver(id);
+        await _settingsRepository.createSettingsForDiver(
+          id,
+          settings: settings,
+        );
+      });
 
       await _syncRepository.markRecordPending(
         entityType: 'divers',
@@ -317,6 +359,99 @@ class DiverRepository {
     return rows.isNotEmpty;
   }
 
+  /// The parents of media that [deleteDiverWithReassignment] removes,
+  /// mirroring its step lists (`diver_delete_steps.dart`): every dive, site,
+  /// piece of gear and buddy the diver still owns. Read inside the delete's
+  /// transaction after Step 0, when the shared sites already belong to the
+  /// survivor, so what remains is exactly what the transaction deletes.
+  Future<DyingMediaParents> _dyingMediaParents(String id) async =>
+      DyingMediaParents(
+        // stats-scope-exempt: a deletion cascade, not a statistic.
+        diveIds: (await _idsOf('SELECT id FROM dives WHERE diver_id = ?', [
+          id,
+        ])).toSet(),
+        siteIds: (await _idsOf('SELECT id FROM dive_sites WHERE diver_id = ?', [
+          id,
+        ])).toSet(),
+        equipmentIds: (await _idsOf(
+          'SELECT id FROM equipment WHERE diver_id = ?',
+          [id],
+        )).toSet(),
+        buddyIds: (await _idsOf('SELECT id FROM buddies WHERE diver_id = ?', [
+          id,
+        ])).toSet(),
+      );
+
+  /// Deletes the media only this diver's rows linked, with tombstones and
+  /// blob-delete intents, and unlinks, stamps and marks pending the media a
+  /// surviving row still links (issue #1954, spec 5.4).
+  ///
+  /// After the delete commits, never inside it: the coordinator's queue
+  /// lives in another database, and a failed delete must leave the media as
+  /// it was. A failure here is logged, not rethrown: the diver is gone and
+  /// cannot be restored.
+  ///
+  /// The survivors go first and on their own. The commit already cleared
+  /// their dying links with SET NULL and no stamp, and their live links keep
+  /// them out of every sweep, so a lost unlink would leave peers with the
+  /// stale link for good. A doomed row the deletion misses is recoverable
+  /// (the orphan sweep collects it, and the Verify Library sweep a missed
+  /// blob intent), so each deletion batch is isolated and a failed one does
+  /// not stop the rest.
+  ///
+  /// Each doomed row is judged again inside the delete's own transaction
+  /// ([mediaRowLivesOn] as `keepIf`), so one relinked to a surviving parent
+  /// since the plan survives, even if the relink lands during the
+  /// coordinator's queue write. [recheckDoomed] only drops the rows already
+  /// relinked beforehand. Batches are bounded: the coordinator tombstones
+  /// their enrichment with one list per call, and a whole library can pass
+  /// what one statement binds.
+  Future<void> _applyMediaCascade(String diverId, MediaCascadePlan plan) async {
+    try {
+      await unlinkMediaFromDeletedParents(_db, _syncRepository, plan.survivors);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Deleted diver $diverId, but could not publish the unlinks of the '
+        'media that outlived it',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final List<MediaItem> doomed;
+    try {
+      doomed = await recheckDoomed(_db, plan);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Deleted diver $diverId, but could not read the media only it linked',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return;
+    }
+    for (var i = 0; i < doomed.length; i += mediaCascadeIdChunk) {
+      final batch = doomed.sublist(
+        i,
+        i + mediaCascadeIdChunk < doomed.length
+            ? i + mediaCascadeIdChunk
+            : doomed.length,
+      );
+      try {
+        await _mediaDeletionCoordinator.deleteMediaItems(
+          batch,
+          keepIf: (row) => mediaRowLivesOn(row, plan.parents),
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Deleted diver $diverId, but could not delete ${batch.length} of '
+          'the media only it linked',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+  }
+
   /// Delete a diver, reassigning shared trips/sites to a surviving diver first.
   ///
   /// - If surviving divers exist, shared trips and sites owned by [id] are
@@ -351,6 +486,9 @@ class DiverRepository {
         targetId = allDiversRows.first.id;
         targetName = allDiversRows.first.name;
       }
+
+      // Set inside the transaction, applied after it commits.
+      late final MediaCascadePlan mediaPlan;
 
       await _db.transaction(() async {
         // Step 0: Reassign shared records to the surviving diver (if any).
@@ -413,6 +551,13 @@ class DiverRepository {
             );
           }
         }
+
+        // Step 0b: Plan the media cascade (issue #1954). Here, after the
+        // shared sites have gone to the survivor and before any delete: the
+        // links still name the parents, which the deletes below clear with
+        // ON DELETE SET NULL and no stamp, and in one transaction the plan
+        // names exactly the rows this delete removes.
+        mediaPlan = await planMediaCascade(_db, await _dyingMediaParents(id));
 
         // Step 1: Null out cross-diver FK references to this diver's
         // computers.
@@ -502,6 +647,13 @@ class DiverRepository {
         // Step 2: Delete and tombstone the diver's dives. Their children
         // cascade here and, from each dive's tombstone, on a peer.
         await deleteDiverRows(_db, _syncRepository, id, diverDiveSteps);
+        // Those dive deletes cascaded their media enrichment away, and a
+        // cascade logs nothing. Tombstone it here, from ids read before the
+        // transaction, so it rolls back with the delete (spec 5.3, 5.4).
+        await _syncRepository.logDeletions(
+          entityType: 'mediaEnrichment',
+          recordIds: mediaPlan.enrichmentIds,
+        );
 
         // Step 2b: Null out cross-diver FK references to the sites, trips
         // and dive centers we're about to delete. Other divers may hold
@@ -520,6 +672,19 @@ class DiverRepository {
         // Step 3: Delete and tombstone the trips, with the children their
         // own deletion tombstones, and the sites the diver still owns. The
         // shared ones were reassigned in Step 0 and keep their children.
+        // Other divers' surviving tanks can still link this diver's trip
+        // slots. Cleared and staged here, as the gear links are below: the
+        // schema's SET NULL reaches no peer.
+        await clearTripCylinderLinks(
+          _db,
+          _syncRepository,
+          await _idsOf(
+            'SELECT id FROM trip_cylinders WHERE trip_id IN '
+            '(SELECT id FROM trips WHERE diver_id = ?)',
+            [id],
+          ),
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         await deleteDiverRows(_db, _syncRepository, id, diverTripAndSiteSteps);
 
         // Step 4: Delete and tombstone the rest of the diver's library.
@@ -534,6 +699,15 @@ class DiverRepository {
           now: DateTime.now().millisecondsSinceEpoch,
         );
         await deleteDiverRows(_db, _syncRepository, id, diverGearSteps);
+        // Fills on other divers' trips made at this diver's centers: the
+        // centers go with the library below, so clear and stage those links
+        // now; the schema's SET NULL reaches no peer.
+        await clearTripCylinderEventCenterLinks(
+          _db,
+          _syncRepository,
+          await _idsOf('SELECT id FROM dive_centers WHERE diver_id = ?', [id]),
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         // After the gear, so only surviving gear's schedules keep a kind.
         await retireDiverServiceKinds(
           _db,
@@ -572,6 +746,7 @@ class DiverRepository {
         await (_db.delete(_db.divers)..where((t) => t.id.equals(id))).go();
         await _syncRepository.logDeletion(entityType: 'divers', recordId: id);
       });
+      await _applyMediaCascade(id, mediaPlan);
       // The cascade above took dive_data_sources rows that can have been the
       // last references to a stored import file (issue #478). Swept after the
       // transaction commits, so a failure leaks a row rather than stranding a

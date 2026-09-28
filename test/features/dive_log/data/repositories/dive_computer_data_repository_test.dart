@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/unique_ids.dart';
 
 void main() {
   late DiveRepository repository;
@@ -30,6 +31,7 @@ void main() {
     double? maxDepth,
     double? avgDepth,
     int? duration,
+    int? runtime,
     double? waterTemp,
     int? entryTime,
     int? exitTime,
@@ -39,7 +41,7 @@ void main() {
     int? gradientFactorLow,
     int? gradientFactorHigh,
   }) async {
-    final diveId = id ?? 'dive-${DateTime.now().microsecondsSinceEpoch}';
+    final diveId = id ?? uniqueTestId('dive');
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.dives)
@@ -53,6 +55,7 @@ void main() {
             maxDepth: Value(maxDepth),
             avgDepth: Value(avgDepth),
             bottomTime: Value(duration),
+            runtime: Value(runtime),
             waterTemp: Value(waterTemp),
             entryTime: Value(entryTime),
             exitTime: Value(exitTime),
@@ -78,7 +81,7 @@ void main() {
   }) {
     final now = DateTime.now();
     return DiveDataSourcesCompanion(
-      id: Value(id ?? 'reading-${now.microsecondsSinceEpoch}'),
+      id: Value(id ?? uniqueTestId('reading')),
       diveId: Value(diveId),
       isPrimary: Value(isPrimary),
       computerId: Value(computerId),
@@ -311,7 +314,8 @@ void main() {
         diveComputerSerial: 'SN-999',
         maxDepth: 40.0,
         avgDepth: 22.5,
-        duration: 2700,
+        duration: 2400,
+        runtime: 2700,
         waterTemp: 19.0,
         entryTime: entryMs,
         exitTime: exitMs,
@@ -333,6 +337,7 @@ void main() {
       expect(r.computerSerial, equals('SN-999'));
       expect(r.maxDepth, equals(40.0));
       expect(r.avgDepth, equals(22.5));
+      // The runtime, not the 2400 s bottom time (issue #2421).
       expect(r.duration, equals(2700));
       expect(r.waterTemp, equals(19.0));
       expect(r.entryTime?.millisecondsSinceEpoch, equals(entryMs));

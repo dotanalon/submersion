@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/unique_ids.dart';
 
 void main() {
   late DiveRepository repository;
@@ -46,7 +47,7 @@ void main() {
     int? gradientFactorLow,
     int? gradientFactorHigh,
   }) async {
-    final diveId = id ?? 'dive-${DateTime.now().microsecondsSinceEpoch}';
+    final diveId = id ?? uniqueTestId('dive');
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.dives)
@@ -96,7 +97,7 @@ void main() {
   }) {
     final now = DateTime.now();
     return DiveDataSourcesCompanion(
-      id: Value(id ?? 'reading-${now.microsecondsSinceEpoch}'),
+      id: Value(id ?? uniqueTestId('reading')),
       diveId: Value(diveId),
       isPrimary: Value(isPrimary),
       // computerId left null to avoid FK constraints in tests
@@ -1044,7 +1045,10 @@ void main() {
         )..where((t) => t.id.equals(diveId))).getSingle();
         expect(diveRow.diveComputerModel, equals('Computer B'));
         expect(diveRow.maxDepth, equals(28.0));
-        expect(diveRow.bottomTime, equals(2800));
+        // Reading B's duration is the runtime it measured, never a bottom
+        // time; with no profile to derive one from, the dive keeps its own
+        // (issue #2421).
+        expect(diveRow.bottomTime, equals(3000));
         expect(diveRow.waterTemp, equals(19.0));
       },
     );

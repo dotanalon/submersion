@@ -2,15 +2,23 @@ import 'package:flutter/material.dart';
 
 /// Curated per-feature-area accent colors, exposed as a [ThemeExtension] so
 /// lookups resolve against the active theme brightness and animate across
-/// theme changes. Keys are the stable `NavDestination.id` strings plus
-/// `settings-<sectionId>` entries for the settings root sections. A missing
-/// key means "no accent" -- callers fall back to the ambient icon color.
+/// theme changes. Keys are the stable `NavDestination.id` strings, plus
+/// `settings-<sectionId>` entries for the settings root sections, plus
+/// `connections` for the Connections explorer (reached from Insights rather
+/// than the nav). A missing key means "no accent" -- callers fall back to the
+/// ambient icon color.
 class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
   const FeatureAccentColors({required this.colors});
 
   final Map<String, Color> colors;
 
   Color? of(String featureId) => colors[featureId];
+
+  /// The palette [theme] carries, or the built-in one for its brightness
+  /// when the theme has no extension.
+  static FeatureAccentColors resolve(ThemeData theme) =>
+      theme.extension<FeatureAccentColors>() ??
+      (theme.brightness == Brightness.dark ? dark : light);
 
   static const FeatureAccentColors light = FeatureAccentColors(
     colors: {
@@ -32,7 +40,8 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'dive-centers': Color(0xFF6D4C41),
       'certifications': Color(0xFFB45309),
       'courses': Color(0xFF303F9F),
-      'statistics': Color(0xFF00796B),
+      'insights': Color(0xFF00796B),
+      'connections': Color(0xFF00838F),
       'planning': Color(0xFF512DA8),
       'transfer': Color(0xFF0097A7),
       'gps-log': Color(0xFFD32F2F),
@@ -67,7 +76,8 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'dive-centers': Color(0xFFBCAAA4),
       'certifications': Color(0xFFFFD54F),
       'courses': Color(0xFF7986CB),
-      'statistics': Color(0xFF4DB6AC),
+      'insights': Color(0xFF4DB6AC),
+      'connections': Color(0xFF4DD0E1),
       'planning': Color(0xFF9575CD),
       'transfer': Color(0xFF4DD0E1),
       'gps-log': Color(0xFFE57373),

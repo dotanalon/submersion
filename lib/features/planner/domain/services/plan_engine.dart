@@ -25,7 +25,16 @@ class PlanEngineConfig {
   final double ppO2Deco;
   final int cnsWarningThreshold;
   final bool o2Narcotic;
+
+  /// END above which a segment raises [PlanIssueType.endExceeded]. Sourced
+  /// from the diver's Settings END limit (issue #1499).
   final double endLimitMeters;
+
+  /// END target for best-mix gas suggestions. Resolved from the plan's own
+  /// Gas options ([domain.DivePlan.bestMixEndMeters]); it never moves the
+  /// [endLimitMeters] warning.
+  final double bestMixEndMeters;
+
   final double otuLimit;
 
   /// CCR metabolic O2 consumption (surface liters per minute).
@@ -68,6 +77,7 @@ class PlanEngineConfig {
     this.cnsWarningThreshold = 80,
     this.o2Narcotic = true,
     this.endLimitMeters = 30.0,
+    this.bestMixEndMeters = 30.0,
     this.otuLimit = 300.0,
     this.o2MetabolicRateLpm = 1.0,
     this.loopVolumeLiters = 6.0,
@@ -86,14 +96,17 @@ class PlanEngineConfig {
   ///
   /// `sacFactor` and `bestMixEndMeters` have no global-settings source today
   /// (they are plain defaulted fields, not nullable overrides), so they
-  /// always replace [buddyFactor] and [endLimitMeters] for this plan.
+  /// always replace [buddyFactor] and [bestMixEndMeters] for this plan.
+  /// [endLimitMeters] is the diver's Settings END limit and passes through
+  /// unchanged.
   PlanEngineConfig resolvedFor(domain.DivePlan plan) {
     return PlanEngineConfig(
       ppO2Working: plan.ppO2Bottom ?? ppO2Working,
       ppO2Deco: plan.ppO2Deco ?? ppO2Deco,
       cnsWarningThreshold: cnsWarningThreshold,
       o2Narcotic: plan.o2Narcotic ?? o2Narcotic,
-      endLimitMeters: plan.bestMixEndMeters,
+      endLimitMeters: endLimitMeters,
+      bestMixEndMeters: plan.bestMixEndMeters,
       otuLimit: otuLimit,
       o2MetabolicRateLpm: o2MetabolicRateLpm,
       loopVolumeLiters: loopVolumeLiters,
@@ -119,6 +132,21 @@ class PlanEngine {
   final PlanEngineConfig config;
 
   const PlanEngine({this.config = const PlanEngineConfig()});
+
+  /// The water and surface conditions [plan] is computed in. Shared with
+  /// every caller that must charge gas at the same ambient pressure the
+  /// deco schedule used (the DPV mission's per-diver gas, issue #2086).
+  ///
+  /// Altitude <= 0 is treated as unset (legacy 1.0 bar surface), matching
+  /// the rest of the planner: a literal 0 must not switch to barometric
+  /// sea-level pressure and subtly change the deco math.
+  static DiveEnvironment environmentFor(domain.DivePlan plan) {
+    return DiveEnvironment.forConditions(
+      altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
+      waterType: plan.waterType ?? WaterType.salt,
+      salinityPpt: plan.salinityPpt,
+    );
+  }
 
   /// The breathing mode in force for [segment] (its per-segment override, or
   /// the plan's mode). Models mid-plan bailout.
@@ -211,14 +239,7 @@ class PlanEngine {
       );
     }
     final isCcr = plan.mode == domain.PlanMode.ccr;
-    final environment = DiveEnvironment.forConditions(
-      // Altitude <= 0 is treated as unset (legacy 1.0 bar surface), matching
-      // the rest of the planner — a literal 0 must not switch to barometric
-      // sea-level pressure and subtly change the deco math.
-      altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
-      waterType: plan.waterType ?? WaterType.salt,
-      salinityPpt: plan.salinityPpt,
-    );
+    final environment = environmentFor(plan);
     final policy = _policyFor(plan);
     final model = BuhlmannGf(
       gfLow: plan.gfLow / 100.0,

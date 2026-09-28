@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
@@ -18,6 +21,8 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_button.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_shared_dives_section.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
@@ -129,12 +134,12 @@ class _BuddyDetailContent extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Profile header
-          _buildProfileHeader(context),
+          _buildProfileHeader(context, ref),
           const SizedBox(height: 24),
 
           // Contact info
-          if (buddy.hasContactInfo) ...[
-            _buildContactSection(context),
+          if (buddy.hasContactInfo || buddy.linkedDiverId != null) ...[
+            _buildContactSection(context, ref),
             const SizedBox(height: 24),
           ],
 
@@ -180,13 +185,19 @@ class _BuddyDetailContent extends ConsumerWidget {
           ),
           PopupMenuButton<String>(
             onSelected: (value) async {
-              if (value == 'share') {
+              if (value == kOpenInConnectionsAction) {
+                openInConnections(
+                  context,
+                  NodeRef(ConnectionKind.buddy, buddy.id),
+                );
+              } else if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
               } else if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
+              openInConnectionsMenuItem(context),
               PopupMenuItem(
                 value: 'share',
                 child: Row(
@@ -281,13 +292,19 @@ class _BuddyDetailContent extends ConsumerWidget {
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) async {
-              if (value == 'share') {
+              if (value == kOpenInConnectionsAction) {
+                openInConnections(
+                  context,
+                  NodeRef(ConnectionKind.buddy, buddy.id),
+                );
+              } else if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
               } else if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
+              openInConnectionsMenuItem(context),
               PopupMenuItem(
                 value: 'share',
                 child: Row(
@@ -338,12 +355,12 @@ class _BuddyDetailContent extends ConsumerWidget {
   Future<void> _shareDivesWithBuddy(BuildContext context, WidgetRef ref) =>
       shareDivesWithBuddy(context, ref, buddy.id);
 
-  Widget _buildProfileHeader(BuildContext context) {
+  Widget _buildProfileHeader(BuildContext context, WidgetRef ref) {
     return Center(
       child: Column(
         children: [
           ProfileAvatar(
-            photo: buddy.photo,
+            photo: buddy.photo ?? _linkedProfile(ref)?.photo,
             initials: buddy.initials,
             radius: 50,
             textStyle: TextStyle(
@@ -359,7 +376,15 @@ class _BuddyDetailContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildContactSection(BuildContext context) {
+  /// The local profile this buddy is, when linked and loaded (issue #2002).
+  Diver? _linkedProfile(WidgetRef ref) {
+    final linkedId = buddy.linkedDiverId;
+    if (linkedId == null) return null;
+    return ref.watch(diverByIdProvider(linkedId)).value;
+  }
+
+  Widget _buildContactSection(BuildContext context, WidgetRef ref) {
+    final linked = _linkedProfile(ref);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -373,6 +398,14 @@ class _BuddyDetailContent extends ConsumerWidget {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
+            if (buddy.linkedDiverId != null)
+              ListTile(
+                key: const Key('buddy_detail_linked_profile'),
+                leading: const Icon(Icons.account_circle_outlined),
+                title: Text(context.l10n.buddies_field_linkedProfile),
+                subtitle: linked == null ? null : Text(linked.name),
+                contentPadding: EdgeInsets.zero,
+              ),
             if (buddy.email != null)
               ListTile(
                 leading: const Icon(Icons.email),

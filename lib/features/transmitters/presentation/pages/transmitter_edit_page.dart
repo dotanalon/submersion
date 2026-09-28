@@ -16,6 +16,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/tank_presets/domain/services/tank_preset_visibility.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
@@ -23,6 +24,8 @@ import 'package:submersion/features/transmitters/presentation/providers/transmit
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Full-screen editor for one registry entry. Picking a gear cylinder or a
 /// preset copies its specs into the fields (snapshot rule); the fields stay
@@ -234,22 +237,24 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       _keyError = null;
       _duplicateError = null;
     });
+    // Field errors first: an unreadable channel is a typo to fix, not a
+    // missing key, and used to save as no channel at all (#1900).
+    if (!_formKey.currentState!.validate()) return;
     final serialText = _serialController.text.trim();
-    final channel = parseUserInt(_channelController.text);
+    final channel = _validatedNumber(_channelController)?.toInt();
     final hasChannel = _computerId != null && channel != null && channel >= 1;
     if (serialText.isEmpty && !hasChannel) {
       setState(() => _keyError = l10n.transmitters_validation_key);
       return;
     }
-    if (!_formKey.currentState!.validate()) return;
 
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
-    final pressureDisplay = parseUserDecimal(_workingPressureController.text);
+    final pressureDisplay = _validatedNumber(_workingPressureController);
     final workingPressureBar = pressureDisplay == null
         ? null
         : units.pressureToBar(pressureDisplay);
-    final volumeDisplay = parseUserDecimal(_volumeController.text);
+    final volumeDisplay = _validatedNumber(_volumeController);
     double? volumeL;
     if (volumeDisplay != null) {
       volumeL =
@@ -345,14 +350,20 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     }
   }
 
-  String? _positive(String? text) {
-    if (text == null || text.trim().isEmpty) return null;
-    final value = parseUserDecimal(text);
-    if (value == null || value <= 0) {
-      return context.l10n.transmitters_validation_positive;
-    }
-    return null;
-  }
+  /// A field's number once the form has validated. Blank is "not set";
+  /// unreadable text cannot reach here.
+  static double? _validatedNumber(TextEditingController controller) =>
+      switch (readNumber(controller.text)) {
+        NumberValue(:final value) => value,
+        NumberBlank() => null,
+        NumberInvalid() => null, // unreachable: validate() ran first
+      };
+
+  String? _positive(String? text) => numberValidator(
+    context,
+    check: (value) =>
+        value <= 0 ? context.l10n.transmitters_validation_positive : null,
+  )(text);
 
   @override
   Widget build(BuildContext context) {
@@ -449,6 +460,8 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                             isDense: true,
                           ),
                           keyboardType: TextInputType.number,
+                          inputFormatters: numberInputFormatters(),
+                          validator: numberValidator(context, integer: true),
                         ),
                       ),
                     ],
@@ -508,9 +521,15 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                   ),
                   const SizedBox(height: 8),
                   presets.when(
+                    skipLoadingOnReload: true,
                     loading: () => const LinearProgressIndicator(),
                     error: (e, st) => Text('${l10n.common_label_error}: $e'),
-                    data: (list) {
+                    data: (visibleList) {
+                      // A preset the diver has since hidden stays selectable
+                      // while it is this transmitter's value (issue #2305).
+                      final list = withKeptTankPresets(visibleList, [
+                        _presetName,
+                      ]);
                       final matching = _presetName == null
                           ? null
                           : list

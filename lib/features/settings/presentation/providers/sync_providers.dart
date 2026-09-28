@@ -28,6 +28,7 @@ import 'package:submersion/core/services/cloud_storage/icloud_native_service.dar
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
@@ -50,6 +51,10 @@ import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/media/presentation/providers/gallery_cloud_id_backfill_provider.dart';
+import 'package:submersion/features/media/presentation/providers/gallery_origin_backfill_provider.dart';
+import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
@@ -519,6 +524,9 @@ final peerDeviceNamesProvider = StreamProvider<Map<String, String>>((ref) {
 });
 
 /// Sync service provider
+// no-tick: the value is a SERVICE, not a query result. Its one repository
+// call (applyResolutionHints) is a write made inside a callback at merge
+// time, so there is no cached row to go stale.
 final syncServiceProvider = Provider<SyncService>((ref) {
   return SyncService(
     syncRepository: ref.watch(syncRepositoryProvider),
@@ -529,6 +537,10 @@ final syncServiceProvider = Provider<SyncService>((ref) {
     encryptionService: ref.watch(syncEncryptionServiceProvider),
     localizations: () => l10nForLocaleTag(ref.read(localeProvider)),
     peerNames: ref.watch(peerDeviceNameStoreProvider),
+    // A synced cloud id or upload lifts a gallery search's backoff, and a
+    // relink drops the old photo's mapping (spec 6.2).
+    onMediaResolutionHints: (hints) =>
+        ref.read(localAssetCacheRepositoryProvider).applyResolutionHints(hints),
   );
 });
 
@@ -708,6 +720,13 @@ class SyncNotifier extends StateNotifier<SyncState> {
   Timer? _pendingCountTimer;
   int _pendingCountGeneration = 0;
   bool _syncInFlight = false;
+
+  /// The cloud error that failed the last [libraryReplaceInfo] pre-check,
+  /// held for the next [performSync] only. A revoked sign-in fails the
+  /// pre-check first, and the provider clears the dead grant as it throws, so
+  /// the sync that follows fails with just a generic "not authenticated". This
+  /// keeps the provider's actionable message for that sync (issue #2332).
+  String? _preCheckCloudError;
 
   SyncNotifier(this._syncRepository, this._ref) : super(const SyncState()) {
     _initialize();
@@ -968,6 +987,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
       if (provider == null) return null;
       final store = _ref.read(libraryEpochStoreProvider);
       if (store.pendingReplace != null) return null; // we ARE the replacer
+      // Deliberately shorter than the marker read's own 30 s listing cap.
+      // Sync Now awaits this advisory check before the sync starts, so a slow
+      // connection would otherwise stall the button; when it gives up,
+      // performSync's epoch gate reads the marker with the full allowance and
+      // still surfaces the replace (awaitingAdoption sets the banner).
       final marker = await _syncService
           .readLibraryEpochMarker(provider)
           .timeout(const Duration(seconds: 8));
@@ -983,6 +1007,10 @@ class SyncNotifier extends StateNotifier<SyncState> {
       // so this pre-check simply has nothing to report -- logging it as a
       // warning on every launch would be noise.
       _log.debug('Library replace pre-check skipped: library is locked');
+      return null;
+    } on CloudStorageException catch (e) {
+      _log.warning('Library replace pre-check failed: $e');
+      _preCheckCloudError = e.message;
       return null;
     } catch (e) {
       // Never block the button on this pre-check; performSync gates anyway.
@@ -1288,8 +1316,19 @@ class SyncNotifier extends StateNotifier<SyncState> {
       _setupProgressCallback();
 
       _log.debug('Calling _syncService.performSync()...');
+      // Consumed here whatever the outcome, so a later, unrelated sign-in
+      // failure never replays it.
+      final preCheckCloudError = _preCheckCloudError;
+      _preCheckCloudError = null;
       try {
         var result = await _syncService.performSync();
+        if (result.status == SyncResultStatus.authError &&
+            preCheckCloudError != null) {
+          result = SyncResult(
+            status: result.status,
+            message: preCheckCloudError,
+          );
+        }
         _log.debug('Result: ${result.status}, message: ${result.message}');
         // This notifier can be disposed while a launch-triggered sync is in
         // flight; never touch state after an await without re-checking.
@@ -1394,6 +1433,36 @@ class SyncNotifier extends StateNotifier<SyncState> {
               stackTrace: stackTrace,
             );
           }
+          // An underwater route synced in from another device may cover a
+          // dive that already exists here (or vice versa): sweep unlinked
+          // routes against every dive now that the merge is complete.
+          // Best-effort, same reasoning as the GPS sweep above.
+          try {
+            await _ref.read(navTrackMatchServiceProvider).sweep();
+          } catch (e, stackTrace) {
+            _log.error(
+              'Post-sync nav track match sweep failed',
+              error: e,
+              stackTrace: stackTrace,
+            );
+          }
+          // Gallery rows linked before links recorded an origin learn it
+          // here (media sync program spec 6.1). After a sync, never at
+          // launch: a stamp bumps the row clock, so this device's copies
+          // should be as fresh as a pull makes them. Awaited, so it stays
+          // inside this sync's single flight: a stamp republishes the row,
+          // and a second sync merging or publishing mid-stamp would reopen
+          // the stale-copy window it waits here to avoid. Once per device
+          // (a flag read after that), and it contains its own failures.
+          await _ref.read(galleryOriginBackfillProvider)();
+          // The notifier can be disposed while the backfill runs, and the
+          // settle below reads state.
+          if (!mounted) return;
+          // Then the iCloud identifiers of this device's own gallery rows
+          // (spec 6.2), for the same reasons, once the origins it relies on
+          // are stamped. At most once a day, and contains its own failures.
+          await _ref.read(galleryCloudIdBackfillProvider)();
+          if (!mounted) return;
         } else {
           state = state.copyWith(
             status: SyncStatus.error,
@@ -1572,7 +1641,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
   Future<void> repairSync() async {
     await resetSyncState();
     await _ref.read(libraryEpochStoreProvider).clear();
-    await _syncService.deleteLeftoverBaseTempFiles();
+    await sweepLeftoverSyncTempFiles();
     state = state.copyWith(status: SyncStatus.idle, message: null);
     await refreshState();
   }

@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
@@ -8,6 +7,7 @@ import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
@@ -17,9 +17,57 @@ import 'package:submersion/features/universal_import/data/csv/transforms/dive_ty
 ///
 /// Orchestrates parsing of all entity types (dives, sites, buddies,
 /// equipment, certifications, etc.) from a full Submersion UDDF export.
-/// Delegates base parsing to [UddfImportService] and entity parsing
-/// to [UddfImportParsers].
+/// Walks the document and parses each dive itself; the per-element parsers
+/// for every other entity (sites, gas mixes, buddies, equipment and so on)
+/// live in [UddfImportParsers].
 class UddfFullImportService {
+  /// Private marker `_parseFullDive` leaves on a dive whose `<link ref>`
+  /// matched nothing the parser knows about, so the caller can count it and
+  /// then strip it. Never reaches the payload.
+  static const _unresolvedSiteRefKey = '_unresolvedSiteRef';
+
+  /// Prefixes a `<link ref>` carries when it names something other than a
+  /// dive site: every id prefix Submersion's own UDDF writers mint, except
+  /// `site_`.
+  ///
+  /// The same `<link>` elements are walked twice: once by the pass that
+  /// reads trip, dive centre, course and buddy references, and once by the
+  /// chain that reads sites, buddies, deco models and dive computers. A ref
+  /// the chain does not recognise is only a lost site when it could have
+  /// been one, or a dive that merely belongs to a trip, or whose
+  /// `<divecomputer>` block went missing, would raise a `sitesUnresolved`
+  /// notice about a site it never had. A foreign file's ids carry none of
+  /// these prefixes and are still counted.
+  ///
+  /// `uddf_site_location_test.dart` pins this list to the writers, so a new
+  /// entity type the exporter starts linking fails the test rather than
+  /// being mistaken for a lost site.
+  @visibleForTesting
+  static const nonSiteRefPrefixes = {
+    'buddy_',
+    'center_',
+    'cert_',
+    'computer_',
+    'course_',
+    'dc_',
+    'dive_',
+    'equip_',
+    'gf_',
+    'mix_',
+    'obs_',
+    'owner_',
+    'service_',
+    'set_',
+    'sitefeature_',
+    'species_',
+    'tag_',
+    'tank_',
+    'trip_',
+  };
+
+  static bool _isNonSiteRef(String ref) =>
+      nonSiteRefPrefixes.any(ref.startsWith);
+
   static final _logger = LoggerService.forClass(UddfFullImportService);
 
   /// Import ALL application data from UDDF file.
@@ -63,10 +111,19 @@ class UddfFullImportService {
     // Parse dive sites with extended fields
     final sites = <Map<String, dynamic>>[];
     final siteMap = <String, Map<String, dynamic>>{};
-    final divesiteElement = uddfElement.findElements('divesite').firstOrNull;
-    if (divesiteElement != null) {
+    // Every <divesite> block is read. Only the first used to be, so a file
+    // carrying a second block lost its sites and every dive linking one
+    // (#2209). A <site> with no id is kept: no dive can link to it, but a
+    // logbook's site list holds places never dived, and a named place is
+    // worth more than the id the file forgot to give it.
+    for (final divesiteElement in uddfElement.findElements('divesite')) {
       for (final siteElement in divesiteElement.findElements('site')) {
-        final siteData = _parseFullSite(siteElement);
+        // A `<site>` the file never named is filed under its own
+        // coordinates, so the review step shows where it is rather than
+        // "Unnamed" and the position survives the import (#2232). A site
+        // with neither is dropped, which is all it was ever worth.
+        final siteData = ImportSiteLocation.named(_parseFullSite(siteElement));
+        if (siteData == null) continue;
         final siteId = siteElement.getAttribute('id');
         if (siteId != null) {
           siteData['uddfId'] = siteId;
@@ -190,6 +247,8 @@ class UddfFullImportService {
     // Parse dives with extended fields
     final dives = <Map<String, dynamic>>[];
     final sightings = <Map<String, dynamic>>[];
+    // Dives that pointed at a site the file never described (#2209).
+    var divesMissingSite = 0;
     final profileDataElement = uddfElement
         .findElements('profiledata')
         .firstOrNull;
@@ -207,6 +266,9 @@ class UddfFullImportService {
             diveComputersMap,
           );
           if (diveData.isNotEmpty) {
+            if (diveData.remove(_unresolvedSiteRefKey) == true) {
+              divesMissingSite++;
+            }
             dives.add(diveData);
             // Extract sightings from dive
             if (diveData.containsKey('sightings')) {
@@ -560,6 +622,7 @@ class UddfFullImportService {
     return UddfImportResult(
       dataSourcesByDiveRef: sources.byDiveRef,
       unpairedDumps: sources.unpaired,
+      divesMissingSite: divesMissingSite,
       dives: dives,
       sites: sites,
       equipment: equipment,
@@ -974,7 +1037,7 @@ class UddfFullImportService {
   }
 
   Map<String, dynamic> _parseFullSite(XmlElement siteElement) {
-    // Parse base site fields using simple import service
+    // Standard UDDF site fields first, then the Submersion extensions.
     final baseSite = _parseUddfSite(siteElement);
     return UddfImportParsers.parseFullSite(siteElement, baseSite);
   }
@@ -1075,7 +1138,7 @@ class UddfFullImportService {
     Map<String, Map<String, int>> decoModels,
     Map<String, Map<String, String>> diveComputers,
   ) {
-    // Start with base dive parse (same logic as simple import)
+    // Standard UDDF dive fields first, then the Submersion extensions.
     final diveData = _parseUddfDive(
       diveElement,
       sites,
@@ -1741,6 +1804,76 @@ class UddfFullImportService {
     return diveData;
   }
 
+  /// Resolves a dive's `<link ref>` elements against the sites, buddies,
+  /// deco models and dive computers the file declares.
+  ///
+  /// A ref matching none of them used to fall off the end of this chain
+  /// without a word, which is how a logbook whose `<divesite>` block was lost
+  /// imported every dive with no site and no notice (#2209). One that could
+  /// have been a site now marks the dive with [_unresolvedSiteRefKey].
+  void _applyDiveLinks(
+    Iterable<XmlElement> links,
+    Map<String, dynamic> diveData,
+    List<String> buddyNames,
+    Map<String, Map<String, dynamic>> sites,
+    Map<String, Map<String, dynamic>> buddies,
+    Map<String, Map<String, int>> decoModels,
+    Map<String, Map<String, String>> diveComputers,
+  ) {
+    var sawDanglingRef = false;
+    for (final linkElement in links) {
+      final ref = linkElement.getAttribute('ref');
+      if (ref != null) {
+        // Check if it's a site reference
+        if (sites.containsKey(ref)) {
+          diveData['site'] = sites[ref];
+        }
+        // Check if it's a buddy reference
+        else if (buddies.containsKey(ref)) {
+          final buddyName = buddies[ref]?['name'] as String?;
+          if (buddyName != null && buddyName.isNotEmpty) {
+            buddyNames.add(buddyName);
+          }
+        }
+        // Check if it's a deco model reference (gradient factors)
+        else if (decoModels.containsKey(ref)) {
+          final model = decoModels[ref]!;
+          if (model['gfLow'] != null && model['gfLow']! > 0) {
+            diveData['gradientFactorLow'] = model['gfLow'];
+          }
+          if (model['gfHigh'] != null && model['gfHigh']! > 0) {
+            diveData['gradientFactorHigh'] = model['gfHigh'];
+          }
+        }
+        // Check if it's a dive computer reference
+        else if (diveComputers.containsKey(ref)) {
+          final computer = diveComputers[ref]!;
+          if (computer['model']?.isNotEmpty == true) {
+            diveData['diveComputerModel'] = computer['model'];
+          }
+          if (computer['serial']?.isNotEmpty == true) {
+            diveData['diveComputerSerial'] = computer['serial'];
+          }
+          if (computer['firmware']?.isNotEmpty == true) {
+            diveData['diveComputerFirmware'] = computer['firmware'];
+          }
+          if (computer['manufacturer']?.isNotEmpty == true) {
+            diveData['diveComputerManufacturer'] = computer['manufacturer'];
+          }
+        } else if (!_isNonSiteRef(ref)) {
+          sawDanglingRef = true;
+        }
+      }
+    }
+
+    // A dangling ref only counts against the dive when nothing else gave
+    // it a site: a file may legitimately link something this parser does
+    // not read, and that is not a lost location.
+    if (sawDanglingRef && diveData['site'] == null) {
+      diveData[_unresolvedSiteRefKey] = true;
+    }
+  }
+
   Map<String, dynamic> _parseUddfDive(
     XmlElement diveElement,
     Map<String, Map<String, dynamic>> sites,
@@ -1866,49 +1999,23 @@ class UddfFullImportService {
         }
       }
 
-      // Get all linked references (can be sites, buddies, decomodels, or dive computers)
-      for (final linkElement in beforeElement.findElements('link')) {
-        final ref = linkElement.getAttribute('ref');
-        if (ref != null) {
-          // Check if it's a site reference
-          if (sites.containsKey(ref)) {
-            diveData['site'] = sites[ref];
-          }
-          // Check if it's a buddy reference
-          else if (buddies.containsKey(ref)) {
-            final buddyName = buddies[ref]?['name'] as String?;
-            if (buddyName != null && buddyName.isNotEmpty) {
-              buddyNames.add(buddyName);
-            }
-          }
-          // Check if it's a deco model reference (gradient factors)
-          else if (decoModels.containsKey(ref)) {
-            final model = decoModels[ref]!;
-            if (model['gfLow'] != null && model['gfLow']! > 0) {
-              diveData['gradientFactorLow'] = model['gfLow'];
-            }
-            if (model['gfHigh'] != null && model['gfHigh']! > 0) {
-              diveData['gradientFactorHigh'] = model['gfHigh'];
-            }
-          }
-          // Check if it's a dive computer reference
-          else if (diveComputers.containsKey(ref)) {
-            final computer = diveComputers[ref]!;
-            if (computer['model']?.isNotEmpty == true) {
-              diveData['diveComputerModel'] = computer['model'];
-            }
-            if (computer['serial']?.isNotEmpty == true) {
-              diveData['diveComputerSerial'] = computer['serial'];
-            }
-            if (computer['firmware']?.isNotEmpty == true) {
-              diveData['diveComputerFirmware'] = computer['firmware'];
-            }
-            if (computer['manufacturer']?.isNotEmpty == true) {
-              diveData['diveComputerManufacturer'] = computer['manufacturer'];
-            }
-          }
-        }
-      }
+      // UDDF allows a <link> either inside <informationbeforedive> or
+      // directly under <dive>. Inner links are walked first, so a resolving
+      // one still wins over a dangling outer one rather than the last read
+      // winning. A dive with no <informationbeforedive> walks its outer
+      // links in the else branch below.
+      _applyDiveLinks(
+        [
+          ...beforeElement.findElements('link'),
+          ...diveElement.findElements('link'),
+        ],
+        diveData,
+        buddyNames,
+        sites,
+        buddies,
+        decoModels,
+        diveComputers,
+      );
 
       // Also check equipmentused for dive computer links (Shearwater style)
       if (equipmentElement != null) {
@@ -1931,6 +2038,19 @@ class UddfFullImportService {
           }
         }
       }
+    } else {
+      // The link walk above sat inside this block alone, so a dive with no
+      // <informationbeforedive> never had even its direct <link>s read, and
+      // a dangling one raised no notice (#2209).
+      _applyDiveLinks(
+        diveElement.findElements('link'),
+        diveData,
+        buddyNames,
+        sites,
+        buddies,
+        decoModels,
+        diveComputers,
+      );
     }
 
     // Also parse equipment refs from informationafterdive (if they exist there)

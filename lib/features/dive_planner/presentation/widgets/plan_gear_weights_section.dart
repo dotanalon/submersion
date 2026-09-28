@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/usable_set_items.dart';
 import 'package:submersion/core/buoyancy/placement_predictor.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -13,6 +15,7 @@ import 'package:submersion/features/equipment/domain/services/gear_expander.dart
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/plan_buoyancy_twin_provider.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
@@ -35,6 +38,17 @@ class PlanGearWeightsSection extends ConsumerWidget {
     final state = ref.read(divePlanNotifierProvider);
     final catalog = ref.read(allEquipmentProvider).valueOrNull ?? const [];
     final byId = {for (final e in catalog) e.id: e};
+    // A set member no longer shared with this diver stays in the set but is
+    // not applied (issue #2046).
+    final diverId = ref.read(validatedCurrentDiverIdProvider).value;
+    if (viaSetId != null) {
+      items = setItemsUsableBy(
+        items,
+        diverId: diverId,
+        visibleIds: byId.keys.toSet(),
+      );
+      if (items.isEmpty) return;
+    }
     final existingItems = [
       for (final id in state.equipmentIds) ?byId[id],
       for (final item in items)
@@ -47,6 +61,7 @@ class PlanGearWeightsSection extends ConsumerWidget {
       ],
       existing: state.fullGearProvenance,
       existingItems: existingItems,
+      diverId: diverId,
     );
     ref.read(divePlanNotifierProvider.notifier).setGear([
       for (final p in expansion.provenance) p.equipmentId,
@@ -173,6 +188,10 @@ class PlanGearWeightsSection extends ConsumerWidget {
                   for (final id in state.equipmentIds)
                     if (!partIds.contains(id))
                       InputChip(
+                        avatar: ServiceStatusIndicatorFor(
+                          equipmentId: id,
+                          density: ServiceIndicatorDensity.dot,
+                        ),
                         label: Text(switch (partCounts[id]) {
                           final n? when n > 0 =>
                             context.l10n.equipment_assemblyChip_label(

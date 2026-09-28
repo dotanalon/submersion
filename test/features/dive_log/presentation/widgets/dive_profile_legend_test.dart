@@ -16,8 +16,9 @@ import '../../../../helpers/test_app.dart';
 /// Minimal [SettingsNotifier] stub that returns default [AppSettings].
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier()
-    : super(const AppSettings(defaultShowGasTimeline: true));
+  _TestSettingsNotifier([
+    super.state = const AppSettings(defaultShowGasTimeline: true),
+  ]);
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -191,6 +192,20 @@ void main() {
       expect(find.text('Decompression'), findsOneWidget);
       expect(find.text('Gas Analysis'), findsOneWidget);
       expect(find.text('Other'), findsOneWidget);
+    });
+
+    testWidgets('opens without crashing on a screen narrower than the '
+        'dialog itself (issue #2228 follow-up: clamp(min, max) throws once '
+        'the screen is narrow enough that max falls below min)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await openDialog(tester);
+      expect(tester.takeException(), isNull);
+      expect(find.text('Overlays'), findsOneWidget);
     });
 
     testWidgets('Overlays section starts expanded with metrics visible', (
@@ -407,6 +422,72 @@ void main() {
       expect(find.text('Tank Pressures'), findsOneWidget);
       expect(_inDialog(find.text('D80 (Air)')), findsOneWidget);
       expect(_inDialog(find.text('AL80 (EAN50)')), findsOneWidget);
+    });
+
+    testWidgets('Tank Pressures rows start unchecked when the Pressure '
+        'default is off (issue #1999)', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => _TestSettingsNotifier(
+                const AppSettings(defaultShowPressure: false),
+              ),
+            ),
+          ],
+          child: DiveProfileLegend(
+            config: const ProfileLegendConfig(
+              hasMultiTankPressure: true,
+              tanks: _testTanks,
+              tankPressures: {
+                'tank-1': [
+                  TankPressurePoint(
+                    tankId: 'tank-1',
+                    timestamp: 10,
+                    pressure: 210,
+                  ),
+                ],
+              },
+            ),
+            zoomLevel: 1.0,
+            onZoomIn: () {},
+            onZoomOut: () {},
+            onResetZoom: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      final label = _inDialog(find.text('D80 (Air)'));
+      final row = find
+          .ancestor(of: label, matching: find.byType(InkWell))
+          .first;
+      expect(
+        find.descendant(
+          of: row,
+          matching: find.byIcon(Icons.check_box_outline_blank),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(label);
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileLegend)),
+      );
+      expect(
+        container.read(profileLegendProvider).showTankPressure['tank-1'],
+        isTrue,
+      );
+      expect(
+        find.descendant(of: row, matching: find.byIcon(Icons.check_box)),
+        findsOneWidget,
+      );
     });
   });
 

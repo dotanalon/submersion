@@ -1,14 +1,26 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/scan_tag_menu_entries.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_share.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_owner_sections.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_owner_chip.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/theme/status_colors.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/print_passport_labels.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attr_condition_text.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -28,13 +40,13 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/domain/models/service_due_filter_display.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/presentation/providers/condition_badge_providers.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
-import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -44,10 +56,12 @@ import 'package:submersion/features/equipment/presentation/widgets/assembly_chip
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_sort_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/bulk_equipment_tag_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/shared/widgets/max_width_fraction.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
@@ -58,7 +72,24 @@ class EquipmentListContent extends ConsumerStatefulWidget {
   final String? selectedId;
   final bool showAppBar;
   final Widget? floatingActionButton;
-  final Widget? headerExtension;
+
+  /// Builds the Equipment / Sets toggle into this list's own header bar.
+  ///
+  /// Null on phone, where the page's app bar carries it instead.
+  final EquipmentHeaderToggleBuilder? toggleBuilder;
+
+  /// Drives bulk selection from outside the list when set.
+  ///
+  /// On phone the page's app bar carries the actions, "Select items" among
+  /// them, so the page has to reach the same controller the rows use. Left
+  /// null, the list owns its own.
+  final SelectionController? selectionController;
+
+  /// Whether the list draws its own header bar.
+  ///
+  /// False on phone, where the page's app bar carries the switcher and the
+  /// actions. The selection bar still appears here while selecting.
+  final bool showHeader;
 
   const EquipmentListContent({
     super.key,
@@ -66,8 +97,15 @@ class EquipmentListContent extends ConsumerStatefulWidget {
     this.selectedId,
     this.showAppBar = true,
     this.floatingActionButton,
-    this.headerExtension,
+    this.toggleBuilder,
+    this.selectionController,
+    this.showHeader = true,
   });
+
+  /// Whether the list draws type groups in [mode]. The flat modes (table,
+  /// dense) ignore the grouping, so their sort sheet leaves it out.
+  static bool showsGrouping(ListViewMode mode) =>
+      mode == ListViewMode.detailed || mode == ListViewMode.compact;
 
   @override
   ConsumerState<EquipmentListContent> createState() =>
@@ -75,8 +113,19 @@ class EquipmentListContent extends ConsumerStatefulWidget {
 }
 
 class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
-  /// Owns the bulk-selection state machine for this list.
-  final SelectionController _selection = SelectionController();
+  /// The bulk-selection state machine for this list: the page's when it
+  /// passes one, otherwise this list's own.
+  late final SelectionController _selection = _adoptSelection();
+
+  /// Only a controller this list created is this list's to dispose. Set in
+  /// the same step that picks the controller, so the two cannot disagree.
+  bool _ownsSelection = false;
+
+  SelectionController _adoptSelection() {
+    final external = widget.selectionController;
+    _ownsSelection = external == null;
+    return external ?? SelectionController();
+  }
 
   /// Convenience mirrors of the controller, so the widget tree reads clearly.
   bool get _isSelectionMode => _selection.value.isActive;
@@ -105,7 +154,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _selection.dispose();
+    if (_ownsSelection) _selection.dispose();
     super.dispose();
   }
 
@@ -147,7 +196,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
   /// Whether [mode] draws the shared arrangement: the card modes only.
   static bool _honoursArrangement(ListViewMode mode) =>
-      mode == ListViewMode.detailed || mode == ListViewMode.compact;
+      EquipmentListContent.showsGrouping(mode);
 
   /// Orders the flat modes by the page sort alone: with no type order the
   /// arranger draws no headings and [arrangeEquipment]'s item comparator,
@@ -212,7 +261,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   /// would leave pull-to-refresh and error-retry showing stale rows.
   void _invalidateCurrentProvider(WidgetRef ref) {
     final filter = ref.read(equipmentFilterProvider);
-    if (filter.serviceDueOnly) {
+    if (filter.serviceDue != null) {
       // The service-due list derives from the clock evaluation, so refresh
       // that base rather than the leaf, which would replay cached verdicts.
       ref.invalidate(activeEquipmentClocksProvider);
@@ -238,7 +287,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               const <String, ServiceClockStatus>{})
         : const <String, ServiceClockStatus>{};
 
-    final filter = ref.watch(equipmentFilterProvider);
+    final filter = ref.watch(effectiveEquipmentFilterProvider);
     // Tags ride beside the items, not on them (issue #1942): one batch read
     // for the whole list feeds the tag filter and the detailed tiles' chips.
     final tagsByEquipment =
@@ -249,8 +298,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     };
 
     final AsyncValue<List<EquipmentItem>> equipmentAsync;
-    if (filter.serviceDueOnly) {
-      equipmentAsync = ref.watch(serviceDueEquipmentProvider);
+    final serviceDue = filter.serviceDue;
+    if (serviceDue != null) {
+      equipmentAsync = ref.watch(serviceDueEquipmentProvider(serviceDue));
     } else if (filter.status == null) {
       // The default view hides retired gear; the Retired status filter is
       // the way to see it (#636).
@@ -259,18 +309,26 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       equipmentAsync = ref.watch(equipmentByStatusProvider(filter.status!));
     }
 
+    // The owner axis (issue #2046) compares each item with this diver.
+    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+
     // Whether the tag selection is what emptied the list (issue #1942), so
     // the empty state blames the tags rather than a stocked category.
     final tagsEmptied = filter.tagsEmptied(
       equipmentAsync.value ?? const <EquipmentItem>[],
       tagIdsByEquipment,
+      activeDiverId: activeDiverId,
     );
 
     // Table mode uses a dedicated scaffold with column configuration support.
     if (viewMode == ListViewMode.table) {
       final sortedAsync = equipmentAsync.whenData(
         (equipment) => applyEquipmentSorting(
-          filter.apply(equipment, tagIdsByEquipment),
+          filter.apply(
+            equipment,
+            tagIdsByEquipment,
+            activeDiverId: activeDiverId,
+          ),
           sort,
           serviceUrgency: serviceUrgency,
         ),
@@ -310,6 +368,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       filter.apply(
         equipmentAsync.value ?? const <EquipmentItem>[],
         tagIdsByEquipment,
+        activeDiverId: activeDiverId,
       ),
       arrangement,
       typeLabel: (t) => t.localizedName(context.l10n),
@@ -359,10 +418,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           valueListenable: _selection,
           builder: (context, selection, _) => Column(
             children: [
-              selection.isActive
-                  ? _buildSelectionBar(sortedVisible, SelectionBarShell.pane)
-                  : _buildCompactAppBar(context),
-              if (widget.headerExtension != null) widget.headerExtension!,
+              // The toggle outlives the actions it scopes. The master pane
+              // has no app bar above it, so letting the header go away with
+              // the action row would strand the diver in Equipment until they
+              // left selection mode.
+              if (selection.isActive) ...[
+                if (widget.toggleBuilder != null)
+                  EquipmentHeaderBar(
+                    toggleBuilder: widget.toggleBuilder,
+                    actionsBuilder: _noActions,
+                  ),
+                _buildSelectionBar(sortedVisible, SelectionBarShell.pane),
+              ] else if (widget.showHeader)
+                EquipmentHeaderBar(
+                  toggleBuilder: widget.toggleBuilder,
+                  actionsBuilder: _buildHeaderActions,
+                ),
               if (filter.hasActiveFilters)
                 _buildActiveFiltersBar(context, filter),
               Expanded(child: buildContent()),
@@ -413,6 +484,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert),
                       onSelected: (value) {
+                        if (value == scanTagMenuValue) {
+                          unawaited(scanAndOpenCylinderTag(context, ref));
+                          return;
+                        }
                         if (value.startsWith('view_')) {
                           final mode = ListViewMode.fromName(
                             value.replaceFirst('view_', ''),
@@ -428,6 +503,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                           equipmentListViewModeProvider,
                         );
                         return [
+                          ...scanTagMenuEntries(context),
                           ...ListViewModeToggle.menuItems(
                             context,
                             currentMode: currentMode,
@@ -478,6 +554,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       return checked.isNotEmpty && checked.every(test);
     }
 
+    final multipleDivers = ref.watch(hasMultipleDiversProvider);
+    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+
     return [
       BulkAction(
         id: 'retire',
@@ -503,6 +582,43 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           equipmentIds: _selectedIds.toList(),
         ),
       ),
+      BulkAction(
+        id: 'printLabels',
+        icon: Icons.qr_code_2,
+        label: context.l10n.passport_tag_printLabels,
+        isEnabled: (ids) =>
+            everyChecked(ids, (e) => e.type == EquipmentType.tank),
+        onInvoke: () async {
+          final ids = _selectedIds.toList();
+          final messenger = ScaffoldMessenger.of(context);
+          final failedText = context.l10n.passport_tag_printFailed;
+          try {
+            await printPassportLabels(context, ref, ids);
+          } catch (_) {
+            // Keep the selection so the diver can try again.
+            messenger.showSnackBar(SnackBar(content: Text(failedText)));
+            return BulkActionOutcome.failed;
+          }
+          _selection.exit();
+          return BulkActionOutcome.completed;
+        },
+      ),
+      // Owner-only (issue #2046): enabled when every checked item is the
+      // active diver's own.
+      if (multipleDivers)
+        BulkAction(
+          id: 'share',
+          icon: Icons.share,
+          label: context.l10n.equipment_bulkShare_action,
+          isEnabled: (ids) =>
+              everyChecked(ids, (e) => canShareEquipment(e, activeDiverId)),
+          onInvoke: () => shareEquipmentWithProfiles(
+            context,
+            ref,
+            equipmentIds: _selectedIds.toList(),
+            activeDiverId: activeDiverId,
+          ),
+        ),
     ];
   }
 
@@ -581,14 +697,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     final notifier = ref.read(equipmentListNotifierProvider.notifier);
     _selection.exit();
 
+    // Delete is owner-only (issue #2046): a shared item is kept and the
+    // snackbar says how many.
+    var deleted = 0;
     for (final id in ids) {
-      await notifier.deleteEquipment(id);
+      if (await notifier.deleteEquipment(id)) deleted++;
     }
+    final skipped = ids.length - deleted;
 
     if (!mounted) return BulkActionOutcome.completed;
     messenger.showSnackBar(
       SnackBar(
-        content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
+        content: Text(
+          skipped == 0
+              ? context.l10n.common_bulkDelete_snackbar(deleted)
+              : context.l10n.equipment_bulkDelete_partial(deleted, skipped),
+        ),
       ),
     );
     return BulkActionOutcome.completed;
@@ -634,7 +758,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         valueListenable: _selection,
         builder: (context, selection, _) => Column(
           children: [
-            if (widget.headerExtension != null) widget.headerExtension!,
+            if (widget.toggleBuilder != null)
+              EquipmentHeaderBar(
+                toggleBuilder: widget.toggleBuilder,
+                actionsBuilder: _noActions,
+              ),
             // Table mode has no app bar of its own, so both bars live here:
             // the contextual one while selecting, and the Select affordance
             // while not. They share a slot and a height, so the table does
@@ -710,6 +838,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               for (final e in tagsByEquipment.entries)
                 e.key: [for (final t in e.value) t.name],
             },
+            ownerNames: ref.watch(diverNamesByIdProvider).value ?? const {},
           ),
           config: config,
           units: units,
@@ -732,89 +861,87 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     );
   }
 
-  Widget _buildCompactAppBar(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
-          ),
+  /// A header carrying the toggle alone: table mode keeps its actions in the
+  /// surrounding scaffold, and selection mode replaces them with its own bar.
+  static List<Widget> _noActions(BuildContext context, {required bool dense}) =>
+      const <Widget>[];
+
+  /// The list's own actions, for [EquipmentHeaderBar].
+  ///
+  /// They act on whichever of Equipment or Sets the toggle has selected, which
+  /// is why the bar always draws the toggle ahead of them.
+  List<Widget> _buildHeaderActions(
+    BuildContext context, {
+    required bool dense,
+  }) {
+    return [
+      equipmentHeaderIconButton(
+        icon: const Icon(Icons.search, size: 20),
+        tooltip: context.l10n.equipment_list_searchTooltip,
+        dense: dense,
+        onPressed: () {
+          showSearch(
+            context: context,
+            delegate: EquipmentSearchDelegate(context.l10n),
+          );
+        },
+      ),
+      _buildFilterAction(
+        context,
+        ref.watch(effectiveEquipmentFilterProvider),
+        iconSize: 20,
+        dense: dense,
+      ),
+      equipmentHeaderIconButton(
+        icon: const Icon(Icons.sort, size: 20),
+        tooltip: context.l10n.equipment_list_sortTooltip,
+        dense: dense,
+        onPressed: () => _showSortSheet(context),
+      ),
+      // The only way into bulk actions: entry by long-press was removed,
+      // so nothing but this control opens selection mode on touch.
+      equipmentHeaderIconButton(
+        key: const ValueKey('enter_selection'),
+        icon: const Icon(Icons.checklist, size: 20),
+        tooltip: context.l10n.common_selection_enterTooltip,
+        dense: dense,
+        onPressed: _selection.enterExplicit,
+      ),
+      equipmentHeaderMenuSlot(
+        dense: dense,
+        child: PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert, size: 20),
+          padding: dense ? EdgeInsets.zero : const EdgeInsets.all(8),
+          onSelected: (value) {
+            if (value == scanTagMenuValue) {
+              unawaited(scanAndOpenCylinderTag(context, ref));
+              return;
+            }
+            if (value.startsWith('view_')) {
+              final mode = ListViewMode.fromName(
+                value.replaceFirst('view_', ''),
+              );
+              ref.read(equipmentListViewModeProvider.notifier).state = mode;
+            }
+          },
+          itemBuilder: (context) {
+            final currentMode = ref.read(equipmentListViewModeProvider);
+            return [
+              ...scanTagMenuEntries(context),
+              ...ListViewModeToggle.menuItems(
+                context,
+                currentMode: currentMode,
+                modes: const [
+                  ListViewMode.detailed,
+                  ListViewMode.compact,
+                  ListViewMode.table,
+                ],
+              ),
+            ];
+          },
         ),
       ),
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          // Expanded, and no Spacer: the title must be the row's only flexible
-          // child, or Spacer takes half the free space and the leftover half
-          // lands after the last icon (see trip_list_content for the detail).
-          Expanded(
-            child: FeatureAppBarTitle(
-              featureId: 'equipment',
-              title: context.l10n.equipment_appBar_title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
-            tooltip: context.l10n.equipment_list_searchTooltip,
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: EquipmentSearchDelegate(context.l10n),
-              );
-            },
-          ),
-          _buildFilterAction(
-            context,
-            ref.watch(equipmentFilterProvider),
-            iconSize: 20,
-          ),
-          IconButton(
-            icon: const Icon(Icons.sort, size: 20),
-            tooltip: context.l10n.equipment_list_sortTooltip,
-            onPressed: () => _showSortSheet(context),
-          ),
-          // The only way into bulk actions: entry by long-press was removed,
-          // so nothing but this control opens selection mode on touch.
-          IconButton(
-            key: const ValueKey('enter_selection'),
-            icon: const Icon(Icons.checklist, size: 20),
-            tooltip: context.l10n.common_selection_enterTooltip,
-            onPressed: _selection.enterExplicit,
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, size: 20),
-            onSelected: (value) {
-              if (value.startsWith('view_')) {
-                final mode = ListViewMode.fromName(
-                  value.replaceFirst('view_', ''),
-                );
-                ref.read(equipmentListViewModeProvider.notifier).state = mode;
-              }
-            },
-            itemBuilder: (context) {
-              final currentMode = ref.read(equipmentListViewModeProvider);
-              return [
-                ...ListViewModeToggle.menuItems(
-                  context,
-                  currentMode: currentMode,
-                  modes: const [
-                    ListViewMode.detailed,
-                    ListViewMode.compact,
-                    ListViewMode.table,
-                  ],
-                ),
-              ];
-            },
-          ),
-        ],
-      ),
-    );
+    ];
   }
 
   void _showSortSheet(BuildContext context) {
@@ -834,14 +961,16 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     BuildContext context,
     EquipmentFilterState filter, {
     double? iconSize,
+    bool dense = false,
   }) {
-    return IconButton(
+    return equipmentHeaderIconButton(
       key: const ValueKey('equipment_filter_button'),
       icon: Badge(
         isLabelVisible: filter.hasActiveFilters,
         child: Icon(Icons.filter_list, size: iconSize),
       ),
       tooltip: context.l10n.equipment_list_filterTooltip,
+      dense: dense,
       onPressed: () => showEquipmentFilterSheet(context, ref),
     );
   }
@@ -881,9 +1010,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               },
             ),
             const SizedBox(width: 8),
-            if (filter.serviceDueOnly)
+            if (filter.serviceDue != null)
               _buildActiveFilterChip(
-                context.l10n.equipment_list_filterServiceDue,
+                filter.serviceDue!.localizedName(context.l10n),
                 () => ref.read(equipmentFilterProvider.notifier).state = filter
                     .copyWith(clearStatus: true),
               ),
@@ -1043,7 +1172,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     required bool hadItemsBeforeTypeFilter,
     required bool tagsEmptied,
   }) {
-    final filter = ref.watch(equipmentFilterProvider);
+    final filter = ref.watch(effectiveEquipmentFilterProvider);
 
     // Blame the tags (issue #1942) when the category and its conditions left
     // items that none of the selected tags is on: a tag chip on a retired
@@ -1062,8 +1191,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       filterText = context.l10n.equipment_list_emptyState_filterText_type(
         filter.type!.localizedName(context.l10n),
       );
-    } else if (filter.serviceDueOnly) {
-      filterText = context.l10n.equipment_list_emptyState_filterText_serviceDue;
+    } else if (filter.serviceDue != null) {
+      filterText = filter.serviceDue!.emptyStateFilterText(context.l10n);
     } else if (filter.status == null) {
       filterText = context.l10n.equipment_list_emptyState_filterText_equipment;
     } else {
@@ -1092,8 +1221,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 ? context.l10n.equipment_list_emptyState_noTagMatch
                 : blameCategory
                 ? context.l10n.equipment_list_emptyState_noTypeMatch
-                : filter.serviceDueOnly
-                ? context.l10n.equipment_list_emptyState_serviceDueUpToDate
+                : filter.serviceDue != null
+                ? filter.serviceDue!.emptyStateSubtitle(context.l10n)
                 : filter.status != null
                 ? context.l10n.equipment_list_emptyState_noStatusMatch
                 : context.l10n.equipment_list_emptyState_addPrompt,
@@ -1203,6 +1332,12 @@ class EquipmentListTile extends ConsumerWidget {
     final detail =
         label?.subtitle ?? (item.fullName != item.name ? item.fullName : null);
     final hasTags = tags.isNotEmpty;
+    // Another profile's gear shared with this one names its owner (#2046).
+    final hasOwner = showsOwnerChip(
+      item,
+      ref.watch(validatedCurrentDiverIdProvider).value,
+      multipleDivers: ref.watch(hasMultipleDiversProvider),
+    );
     final accent = resolveFeatureAccent(
       context,
       ref,
@@ -1238,7 +1373,7 @@ class EquipmentListTile extends ConsumerWidget {
           ),
         ),
         title: Text(item.name),
-        subtitle: detail != null || hasChips || hasTags
+        subtitle: detail != null || hasChips || hasTags || hasOwner
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -1250,13 +1385,24 @@ class EquipmentListTile extends ConsumerWidget {
                       padding: const EdgeInsets.only(top: 4),
                       child: TagChips(tags: tags, maxTags: 3),
                     ),
+                  if (hasOwner)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: EquipmentOwnerChip(ownerId: item.diverId),
+                    ),
                 ],
               )
             : null,
-        trailing: _buildTrailing(
-          context,
-          source == BadgeSource.finding ? null : worstClock,
-          source == BadgeSource.finding ? finding : null,
+        // The tile offers trailing the whole row, so a rollup label naming
+        // a long part took it all and left the title one letter per line
+        // (issue #1981).
+        trailing: MaxWidthFraction(
+          fraction: kListTileTrailingMaxWidthFraction,
+          child: _buildTrailing(
+            context,
+            source == BadgeSource.finding ? null : worstClock,
+            source == BadgeSource.finding ? finding : null,
+          ),
         ),
       ),
     );
@@ -1269,11 +1415,15 @@ class EquipmentListTile extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
 
+    // Every label here is one line: the column is width-capped, and the
+    // tile also caps its trailing height, so a wrapped label would overflow.
     final typeLabel = Text(
       item.type.localizedName(context.l10n),
       style: theme.textTheme.bodySmall?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
       ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
 
     if (finding != null) {
@@ -1292,38 +1442,21 @@ class EquipmentListTile extends ConsumerWidget {
                   : theme.colorScheme.tertiary,
               fontWeight: FontWeight.w600,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       );
     }
 
     if (worstClock != null) {
-      final overdue =
-          worstClock.status.severity == ServiceClockSeverity.overdue;
-      final kindLabel = worstClock.ownerId == item.id
-          ? worstClock.status.kind.name
-          : context.l10n.equipment_components_rollupClock(
-              worstClock.ownerName,
-              worstClock.status.kind.name,
-            );
       return Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           typeLabel,
           const SizedBox(height: 2),
-          Text(
-            overdue
-                ? context.l10n.equipment_list_worstClock(kindLabel)
-                : kindLabel,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: serviceSeveritySwatch(
-                StatusColors.of(context),
-                worstClock.status.severity,
-              )?.accent,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          ServiceStatusIndicator(clock: worstClock, subjectId: item.id),
         ],
       );
     }
@@ -1341,6 +1474,8 @@ class EquipmentListTile extends ConsumerWidget {
               color: theme.colorScheme.onSecondaryContainer,
               fontWeight: FontWeight.w500,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       );

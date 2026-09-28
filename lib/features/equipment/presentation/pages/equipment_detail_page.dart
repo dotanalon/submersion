@@ -1,4 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_history_card.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:go_router/go_router.dart';
@@ -6,7 +14,10 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_entry_card.dart';
+import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -19,6 +30,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:collection/collection.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -27,6 +39,8 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/unit_configurations_card.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_documents_section.dart';
@@ -151,23 +165,36 @@ class _EquipmentDetailContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    // Any overdue clock lights the header: the item's own, or any part's
-    // through the rollup (issue #1487). Own clocks are read separately so a
-    // retired item, absent from the active rollup, still shows its state.
-    final ownOverdue =
-        ref
-            .watch(serviceClockStatusesProvider(equipmentId))
-            .value
-            ?.any((s) => s.severity == ServiceClockSeverity.overdue) ??
-        false;
-    final rollupOverdue =
-        ref
-            .watch(equipmentRollupClockProvider)
-            .value?[equipmentId]
-            ?.status
-            .severity ==
-        ServiceClockSeverity.overdue;
-    final isServiceOverdue = ownOverdue || rollupOverdue;
+    // The header's one clock: the most urgent of the item's own clocks and
+    // its parts' through the rollup (issue #1487). Own clocks are read
+    // separately so a retired item, absent from the active rollup, still
+    // shows its state. Null when nothing is due, which draws no banner.
+    RollupClock? headerClock;
+    void consider(RollupClock? candidate) {
+      if (candidate == null ||
+          candidate.status.severity == ServiceClockSeverity.ok) {
+        return;
+      }
+      if (headerClock == null ||
+          isMoreUrgentClock(candidate.status, headerClock!.status)) {
+        headerClock = candidate;
+      }
+    }
+
+    consider(ref.watch(equipmentRollupClockProvider).value?[equipmentId]);
+    for (final status
+        in ref.watch(serviceClockStatusesProvider(equipmentId)).value ??
+            const <ServiceClockStatus>[]) {
+      consider((
+        ownerId: equipmentId,
+        ownerName: equipment.name,
+        status: status,
+      ));
+    }
+    // The avatar still reddens for overdue only, as the list tiles do; a
+    // due-soon item keeps the plain avatar and says so in the banner.
+    final isServiceOverdue =
+        headerClock?.status.severity == ServiceClockSeverity.overdue;
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
@@ -175,10 +202,19 @@ class _EquipmentDetailContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeaderSection(context, equipment, isServiceOverdue),
+          _buildHeaderSection(
+            context,
+            equipment,
+            isServiceOverdue,
+            headerClock,
+          ),
           const SizedBox(height: 24),
           _buildDetailsSection(context, ref, equipment, units),
           const SizedBox(height: 24),
+          if (equipment.type == EquipmentType.tank) ...[
+            PassportEntryCard(equipment: equipment),
+            const SizedBox(height: 24),
+          ],
           ServiceClocksCard(
             equipmentId: equipmentId,
             equipmentType: equipment.type,
@@ -226,6 +262,12 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 DocumentOpenHelper.open(context, ref, item),
           ),
           const SizedBox(height: 24),
+          // Who used it and every share (issue #2046); only with two or more
+          // profiles, so a single-profile page keeps its spacing.
+          if (ref.watch(hasMultipleDiversProvider)) ...[
+            EquipmentHistoryCard(equipmentId: equipmentId),
+            const SizedBox(height: 24),
+          ],
           ServiceHistorySection(equipmentId: equipmentId),
           if (equipment.notes.isNotEmpty) ...[
             const SizedBox(height: 24),
@@ -238,12 +280,16 @@ class _EquipmentDetailContent extends ConsumerWidget {
     if (embedded) {
       return Column(
         children: [
+          // No status line in this strip: the body below it carries the
+          // page header's banner in embedded mode too, so a line here would
+          // show and announce the same status twice.
           _buildEmbeddedHeader(context, ref, equipment, isServiceOverdue),
           Expanded(child: body),
         ],
       );
     }
 
+    final canDelete = _isOwner(ref, equipment);
     return Scaffold(
       appBar: AppBar(
         title: Text(equipment.name),
@@ -254,13 +300,25 @@ class _EquipmentDetailContent extends ConsumerWidget {
             onPressed: () => context.push('/equipment/$equipmentId/edit'),
           ),
           PopupMenuButton<String>(
+            key: const ValueKey('equipment-detail-overflow'),
             onSelected: (value) => _handleMenuAction(context, ref, value),
-            itemBuilder: (context) => _buildMenuItems(context),
+            itemBuilder: (context) =>
+                _buildMenuItems(context, canDelete: canDelete),
           ),
         ],
       ),
       body: body,
     );
+  }
+
+  /// Delete is owner-only (issue #2046), so the page menu offers it only to
+  /// the item's owner. With no diver or no owner every profile counts as the
+  /// owner, as before sharing existed.
+  bool _isOwner(WidgetRef ref, EquipmentItem equipment) {
+    final activeDiver = ref.watch(validatedCurrentDiverIdProvider);
+    // Hidden until the active diver is known, so a sharee never sees it flash.
+    if (!activeDiver.hasValue) return false;
+    return canDeleteEquipment(equipment, activeDiver.value);
   }
 
   Widget _buildEmbeddedHeader(
@@ -269,6 +327,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
     EquipmentItem equipment,
     bool isServiceOverdue,
   ) {
+    final canDelete = _isOwner(ref, equipment);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -325,28 +384,37 @@ class _EquipmentDetailContent extends ConsumerWidget {
             },
           ),
           PopupMenuButton<String>(
+            key: const ValueKey('equipment-detail-overflow'),
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) => _handleMenuAction(context, ref, value),
-            itemBuilder: (context) => _buildMenuItems(context),
+            itemBuilder: (context) =>
+                _buildMenuItems(context, canDelete: canDelete),
           ),
         ],
       ),
     );
   }
 
-  List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context) {
+  /// Open in Connections is for everyone who can see the item, a sharee
+  /// included: shared gear sits on their own dives. Delete needs the owner.
+  List<PopupMenuEntry<String>> _buildMenuItems(
+    BuildContext context, {
+    required bool canDelete,
+  }) {
     return [
-      PopupMenuItem(
-        value: 'delete',
-        child: ListTile(
-          leading: const Icon(Icons.delete, color: Colors.red),
-          title: Text(
-            context.l10n.equipment_menu_delete,
-            style: const TextStyle(color: Colors.red),
+      openInConnectionsMenuItem(context),
+      if (canDelete)
+        PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: const Icon(Icons.delete, color: Colors.red),
+            title: Text(
+              context.l10n.equipment_menu_delete,
+              style: const TextStyle(color: Colors.red),
+            ),
+            contentPadding: EdgeInsets.zero,
           ),
-          contentPadding: EdgeInsets.zero,
         ),
-      ),
     ];
   }
 
@@ -354,6 +422,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
     BuildContext context,
     EquipmentItem equipment,
     bool isServiceOverdue,
+    RollupClock? headerClock,
   ) {
     return Card(
       child: Padding(
@@ -411,36 +480,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 ),
               ],
             ),
-            if (isServiceOverdue) ...[
+            if (headerClock case final clock?) ...[
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: StatusColors.of(context).alert.container,
-                  border: Border.all(
-                    color: StatusColors.of(context).alert.outline,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.warning,
-                      color: StatusColors.of(context).alert.onContainer,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        context.l10n.equipment_detail_serviceOverdue,
-                        style: TextStyle(
-                          color: StatusColors.of(context).alert.onContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _ServiceBanner(clock: clock, subjectId: equipment.id),
             ],
           ],
         ),
@@ -620,6 +662,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
               ),
               error: (e, s) => const SizedBox.shrink(),
             ),
+            EquipmentSharingRow(equipment: equipment),
             if (equipment.brand != null)
               _buildDetailRow(
                 context,
@@ -659,8 +702,21 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   attributeLabel(context.l10n, def.key),
                   formatAttributeValue(attr, def, units, context.l10n),
                 ),
+            // The item's colour (issue #2326): its own row with a swatch,
+            // only when the stored value is a colour code and the type has
+            // a colour. On a type without one it shows as a custom field
+            // (issue #2520), the way the edit form keeps it.
+            if (EquipmentAttributeCatalog.hasColor(equipment.type))
+              if (normalizeEquipmentColor(
+                    equipment.attrText(EquipmentAttrKeys.color),
+                  )
+                  case final code?)
+                _buildColorRow(context, code),
             for (final attr
-                in equipment.attributes.where((a) => a.isCustom).toList()
+                in keepStrayColorAsCustom(
+                    equipment.type,
+                    equipment.attributes,
+                  ).where((a) => a.isCustom).toList()
                   ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
               if (attr.hasValue)
                 _buildDetailRow(context, attr.key, attr.valueText ?? ''),
@@ -822,6 +878,46 @@ class _EquipmentDetailContent extends ConsumerWidget {
     );
   }
 
+  /// The item's colour: its label, then a swatch and the colour's name.
+  Widget _buildColorRow(BuildContext context, String code) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            attributeLabel(context.l10n, EquipmentAttrKeys.color),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                key: const ValueKey('detail-color-swatch'),
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: TagColors.fromHex(code),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                equipmentColorName(context.l10n, code),
+                style: theme.textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDetailRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -895,6 +991,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
     final notifier = ref.read(equipmentListNotifierProvider.notifier);
 
     switch (action) {
+      case kOpenInConnectionsAction:
+        openInConnections(
+          context,
+          NodeRef(ConnectionKind.equipment, equipmentId),
+        );
       case 'delete':
         final confirmed = await showDialog<bool>(
           context: context,
@@ -918,7 +1019,17 @@ class _EquipmentDetailContent extends ConsumerWidget {
         );
 
         if (confirmed == true) {
-          await notifier.deleteEquipment(equipmentId);
+          final deleted = await notifier.deleteEquipment(equipmentId);
+          if (!deleted) {
+            // Delete is owner-only (issue #2046): the item was kept, so stay
+            // on it and say why.
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(context.l10n.equipment_delete_notOwner)),
+              );
+            }
+            break;
+          }
           if (context.mounted) {
             if (embedded) {
               onDeleted?.call();
@@ -932,5 +1043,48 @@ class _EquipmentDetailContent extends ConsumerWidget {
         }
         break;
     }
+  }
+}
+
+/// The header's service banner: which service is due, on which part, and
+/// when, in the swatch of its own severity (red overdue, amber due soon).
+/// It used to say only "Service is overdue!", which named neither (#2260).
+///
+/// The text takes the swatch's onContainer rather than the indicator's
+/// accent: the banner fills itself with the container colour, and an accent
+/// laid on its own container does not read.
+class _ServiceBanner extends StatelessWidget {
+  final RollupClock clock;
+  final String subjectId;
+
+  const _ServiceBanner({required this.clock, required this.subjectId});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = StatusColors.of(context);
+    final swatch =
+        serviceSeveritySwatch(colors, clock.status.severity) ?? colors.alert;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: swatch.container,
+        border: Border.all(color: swatch.outline),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.warning, color: swatch.onContainer),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ServiceStatusIndicator(
+              clock: clock,
+              subjectId: subjectId,
+              density: ServiceIndicatorDensity.full,
+              color: swatch.onContainer,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

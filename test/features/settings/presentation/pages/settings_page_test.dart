@@ -44,6 +44,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_s
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
@@ -126,6 +127,18 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
+  Future<void> setTankPresetHidden(String presetName, bool hidden) async {
+    if (hidden && presetName == state.defaultTankPreset) return;
+    final ids = {...state.hiddenTankPresetIds};
+    if (hidden) {
+      ids.add(presetName);
+    } else {
+      ids.remove(presetName);
+    }
+    state = state.copyWith(hiddenTankPresetIds: ids);
+  }
+
+  @override
   Future<void> setEmergencyRegion(String? countryCode) async =>
       state = countryCode == null
       ? state.copyWith(clearEmergencyRegion: true)
@@ -137,6 +150,10 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultShowO2CellMv(bool value) async =>
       state = state.copyWith(defaultShowO2CellMv: value);
+
+  @override
+  Future<void> setO2CellUnit(O2CellUnit value) async =>
+      state = state.copyWith(o2CellUnit: value);
 
   @override
   Future<void> setDefaultShowGtr(bool value) async =>
@@ -260,6 +277,16 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setPpO2Limits(double working, double max) async =>
       state = state.copyWith(ppO2MaxWorking: working, ppO2MaxDeco: max);
+  @override
+  Future<void> setCcrPpO2Limits({
+    required double setpointLow,
+    required double setpointHigh,
+    required double diluentModPpO2,
+  }) async => state = state.copyWith(
+    ccrSetpointLow: setpointLow,
+    ccrSetpointHigh: setpointHigh,
+    ccrDiluentModPpO2: diluentModPpO2,
+  );
   @override
   Future<void> setCnsWarningThreshold(int value) async =>
       state = state.copyWith(cnsWarningThreshold: value);
@@ -559,6 +586,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setShowDataSourceBadges(bool value) async =>
       state = state.copyWith(showDataSourceBadges: value);
   @override
+  Future<void> setShowDiveFigure(bool value) async =>
+      state = state.copyWith(showDiveFigure: value);
+  @override
   Future<void> setShowProfilePanelInTableView(bool value) async =>
       state = state.copyWith(showProfilePanelInTableView: value);
   @override
@@ -610,13 +640,6 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       ],
     );
   }
-
-  @override
-  Future<void> setFullscreenReadoutCardPosition(double x, double y) async =>
-      state = state.copyWith(
-        fullscreenReadoutCardX: x,
-        fullscreenReadoutCardY: y,
-      );
 
   @override
   Future<void> setProfileMetricsFollowViewport(bool value) async =>
@@ -852,6 +875,19 @@ void main() {
         find.text('Give imported gear the type its name states'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('Storage offers one Offline Maps row covering tiles and 3D '
+        'terrain', (tester) async {
+      // Map tiles and 3D terrain data used to be two rows with two pages.
+      await tester.pumpWidget(
+        buildTestWidget(const SettingsSectionDetailPage(sectionId: 'data')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Offline Maps'), findsOneWidget);
+      expect(find.text('Map tiles and 3D terrain data'), findsOneWidget);
+      expect(find.text('3D Maps'), findsNothing);
     });
 
     testWidgets('should display Diver Profile section', (tester) async {
@@ -1397,7 +1433,7 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       final repo = FakeAppSettingsRepository()
-        ..navRailIds = ['statistics', 'gps-log', 'planning'];
+        ..navRailIds = ['insights', 'gps-log', 'planning'];
       await tester.pumpWidget(
         buildAppearanceWidget([
           ...getOverrides(),
@@ -1407,7 +1443,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(NavCustomizationTile), findsOneWidget);
-      expect(find.text('Statistics · GPS Log · Planning'), findsOneWidget);
+      expect(find.text('Insights · GPS Log · Planning'), findsOneWidget);
     });
 
     // The desktop master-detail pane renders _AppearanceSectionContent, a
@@ -2159,8 +2195,43 @@ void main() {
       await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      expect(find.text('ppO2 limits'), findsOneWidget);
+      expect(find.text('ppO2 limits OC'), findsOneWidget);
       expect(find.text('Working 1.4 bar · Max 1.6 bar'), findsOneWidget);
+    });
+
+    testWidgets('the CCR tile shows the setpoints and the diluent MOD '
+        '(issue #2342)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 6000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ppO2 limits CCR'), findsOneWidget);
+      expect(
+        find.text('Setpoint low 0.7 · high 1.3 · Dil MOD 1.6 bar'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('ppO2 limits CCR'));
+      await tester.pumpAndSettle();
+      expect(find.text('Setpoint low'), findsOneWidget);
+      expect(find.text('Setpoint high'), findsOneWidget);
+      expect(find.text('Dil MOD'), findsOneWidget);
+
+      // Drag the high setpoint to the far left: the pair is never inverted,
+      // so the low setpoint is pulled down with it to 0.5.
+      final sliders = find.byType(Slider);
+      expect(sliders, findsNWidgets(3));
+      await tester.drag(sliders.at(1), const Offset(-1000, 0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Setpoint low 0.5 · high 0.5 · Dil MOD 1.6 bar'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('saving a new maximum updates the tile', (tester) async {
@@ -2170,7 +2241,7 @@ void main() {
       await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('ppO2 limits'));
+      await tester.tap(find.text('ppO2 limits OC'));
       await tester.pumpAndSettle();
 
       // The "Maximum ppO2" dropdown currently reads 1.6 bar (working is 1.4).
@@ -2193,7 +2264,7 @@ void main() {
       await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('ppO2 limits'));
+      await tester.tap(find.text('ppO2 limits OC'));
       await tester.pumpAndSettle();
 
       // Working starts at 1.4; raise it to 1.6, above the 1.4/1.5/1.6 max.
@@ -2226,7 +2297,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('ppO2 limits'));
+      await tester.tap(find.text('ppO2 limits OC'));
       await tester.pumpAndSettle();
 
       // Snapped to the grid: 1.4 working, 1.5 max.

@@ -7,10 +7,12 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -23,6 +25,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_cus
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 class EquipmentEditPage extends ConsumerStatefulWidget {
   final String? equipmentId;
@@ -141,7 +144,12 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     if (_isInitialized) return;
     _isInitialized = true;
 
-    for (final attr in equipment.attributes) {
+    // A colour on a type without one loads as a custom field, so the save
+    // keeps it (issue #2520).
+    for (final attr in keepStrayColorAsCustom(
+      equipment.type,
+      equipment.attributes,
+    )) {
       if (attr.isCustom) {
         _customFields.add(attr);
       } else {
@@ -230,7 +238,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   /// The parent to write on save: [_validParentIdFor] once the active list
   /// has loaded. Before that, the id may have come from a deep link
   /// (`/equipment/new?parent=`), so it is looked up directly and kept only
-  /// when it names a fitted item of [diverId]'s whose type can hold [type].
+  /// when it names a fitted item visible to [diverId] (owned or shared) whose
+  /// type can hold [type].
   Future<String?> _parentIdToSave(EquipmentType type, String? diverId) async {
     final id = _parentEquipmentId;
     if (id == null) return null;
@@ -240,7 +249,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     final parent = await ref
         .read(equipmentRepositoryProvider)
         .getEquipmentById(id);
-    if (parent == null || !parent.isFitted || parent.diverId != diverId) {
+    if (parent == null || !parent.isFitted) return null;
+    // A parent shared with [diverId] is as usable as one it owns (#2046).
+    if (diverId != null &&
+        !await ref.read(equipmentRepositoryProvider).isVisibleTo(id, diverId)) {
       return null;
     }
     return _parentTypesFor(type).contains(parent.type) ? id : null;
@@ -412,7 +424,22 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                     for (final e in candidates)
                       DropdownMenuItem<String?>(
                         value: e.id,
-                        child: Text(e.name),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ServiceStatusIndicatorFor(
+                              equipmentId: e.id,
+                              density: ServiceIndicatorDensity.dot,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                e.name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                   ],
                   onChanged: (value) => setState(() {
@@ -471,6 +498,23 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           EquipmentAttributeFormSection(
             key: ValueKey('attrs-${_selectedType.name}'),
             type: _selectedType,
+            values: _attrValues,
+            units: UnitFormatter(ref.watch(settingsProvider)),
+            onChanged: (attr) => setState(() {
+              _attrValues[attr.key] = attr;
+              _hasChanges = true;
+            }),
+            onCleared: (key) => setState(() {
+              _attrValues.remove(key);
+              _hasChanges = true;
+            }),
+          ),
+          // The item's colour, which tints its artwork on the diver figure
+          // (issue #2326). Renders nothing for the types that have none.
+          EquipmentAttributeFormSection(
+            key: ValueKey('appearance-${_selectedType.name}'),
+            type: _selectedType,
+            group: AttributeGroup.appearance,
             values: _attrValues,
             units: UnitFormatter(ref.watch(settingsProvider)),
             onChanged: (attr) => setState(() {
@@ -775,15 +819,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                         // repository writes Value(null) rather than
                         // Value.absent(), so accepting the save would erase
                         // the stored price instead of leaving it alone.
-                        validator: (value) {
-                          final text = value?.trim() ?? '';
-                          if (text.isEmpty) return null;
-                          return parseUserDecimal(text) == null
-                              ? context
-                                    .l10n
-                                    .equipment_edit_purchasePriceValidation
-                              : null;
-                        },
+                        validator: numberValidator(context),
                       );
                     },
                   ),
@@ -1030,7 +1066,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             : await _parentIdToSave(_selectedType, diverId),
         // Blank means "no price"; anything unreadable was already stopped by
         // the field validator, so null here can only mean blank.
-        purchasePrice: parseUserDecimal(_purchasePriceController.text),
+        purchasePrice: switch (readNumber(_purchasePriceController.text)) {
+          NumberValue(:final value) => value,
+          NumberBlank() || NumberInvalid() => null,
+        },
         purchaseCurrency: _purchaseCurrencyController.text.trim().isEmpty
             ? _fallbackCurrencyCode()
             : _purchaseCurrencyController.text.trim(),

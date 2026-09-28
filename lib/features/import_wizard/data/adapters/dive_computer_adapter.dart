@@ -5,13 +5,18 @@ import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_computer/domain/services/reported_model_relabel.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
+import 'package:submersion/features/dive_computer/data/services/planned_dive_fill_service.dart';
+import 'package:submersion/features/dive_computer/domain/services/planned_dive_matcher.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
+import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -107,10 +112,19 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     String? displayName,
     WidgetRef? ref,
     bool forceFullDownload = false,
+    PlannedDiveFillService? fillService,
   }) : _importService = importService,
        _computerRepository = computerRepository,
        _diveRepository = diveRepository,
        _consolidationService = consolidationService,
+       _fillService =
+           fillService ??
+           PlannedDiveFillService(
+             dives: diveRepository,
+             computers: computerRepository,
+             importService: importService,
+             consolidation: consolidationService,
+           ),
        _diverId = diverId,
        _knownComputer = knownComputer,
        _ref = ref,
@@ -122,6 +136,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   final DiveComputerRepository _computerRepository;
   final DiveRepository _diveRepository;
   final DiveConsolidationService _consolidationService;
+
+  /// Fills planned dives from downloads (issue #2002).
+  final PlannedDiveFillService _fillService;
   final String _diverId;
   final DiveComputer? _knownComputer;
   final WidgetRef? _ref;
@@ -145,6 +162,25 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   String? _descriptorProduct;
   int? _descriptorModel;
   String? _libdivecomputerVersion;
+
+  /// What the last [ensureComputer] call was given, kept so [buildBundle]
+  /// can retry the save when the download step's attempt failed.
+  ({
+    DiscoveredDevice device,
+    String? serialNumber,
+    String? firmwareVersion,
+    String? reportedProduct,
+    int? reportedModel,
+  })?
+  _pendingComputerSave;
+
+  /// Why the last retry of [_pendingComputerSave] failed, reported by
+  /// [performImport] in place of importing without a computer.
+  Object? _computerSaveError;
+
+  /// The download's clock sync answer, recorded once a retried save recovers
+  /// the computer it belongs to. See [rememberClockSyncStatus].
+  ClockSyncStatus? _pendingClockSyncStatus;
 
   /// Set by the wizard so the confirm step can navigate back to scan.
   VoidCallback? goBackFromConfirm;
@@ -175,6 +211,16 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   /// it -- also done by [resetState].
   void setSinceCutoff(DateTime? cutoff) {
     _sinceCutoff = cutoff;
+  }
+
+  /// Keep the download's clock sync answer in case the computer save fails.
+  ///
+  /// The download step records the answer against the computer it just
+  /// saved. When that save fails there is no computer id to record it
+  /// against, so the adapter records it after a later retry recovers the
+  /// computer (issue #2439).
+  void rememberClockSyncStatus(ClockSyncStatus? status) {
+    _pendingClockSyncStatus = status;
   }
 
   /// Set the computer after discovery completes.
@@ -216,14 +262,32 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     required DiscoveredDevice device,
     String? serialNumber,
     String? firmwareVersion,
+    String? reportedProduct,
+    int? reportedModel,
   }) async {
+    _pendingComputerSave = (
+      device: device,
+      serialNumber: serialNumber,
+      firmwareVersion: firmwareVersion,
+      reportedProduct: reportedProduct,
+      reportedModel: reportedModel,
+    );
+
     // Capture descriptor fields regardless of whether a computer record already
-    // exists — these are always needed for the import service.
+    // exists: these are always needed for the import service. A device that
+    // named a different model during the download (issue #422) is stamped
+    // with that one.
     final model = device.recognizedModel;
+    final reported = reportedProduct?.trim();
+    final hasReported =
+        model != null &&
+        reported != null &&
+        reported.isNotEmpty &&
+        reportedModel != null;
     if (model != null) {
       _descriptorVendor = model.manufacturer;
-      _descriptorProduct = model.model;
-      _descriptorModel = model.dcModel;
+      _descriptorProduct = hasReported ? reported : model.model;
+      _descriptorModel = hasReported ? reportedModel : model.dcModel;
     }
 
     // Fetch the libdivecomputer version string once per session.
@@ -252,23 +316,41 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // identifier instead of creating a duplicate synced computer record.
     final normalizedSerial = serialNumber?.trim();
     final normalizedManufacturer = device.manufacturer?.trim();
-    final normalizedModel = device.model?.trim();
+    final scannedModel = device.model?.trim();
+    final normalizedModel = hasReported ? reported : scannedModel;
     if (normalizedSerial?.isNotEmpty == true &&
         normalizedManufacturer?.isNotEmpty == true &&
         normalizedModel?.isNotEmpty == true) {
-      final existing = await _computerRepository.findByHardwareIdentity(
+      var existing = await _computerRepository.findByHardwareIdentity(
         manufacturer: normalizedManufacturer!,
         model: normalizedModel!,
         serialNumber: normalizedSerial!,
         diverId: _diverId,
       );
-      if (existing != null) {
-        final rebound = existing.copyWith(
+      // A build before issue #422 saved the computer under the model it was
+      // scanned as; find that record rather than creating a duplicate.
+      if (existing == null &&
+          hasReported &&
+          scannedModel?.isNotEmpty == true &&
+          scannedModel != normalizedModel) {
+        existing = await _computerRepository.findByHardwareIdentity(
+          manufacturer: normalizedManufacturer,
+          model: scannedModel!,
           serialNumber: normalizedSerial,
-          firmwareVersion: firmwareVersion,
-          connectionType: connectionTypeStr,
-          bluetoothAddress: device.address,
+          diverId: _diverId,
         );
+      }
+      if (existing != null) {
+        final rebound =
+            relabelToReportedProduct(
+              existing,
+              hasReported ? reported : null,
+            ).copyWith(
+              serialNumber: normalizedSerial,
+              firmwareVersion: firmwareVersion,
+              connectionType: connectionTypeStr,
+              bluetoothAddress: device.address,
+            );
         await _computerRepository.updateComputer(rebound);
         _computer = rebound;
         return;
@@ -280,10 +362,15 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     final newComputer =
         DiveComputer.create(
           id: const Uuid().v4(),
-          name: _customDeviceName ?? device.displayName,
+          // A reported model (issue #422) replaces the scan-time label.
+          name:
+              _customDeviceName ??
+              (hasReported
+                  ? '${device.manufacturer} $reported'
+                  : device.displayName),
           diverId: _diverId,
           manufacturer: device.manufacturer,
-          model: device.model,
+          model: hasReported ? reported : device.model,
         ).copyWith(
           serialNumber: serialNumber,
           firmwareVersion: firmwareVersion,
@@ -301,6 +388,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   @override
   void resetState() {
     _sinceCutoff = null;
+    _pendingComputerSave = null;
+    _computerSaveError = null;
+    _pendingClockSyncStatus = null;
     final ref = _ref;
     if (ref == null) return;
     ref.invalidate(dcAdapterScanCanAdvanceProvider);
@@ -339,6 +429,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     DuplicateAction.importAsNew,
     DuplicateAction.consolidate,
     DuplicateAction.replaceSource,
+    DuplicateAction.fillPlanned,
   };
 
   /// A dive computer download only ever produces dives, so there is no
@@ -391,8 +482,64 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     ];
   }
 
+  /// Retries a computer save that failed on the download step (issue #2439).
+  ///
+  /// The download step lets the diver past that failure, so the adapter can
+  /// reach [buildBundle] with no computer record. A failure is kept in
+  /// [_computerSaveError] for [performImport] to report.
+  Future<void> _retryPendingComputerSave() async {
+    final pending = _pendingComputerSave;
+    if (computer != null || pending == null) return;
+    try {
+      await ensureComputer(
+        device: pending.device,
+        serialNumber: pending.serialNumber,
+        firmwareVersion: pending.firmwareVersion,
+        reportedProduct: pending.reportedProduct,
+        reportedModel: pending.reportedModel,
+      );
+      _computerSaveError = null;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not save ${pending.device.displayName} after its download',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      _computerSaveError = e;
+      return;
+    }
+    await _recordRecoveredClockSync();
+  }
+
+  /// Records the clock sync answer the download step could not, now that a
+  /// retried save has produced a computer to record it against.
+  Future<void> _recordRecoveredClockSync() async {
+    final status = _pendingClockSyncStatus;
+    final comp = computer;
+    final ref = _ref;
+    if (status == null || comp == null || ref == null) return;
+    _pendingClockSyncStatus = null;
+    try {
+      await ref
+          .read(clockSyncSettingsNotifierProvider.notifier)
+          .recordSupport(comp.id, status);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not record clock sync support for ${comp.displayName}',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
   @override
   Future<ImportBundle> buildBundle() async {
+    // Resolve the computer before the bundle records its id: duplicate
+    // detection runs on this bundle next and keys its same-computer checks
+    // (contained segments, cross-computer consolidation) on that id. A
+    // failure here is left for performImport to report.
+    await _retryPendingComputerSave();
+
     final items = _downloadedDives.map(_diveToEntityItem).toList();
 
     final cutoff = _sinceCutoff;
@@ -457,6 +604,37 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       }
     }
 
+    // Planned pass (issue #2002): downloads that matched nothing may fill a
+    // planned dive of the target profile on the same local day. Runs after
+    // the fingerprint, fuzzy and contained passes so a real duplicate never
+    // becomes a fill. An empty diver id means an unscoped library, where
+    // every planned dive is a candidate.
+    final planned = await _diveRepository.getPlannedDives(
+      diverId: _diverId.isEmpty ? null : _diverId,
+    );
+    if (planned.isNotEmpty) {
+      final unmatched = [
+        for (var i = 0; i < _downloadedDives.length; i++)
+          if (!duplicateIndices.contains(i)) i,
+      ];
+      final pairs = const PlannedDiveMatcher().pair(
+        incomingStarts: [
+          for (final i in unmatched) _downloadedDives[i].startTime,
+        ],
+        plannedDives: planned,
+      );
+      for (final entry in pairs.entries) {
+        final index = unmatched[entry.key];
+        duplicateIndices.add(index);
+        matchResults[index] = DiveMatchResult(
+          diveId: entry.value,
+          score: 1.0,
+          timeDifferenceMs: 0,
+          plannedDiveId: entry.value,
+        );
+      }
+    }
+
     return ImportBundle(
       source: bundle.source,
       groups: {
@@ -480,7 +658,20 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     ImportProgressCallback? onProgress,
     ImportCancellationToken? cancelToken,
   }) async {
+    // No retry here: duplicate detection already ran on this bundle, and if
+    // the computer save failed in buildBundle it ran without the computer id.
+    // Importing now would let the same-computer matches it missed through as
+    // new dives, so report why the save failed instead.
     final comp = computer;
+    final saveError = _computerSaveError;
+    if (comp == null && saveError != null) {
+      return UnifiedImportResult(
+        importedCounts: const {},
+        consolidatedCount: 0,
+        skippedCount: 0,
+        errorMessage: 'Could not save the dive computer: $saveError',
+      );
+    }
     if (comp == null) {
       return const UnifiedImportResult(
         importedCounts: {},
@@ -503,6 +694,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     final indicesToImport = <int>{};
     final indicesToConsolidate = <int>{};
     final indicesToReplaceSource = <int>{};
+    final indicesToFillPlanned = <int>{};
     var skipped = 0;
 
     for (final index in baseSelections) {
@@ -513,6 +705,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         indicesToConsolidate.add(index);
       } else if (action == DuplicateAction.replaceSource) {
         indicesToReplaceSource.add(index);
+      } else if (action == DuplicateAction.fillPlanned) {
+        indicesToFillPlanned.add(index);
       } else {
         indicesToImport.add(index);
       }
@@ -527,6 +721,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       } else if (entry.value == DuplicateAction.replaceSource &&
           !baseSelections.contains(entry.key)) {
         indicesToReplaceSource.add(entry.key);
+      } else if (entry.value == DuplicateAction.fillPlanned &&
+          !baseSelections.contains(entry.key)) {
+        indicesToFillPlanned.add(entry.key);
       } else if (entry.value == DuplicateAction.skip &&
           !baseSelections.contains(entry.key)) {
         skipped++;
@@ -540,6 +737,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           ...indicesToImport,
           ...indicesToConsolidate,
           ...indicesToReplaceSource,
+          ...indicesToFillPlanned,
         }.toList()..sort((a, b) {
           final aTime = _downloadedDives[a].startTime;
           final bTime = _downloadedDives[b].startTime;
@@ -549,6 +747,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     var imported = 0;
     var consolidated = 0;
     var updated = 0;
+    var filled = 0;
+    final fillOutcomes = <PlannedDiveFillOutcome>[];
     final processedDives = <DownloadedDive>[];
     // Dives this run actually wrote (new, consolidated, kept standalone or
     // source-replaced); skipped duplicates never count toward a notice.
@@ -563,7 +763,44 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
       final dive = _downloadedDives[index];
 
-      if (indicesToConsolidate.contains(index)) {
+      // Fill a planned dive (issue #2002). The target rides on the match
+      // result; a row whose target was cleared after selection, or whose
+      // fill fails, imports as new instead so the download is never lost.
+      String? plannedId;
+      if (indicesToFillPlanned.contains(index)) {
+        plannedId = bundle
+            .groups[ImportEntityType.dives]
+            ?.matchResults?[index]
+            ?.plannedDiveId;
+        if (plannedId != null) {
+          try {
+            final outcome = await _fillService.fill(
+              plannedDiveId: plannedId,
+              dive: dive,
+              computerId: comp.id,
+              descriptorVendor: _descriptorVendor,
+              descriptorProduct: _descriptorProduct,
+              descriptorModel: _descriptorModel,
+              libdivecomputerVersion: _libdivecomputerVersion,
+            );
+            fillOutcomes.add(outcome);
+            filled++;
+            importedDiveIds.add(plannedId);
+            writtenDives.add(dive);
+          } catch (e, st) {
+            _log.error(
+              'Fill of planned dive $plannedId failed; importing as new',
+              error: e,
+              stackTrace: st,
+            );
+            plannedId = null;
+          }
+        }
+      }
+
+      if (indicesToFillPlanned.contains(index) && plannedId != null) {
+        // Filled above.
+      } else if (indicesToConsolidate.contains(index)) {
         // Consolidate: add as secondary computer reading on matched dive.
         final diveGroup = bundle.groups[ImportEntityType.dives];
         final matchResult = diveGroup?.matchResults?[index];
@@ -671,6 +908,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: consolidated,
       updatedCount: updated,
+      filledCount: filled,
+      fillOutcomes: fillOutcomes,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
       notices: [

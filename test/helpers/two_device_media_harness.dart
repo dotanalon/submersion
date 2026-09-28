@@ -23,6 +23,8 @@ import 'package:submersion/features/media/data/resolvers/media_store_resolver.da
 import 'package:submersion/features/media/data/resolvers/platform_gallery_resolver.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
+import 'package:submersion/features/media/data/services/gallery_cloud_id_backfill.dart';
+import 'package:submersion/features/media/data/services/gallery_origin_backfill.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/data/services/media_item_verifier.dart';
@@ -35,10 +37,14 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/services/media_orphan_reconciler.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
+import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_store_preflight.dart';
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
+
+import 'unique_ids.dart';
 
 import 'fake_cloud_storage_provider.dart';
 import 'fake_photo_picker_service.dart';
@@ -166,8 +172,8 @@ class HarnessDevice {
 
   /// The preflight the worker consults before every entry. Defaults to the
   /// production [MediaStorePreflight]; a scenario replaces it to script a
-  /// marker failure on one device.
-  late Future<bool> Function() preflight;
+  /// marker failure on one device. Null admits the drain.
+  late Future<MediaTransferHoldKind?> Function() preflight;
 
   static Future<HarnessDevice> _create(
     TwoDeviceMediaHarness h,
@@ -215,8 +221,10 @@ class HarnessDevice {
         resolutionService: AssetResolutionService(
           cacheRepository: d.assetCache,
           photoPickerService: d.gallery,
+          cloudIdentifiers: d.gallery,
         ),
         assetReader: d.gallery,
+        localDeviceId: () async => d.deviceId,
       ),
       MediaSourceType.localFile: LocalFileResolver(
         bookmarkStorage: _NullBookmarkStorage(),
@@ -234,7 +242,7 @@ class HarnessDevice {
       attachState: attach,
       store: h.bucket,
       attachedStoreId: h.storeId,
-    ).call;
+    ).check;
     d.worker = d._buildWorker();
     return d;
   }
@@ -279,7 +287,7 @@ class HarnessDevice {
   Future<String> createDive({String diverId = 'diver1', DateTime? at}) async {
     await activate();
     final when = (at ?? DateTime(2026, 7, 1, 10)).millisecondsSinceEpoch;
-    final id = 'dive-${name.hashCode}-${DateTime.now().microsecondsSinceEpoch}';
+    final id = uniqueTestId('dive-${name.hashCode}');
     await db
         .into(db.dives)
         .insert(
@@ -332,11 +340,16 @@ class HarnessDevice {
   }) async {
     await activate();
     gallery.add(asset);
+    // As MediaImportService stamps it at link time (spec 6.2). The counter
+    // is reset so tests count only resolution's lookups.
+    final cloudIds = await gallery.cloudIdentifiers([asset.id]);
+    gallery.cloudIdCalls = 0;
     final created = await MediaRepository().createMedia(
       MediaItem(
         id: '',
         diveId: diveId,
         platformAssetId: asset.id,
+        cloudAssetId: cloudIds[asset.id],
         mediaType: asset.type == AssetType.video
             ? MediaType.video
             : MediaType.photo,
@@ -376,6 +389,7 @@ class HarnessDevice {
       syncRepository: SyncRepository(),
       serializer: SyncDataSerializer(),
       cloudProvider: _harness.cloud,
+      onMediaResolutionHints: assetCache.applyResolutionHints,
     ).performSync();
     if (expectSuccess && !result.isSuccess) {
       throw StateError('$name sync failed: ${result.status} ${result.message}');
@@ -458,7 +472,68 @@ class HarnessDevice {
 
   Future<void> deleteDiver(String id) async {
     await activate();
-    await DiverRepository().deleteDiverWithReassignment(id);
+    // This device's queue: a default coordinator writes to the global cache
+    // database, which the harness never points at a device.
+    await DiverRepository(
+      mediaDeletionCoordinator: MediaDeletionCoordinator(
+        mediaRepository: MediaRepository(),
+        queue: () => queue,
+      ),
+    ).deleteDiverWithReassignment(id);
+  }
+
+  /// Simulates a gallery row linked before links recorded an origin.
+  Future<void> clearOrigin(String id) async {
+    await activate();
+    await db.customStatement(
+      'UPDATE media SET origin_device_id = NULL WHERE id = ?',
+      [id],
+    );
+  }
+
+  /// Simulates a gallery row linked before links recorded a cloud id.
+  Future<void> clearCloudAssetId(String id) async {
+    await activate();
+    await db.customStatement(
+      'UPDATE media SET cloud_asset_id = NULL WHERE id = ?',
+      [id],
+    );
+  }
+
+  /// Runs this device's one-time gallery origin backfill. The preference
+  /// store is shared by both devices, so the flag is cleared first.
+  Future<void> backfillGalleryOrigins() async {
+    await activate();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(GalleryOriginBackfill.doneFlagKey);
+    await GalleryOriginBackfill(
+      mediaRepository: MediaRepository(),
+      reader: gallery,
+      photos: gallery,
+      permissionStatus: () async => gallery.permission,
+      deviceId: () async => deviceId,
+      prefs: prefs,
+    ).run();
+  }
+
+  /// Runs this device's gallery cloud id backfill now. The preference store
+  /// is shared by both devices, so the last run is cleared first, and the
+  /// origin backfill it waits for is marked done: harness gallery rows
+  /// record their origin at link time.
+  Future<void> backfillGalleryCloudIds() async {
+    await activate();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(GalleryCloudIdBackfill.lastRunKey);
+    await prefs.setBool(GalleryOriginBackfill.doneFlagKey, true);
+    await GalleryCloudIdBackfill(
+      mediaRepository: MediaRepository(),
+      cloudIdentifiers: gallery,
+      photos: gallery,
+      permissionStatus: () async => gallery.permission,
+      deviceId: () async => deviceId,
+      prefs: prefs,
+      assetCache: assetCache,
+    ).run();
   }
 
   /// Simulates upload stamps that never arrived or were dropped by a merge.

@@ -25,6 +25,7 @@ import 'package:submersion/features/site_scape/presentation/site_scape_view.dart
 import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -138,6 +139,66 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(find.text('SITE_LIST_PAGE'), findsNothing);
+    });
+
+    testWidgets('Open in Connections centres the map on the site', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+
+      final router = GoRouter(
+        initialLocation: '/sites/site-1',
+        routes: [
+          GoRoute(
+            path: '/sites',
+            builder: (context, state) =>
+                const Scaffold(body: Text('SITE_LIST_PAGE')),
+          ),
+          GoRoute(
+            path: '/sites/:id',
+            builder: (context, state) =>
+                SiteDetailPage(siteId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/insights/connections',
+            builder: (context, state) =>
+                Scaffold(body: Text('CONNECTIONS ${state.uri.query}')),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteListViewModeProvider.overrideWith((ref) => ListViewMode.table),
+            siteProvider(site.id).overrideWith((ref) async => site),
+            siteDiveCountProvider(site.id).overrideWith((ref) async => 0),
+          ].cast(),
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<String>).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open in Connections'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('CONNECTIONS mode=around&focus=site:site-1'),
+        findsOneWidget,
+      );
     });
   });
 
@@ -1359,7 +1420,7 @@ void main() {
 
         await tester.scrollUntilVisible(find.text('To try'), 200);
         expect(find.text('Tags'), findsOneWidget);
-        expect(find.widgetWithText(ActionChip, 'To try'), findsOneWidget);
+        expect(find.widgetWithText(TagChip, 'To try'), findsOneWidget);
       });
     });
   });

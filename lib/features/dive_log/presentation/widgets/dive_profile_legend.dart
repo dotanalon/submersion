@@ -50,16 +50,6 @@ class DiveProfileLegend extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final legendState = ref.watch(profileLegendProvider);
-    final legendNotifier = ref.read(profileLegendProvider.notifier);
-
-    // Initialize tank pressures if needed
-    if (config.hasMultiTankPressure && config.tankPressures != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        legendNotifier.initializeTankPressures(
-          config.tankPressures!.keys.toList(),
-        );
-      });
-    }
 
     final entries = activeLegendEntries(
       context,
@@ -367,6 +357,15 @@ class _MoreOptionsButton extends ConsumerWidget {
     showDialog<void>(
       context: context,
       barrierColor: Colors.transparent,
+      // ChartOptionsDialog already computes its own bottom inset
+      // (MediaQuery.viewPadding.bottom) to size its ConstrainedBox against
+      // the real screen size passed in via anchorOffset/anchorSize.
+      // showDialog's default SafeArea wrapper shrinks the canvas those
+      // Positioned coordinates render into by that same inset again,
+      // effectively double-counting it and running the last section past
+      // the bottom of the (now smaller) available space instead of merely
+      // leaving a gap under it.
+      useSafeArea: false,
       builder: (dialogContext) => ChartOptionsDialog(
         config: config,
         anchorOffset: buttonOffset,

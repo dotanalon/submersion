@@ -173,11 +173,11 @@ void main() {
   });
 
   group('AppShortcuts', () {
-    // Clear stale entries from earlier groups and register once.
-    // AppShortcuts._registered is a static flag, so ensureRegistered()
-    // only populates the catalog on its first call.
+    // Earlier groups, or another file in the isolate, may have cleared the
+    // catalog after the shortcuts were registered. Start from a known state.
     setUpAll(() {
       ShortcutCatalog.instance.clear();
+      AppShortcuts.debugReset();
       AppShortcuts.ensureRegistered();
     });
 
@@ -191,7 +191,7 @@ void main() {
       expect(labels, contains('Go to Dives'));
       expect(labels, contains('Go to Sites'));
       expect(labels, contains('Go to Equipment'));
-      expect(labels, contains('Go to Statistics'));
+      expect(labels, contains('Go to Insights'));
       expect(labels, contains('Go to Settings'));
       expect(labels, contains('Search dives'));
       expect(labels, contains('Go back'));
@@ -230,6 +230,17 @@ void main() {
       expect(grouped.containsKey('Search'), isTrue);
       expect(grouped.containsKey('General'), isTrue);
       expect(grouped.containsKey('Help'), isTrue);
+    });
+
+    test('debugReset lets a cleared catalog be filled again', () {
+      ShortcutCatalog.instance.clear();
+      AppShortcuts.ensureRegistered();
+      expect(ShortcutCatalog.instance.entries, isEmpty);
+
+      AppShortcuts.debugReset();
+      AppShortcuts.ensureRegistered();
+
+      expect(ShortcutCatalog.instance.entries, isNotEmpty);
     });
   });
 }

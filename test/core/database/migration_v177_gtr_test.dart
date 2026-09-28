@@ -75,8 +75,8 @@ void main() {
         )
         .getSingle();
     expect(row.read<int>('default_show_gtr'), 0);
-    // v177 seeds calculated (1); v223 does not rewrite existing rows, so
-    // the seeded value survives the rest of the ladder.
+    // v177 seeds calculated (1). The computer default (#1859) applies to
+    // fresh databases only, so no later rung rewrites the seeded value.
     expect(row.read<int>('default_gtr_source'), 1);
     expect(row.read<double>('gtr_reserve_pressure'), 50.0);
   });

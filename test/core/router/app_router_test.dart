@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
@@ -15,7 +16,7 @@ import 'package:submersion/features/safety/presentation/pages/incident_edit_page
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
@@ -191,6 +192,25 @@ void main() {
   });
 
   group('app_router route configuration', () {
+    test('connections lives under Insights and accepts query params', () {
+      final routes = router.configuration.routes;
+      expect(_findRouteByName(routes, 'connections'), isNotNull);
+      expect(_locationOfRoute(routes, 'connections'), kConnectionsLocation);
+      final match = router.configuration.findMatch(
+        Uri.parse('/insights/connections?mode=around&focus=buddy:abc'),
+      );
+      expect(match.fullPath, '/insights/connections');
+    });
+
+    test('the cylinder passport nests under equipment detail', () {
+      final names = _collectRouteNames(router.configuration.routes);
+      expect(names, contains('equipmentPassport'));
+      expect(
+        _locationOfRoute(router.configuration.routes, 'equipmentPassport'),
+        '/equipment/:equipmentId/passport',
+      );
+    });
+
     test('contains universalImport route', () {
       final names = _collectRouteNames(router.configuration.routes);
       expect(names, contains('universalImport'));
@@ -312,6 +332,14 @@ void main() {
               )
               as GoRoute;
       expect(downloadRoute.path, equals('download'));
+    });
+
+    test('a scanned foreign tag has its own route, not an equipment id', () {
+      final match = router.configuration.findMatch(
+        Uri.parse('/equipment/tag?t=x'),
+      );
+      expect(match.isError, isFalse);
+      expect(match.last.route.name, 'foreignPassport');
     });
   });
 
@@ -944,6 +972,49 @@ void main() {
     // master-detail pane navigates with go() (a stable pageKey), so swapping
     // the page type under the same key would fail Page.canUpdate's
     // runtimeType check and slide the whole split view on every click.
+    test('equipment condition settings live under the safety route', () {
+      // Equipment condition is reached from Settings > Safety, not from the
+      // settings root, so its route nests under /settings/safety.
+      expect(
+        router.namedLocation('equipmentConditionSettings'),
+        '/settings/safety/equipment-condition',
+      );
+    });
+
+    testWidgets('the equipment condition route builds its settings page', (
+      tester,
+    ) async {
+      final config = router.configuration;
+      final route = _findRouteByName(
+        config.routes,
+        'equipmentConditionSettings',
+      );
+      expect(route, isNotNull);
+
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final state = GoRouterState(
+        config,
+        uri: Uri.parse('/settings/safety/equipment-condition'),
+        matchedLocation: '/settings/safety/equipment-condition',
+        fullPath: '/settings/safety/equipment-condition',
+        pathParameters: const {},
+        pageKey: const ValueKey('/settings/safety/equipment-condition'),
+      );
+      final widget = route!.builder!(capturedContext, state);
+      expect(widget.runtimeType.toString(), 'EquipmentConditionSettingsPage');
+    });
+
     test('a section child route exists under /settings', () {
       final route = _findRouteByName(
         router.configuration.routes,
@@ -1121,7 +1192,7 @@ void main() {
   });
 
   group('diveSearch route carries the calling section filter (#1079)', () {
-    // Statistics keeps its own filter, so the advanced search form has to be
+    // Insights keeps its own filter, so the advanced search form has to be
     // told which filter it is editing. The section pushes its provider as the
     // route `extra`; anything else (deep link, keyboard shortcut) falls back
     // to the dive list's filter.
@@ -1151,8 +1222,8 @@ void main() {
       context = tester.element(find.byType(SizedBox));
 
       expect(
-        buildWith(statisticsFilterProvider).filterProvider,
-        same(statisticsFilterProvider),
+        buildWith(insightsFilterProvider).filterProvider,
+        same(insightsFilterProvider),
       );
     });
 

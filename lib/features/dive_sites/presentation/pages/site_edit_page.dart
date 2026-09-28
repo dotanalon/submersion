@@ -39,6 +39,7 @@ import 'package:submersion/features/weather/presentation/providers/weather_provi
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
 import 'package:submersion/shared/widgets/forms/responsive_form_columns.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Seeds a depth field at the single decimal place it has always shown, and an
 /// altitude field at the whole units it has always shown, both in the active
@@ -53,6 +54,11 @@ class SiteEditPage extends ConsumerStatefulWidget {
   final bool embedded;
   final void Function(String savedId)? onSaved;
   final VoidCallback? onCancel;
+
+  /// Called in embedded mode once the site is deleted, so the host can leave
+  /// the pane. The delete action is offered in embedded mode only when this
+  /// is set; a standalone page returns to the site list itself.
+  final VoidCallback? onDeleted;
   final GeoPoint? initialLocation;
 
   const SiteEditPage({
@@ -62,6 +68,7 @@ class SiteEditPage extends ConsumerStatefulWidget {
     this.embedded = false,
     this.onSaved,
     this.onCancel,
+    this.onDeleted,
     this.initialLocation,
   }) : assert(
          siteId == null || mergeSiteIds == null,
@@ -763,15 +770,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     return null;
   }
 
-  String? _altitudeValidatorFn(String? value) {
-    if (value != null && value.isNotEmpty) {
-      final altitude = parseUserDecimal(value);
-      if (altitude == null || altitude < 0) {
-        return context.l10n.diveSites_edit_altitude_validation;
-      }
-    }
-    return null;
-  }
+  String? _altitudeValidatorFn(String? value) => numberValidator(
+    context,
+    check: (altitude) =>
+        altitude < 0 ? context.l10n.diveSites_edit_altitude_validation : null,
+  )(value);
 
   MergeFieldExtras? _mergeExtras(String key) {
     final candidates = _mergeTextCandidates[key];
@@ -1160,7 +1163,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           ? Icons.merge_type
           : Icons.add_location,
       actions: [
-        if (widget.isEditing && !widget.embedded)
+        if (widget.isEditing && (!widget.embedded || widget.onDeleted != null))
           IconButton(
             icon: const Icon(Icons.delete),
             tooltip: context.l10n.diveSites_edit_appBar_deleteSiteTooltip,
@@ -1685,6 +1688,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     }
   }
 
+  static double? _validatedNumber(TextEditingController controller) =>
+      switch (readNumber(controller.text)) {
+        NumberValue(:final value) => value,
+        NumberBlank() => null,
+        NumberInvalid() => null, // unreachable: validate() ran first
+      };
+
   Future<void> _saveSite() async {
     // Collapsed sections un-mount their fields, hiding them from
     // Form.validate(); expand everything first so no error can hide.
@@ -1700,7 +1710,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           _expandedSections[key] = true;
         }
       });
-      await Future<void>.delayed(Duration.zero);
+      // A zero-length delay resolves before the frame that builds the
+      // expanded sections, so their fields would miss validate() (#1900).
+      await WidgetsBinding.instance.endOfFrame;
       if (!mounted) return;
     }
     if (!_formKey.currentState!.validate()) return;
@@ -1723,9 +1735,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         }
       }
 
-      final minDepthInput = parseUserDecimal(_minDepthController.text);
-      final maxDepthInput = parseUserDecimal(_maxDepthController.text);
-      final altitudeInput = parseUserDecimal(_altitudeController.text);
+      // Blank is "not recorded"; validate() above stopped unreadable text.
+      final minDepthInput = _validatedNumber(_minDepthController);
+      final maxDepthInput = _validatedNumber(_maxDepthController);
+      final altitudeInput = _validatedNumber(_altitudeController);
       final minDepthMeters = minDepthInput != null
           ? units.depthToMeters(minDepthInput)
           : null;
@@ -1945,7 +1958,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       ref.invalidate(sitesProvider);
 
       if (mounted) {
-        context.go('/sites');
+        _hasChanges = false;
+        if (widget.embedded) {
+          widget.onDeleted?.call();
+        } else {
+          context.go('/sites');
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.l10n.diveSites_detail_deleteSnackbar)),
         );

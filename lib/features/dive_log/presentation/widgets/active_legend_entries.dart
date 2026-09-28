@@ -187,7 +187,7 @@ List<ActiveLegendEntry> activeLegendEntries(
           : l10n.diveLog_tank_title(i + 1);
       add(
         true,
-        state.showTankPressure[tankId] ?? true,
+        state.isTankPressureVisible(tankId),
         config.estimatedTankIds.contains(tankId)
             ? '$baseLabel ${l10n.diveLog_pressure_estimatedSuffix}'
             : baseLabel,
@@ -270,8 +270,8 @@ List<ActiveLegendEntry> activeLegendEntries(
     ProfileMetricColors.ppHe,
   );
   add(
-    config.hasO2CellMvData,
-    state.showO2CellMv,
+    config.hasO2CellData,
+    state.showO2Cells,
     l10n.diveLog_legend_label_o2Cells,
     o2CellColor(0),
   );

@@ -85,7 +85,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      // Default legend state (computer, since v223): the raw DC ceiling must
+      // Default legend state (computer, since #1859): the raw DC ceiling must
       // reach decoStopCurve verbatim, and the published source info says so.
       final overlaid = await container.read(
         profileAnalysisProvider(diveId).future,
@@ -120,7 +120,7 @@ void main() {
         isNot(contains(4.5)),
         reason:
             'calculated decoStopSource must not carry the raw DC ceiling '
-            'through -- if it does, decoStopSource is not wired',
+            'through; if it does, decoStopSource is not wired',
       );
       expect(
         container.read(metricSourceInfoProvider)?.decoStopActual,

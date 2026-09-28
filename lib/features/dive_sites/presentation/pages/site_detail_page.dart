@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -48,6 +51,7 @@ import 'package:submersion/features/tides/presentation/widgets/tide_section.dart
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/section_properties_menu.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
@@ -169,6 +173,10 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
 }
 
 class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
+  /// Opens the display-options panel from the overflow menu. One controller
+  /// serves both headers, since only one of them is ever built.
+  final MenuController _displayOptionsMenu = MenuController();
+
   /// Every card on this page pads to the same inset. Tighter than Material's
   /// usual 16 because this page stacks well over a dozen cards, and at 16 the
   /// padding alone cost more vertical space than several of the cards' own
@@ -237,11 +245,21 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               onPressed: () =>
                   _showFullscreenMap(context, ref, site, initialScape3d: true),
             ),
-          const SiteDetailPropertiesMenu(),
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: context.l10n.diveSites_detail_editTooltip,
             onPressed: () => context.push('/sites/$siteId/edit'),
+          ),
+          SiteDetailPropertiesMenu(
+            controller: _displayOptionsMenu,
+            child: PopupMenuButton<String>(
+              onSelected: (value) =>
+                  _handleMenuAction(context, ref, value, site),
+              itemBuilder: (context) => [
+                openInConnectionsMenuItem(context),
+                displayOptionsMenuItem(context, 'displayOptions'),
+              ],
+            ),
           ),
         ],
       ),
@@ -404,7 +422,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               onPressed: () =>
                   _showFullscreenMap(context, ref, site, initialScape3d: true),
             ),
-          const SiteDetailPropertiesMenu(iconSize: 20),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
             tooltip: context.l10n.diveSites_detail_editTooltipShort,
@@ -432,22 +449,28 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               }
             },
           ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, size: 20),
-            onSelected: (value) => _handleMenuAction(context, ref, value, site),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'delete',
-                child: ListTile(
-                  leading: const Icon(Icons.delete, color: Colors.red),
-                  title: Text(
-                    context.l10n.diveSites_detail_deleteMenu_label,
-                    style: const TextStyle(color: Colors.red),
+          SiteDetailPropertiesMenu(
+            controller: _displayOptionsMenu,
+            child: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, size: 20),
+              onSelected: (value) =>
+                  _handleMenuAction(context, ref, value, site),
+              itemBuilder: (context) => [
+                openInConnectionsMenuItem(context),
+                displayOptionsMenuItem(context, 'displayOptions'),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: const Icon(Icons.delete, color: Colors.red),
+                    title: Text(
+                      context.l10n.diveSites_detail_deleteMenu_label,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    contentPadding: EdgeInsets.zero,
                   ),
-                  contentPadding: EdgeInsets.zero,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -460,6 +483,14 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     String action,
     DiveSite site,
   ) async {
+    if (action == kOpenInConnectionsAction) {
+      openInConnections(context, NodeRef(ConnectionKind.site, site.id));
+      return;
+    }
+    if (action == 'displayOptions') {
+      _displayOptionsMenu.open();
+      return;
+    }
     if (action == 'delete') {
       final divers = await ref.read(allDiversProvider.future);
       final usage = await readSiteDeleteUsage(ref, [site.id]);

@@ -10,6 +10,8 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
 
+import '../../../../helpers/mock_channels.dart';
+
 /// Fake of the narrow bookmark seam so the leased resolver can be tested
 /// without a native channel.
 class _FakeBookmarkPort implements BackupBookmarkPort {
@@ -48,6 +50,7 @@ void main() {
           (call) async => Directory.systemTemp.path,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -268,9 +271,16 @@ void main() {
         final port = _FakeBookmarkPort();
 
         // Guard: the buggy code path creates a stray 'content:' dir under CWD.
+        // Best-effort: Windows rejects the colon outright, so exists() throws
+        // there instead of answering false, and the stray it guards against
+        // cannot be created in the first place.
         addTearDown(() async {
-          final stray = Directory('content:');
-          if (await stray.exists()) await stray.delete(recursive: true);
+          try {
+            final stray = Directory('content:');
+            if (await stray.exists()) await stray.delete(recursive: true);
+          } on FileSystemException {
+            return;
+          }
         });
 
         final lease = await BackupService.resolveBackupsDirectoryLeased(

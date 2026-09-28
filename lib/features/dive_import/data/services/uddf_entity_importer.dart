@@ -68,8 +68,11 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/features/universal_import/data/services/import_tank_defaults.dart';
 import 'package:uuid/uuid.dart';
 
@@ -95,6 +98,10 @@ class ImportRepositories {
   /// Optional for the same reason; when null, gear check-ins in the source
   /// are skipped (condition phase 3a).
   final EquipmentObservationRepository? equipmentObservationRepository;
+
+  /// Optional for the same reason; when null, marine life sightings in the
+  /// source are skipped rather than failing the import.
+  final SpeciesRepository? speciesRepository;
   final SiteRepository siteRepository;
   final DiveRepository diveRepository;
   final TankPressureRepository tankPressureRepository;
@@ -149,6 +156,7 @@ class ImportRepositories {
     this.siteClassificationRepository,
     this.equipmentTagRepository,
     this.siteFeatureRepository,
+    this.speciesRepository,
   });
 }
 
@@ -1564,10 +1572,8 @@ class UddfEntityImporter {
     List<DiveSite> existingSites,
     Map<String, dynamic> item,
   ) {
-    final lat = (item['latitude'] as num?)?.toDouble();
-    final lon = (item['longitude'] as num?)?.toDouble();
-    if (lat == null || lon == null) return null;
-    final point = GeoPoint(lat, lon);
+    final point = ImportSiteLocation.coordinatesOf(item);
+    if (point == null) return null;
 
     DiveSite? nearest;
     var nearestMeters = double.infinity;
@@ -1648,12 +1654,17 @@ class UddfEntityImporter {
         );
         continue;
       }
-      final siteData = items[i];
-      final name = siteData['name'] as String?;
-      if (name == null || name.isEmpty) {
-        _log.warning('Site override at index $i has no name; skipping');
+      // Names a nameless site from its coordinates rather than discarding it,
+      // so no importer loses a location for want of a label (#2232).
+      final siteData = ImportSiteLocation.named(items[i]);
+      if (siteData == null) {
+        _log.warning(
+          'Site override at index $i has neither a name nor coordinates; '
+          'skipping',
+        );
         continue;
       }
+      final name = siteData['name'] as String;
 
       final existing = existingById[existingId];
       if (existing == null) {
@@ -1665,8 +1676,9 @@ class UddfEntityImporter {
       }
 
       final uddfId = siteData['uddfId'] as String?;
-      final lat = siteData['latitude'] as double?;
-      final lon = siteData['longitude'] as double?;
+      final point = ImportSiteLocation.coordinatesOf(siteData);
+      final lat = point?.latitude;
+      final lon = point?.longitude;
 
       String? country = siteData['country'] as String?;
       String? region = siteData['region'] as String?;
@@ -1743,13 +1755,17 @@ class UddfEntityImporter {
 
     for (var i = 0; i < items.length; i++) {
       if (!selected.contains(i)) continue;
-      final siteData = items[i];
-      final name = siteData['name'] as String?;
-      if (name == null || name.isEmpty) continue;
+      // Names a nameless site from its coordinates rather than discarding it.
+      // The old skip took the coordinates with it and, because the site never
+      // reached `idMapping`, un-linked every dive pointing at it (#2232).
+      final siteData = ImportSiteLocation.named(items[i]);
+      if (siteData == null) continue;
+      final name = siteData['name'] as String;
 
       final uddfId = siteData['uddfId'] as String?;
-      final lat = siteData['latitude'] as double?;
-      final lon = siteData['longitude'] as double?;
+      final point = ImportSiteLocation.coordinatesOf(siteData);
+      final lat = point?.latitude;
+      final lon = point?.longitude;
 
       String? country = siteData['country'] as String?;
       String? region = siteData['region'] as String?;
@@ -2689,6 +2705,12 @@ class UddfEntityImporter {
 
       await repos.diveRepository.createDive(dive);
 
+      // Sightings are a child row, not a column: createDive writes the dive
+      // and its tanks, weights, custom fields and gear, and nothing else
+      // persists Dive.sightings. Without this the marine life a source
+      // carried is built, attached to the entity, and then dropped.
+      await _importSightings(diveData, dive.id, repos);
+
       // createDive's companion deliberately omits computer_id, so attribution
       // has to be an explicit second write (#1288).
       final computerKey = _importedComputerKey(diveData);
@@ -2916,6 +2938,15 @@ class UddfEntityImporter {
       final diveSourceFileName = source?.fileName ?? sourceFileName;
       final diveSourceFormat = source?.format ?? sourceFormat;
 
+      // Whose dive this is in a multi-diver logbook, so a resync replays
+      // this diver's copy of a shared buddy dive and not another's (#1921).
+      // Stored as the file itself emits it: the resync re-parses the one
+      // stored file with no batch merger in between.
+      final diverKey = diveData[SourceDiver.mapKey] as String?;
+      final sourceDiverKey = diverKey != null && sourceFileId != null
+          ? SourceDiver.unqualifyForFile(diverKey, sourceFileId)
+          : diverKey;
+
       if (sourceEntries.isEmpty) {
         final dataSourceId = _uuid.v4();
 
@@ -2938,9 +2969,12 @@ class UddfEntityImporter {
                     ),
             ),
             sourceUuid: Value(diveData['sourceUuid'] as String?),
+            sourceDiverKey: Value(sourceDiverKey),
             maxDepth: Value(asDoubleOrNull(diveData['maxDepth'])),
             avgDepth: Value(asDoubleOrNull(diveData['avgDepth'])),
-            duration: Value(dive.bottomTime?.inSeconds),
+            // The runtime the file reports; bottom time is derived and never
+            // stored in its place (issue #2421).
+            duration: Value(dive.runtime?.inSeconds),
             waterTemp: Value(asDoubleOrNull(diveData['waterTemp'])),
             entryTime: Value(dive.entryTime),
             exitTime: Value(dive.exitTime),
@@ -3101,6 +3135,65 @@ class UddfEntityImporter {
     }
 
     return [];
+  }
+
+  /// Writes the dive's marine life, creating any species it names.
+  ///
+  /// `sightings.species_id` is a foreign key to `species`, so the species
+  /// row has to exist first. `getOrCreateSpecies` matches on the lowercased
+  /// common name, which is what keeps an import from minting a twin of a
+  /// species already in the bundled catalogue.
+  ///
+  /// Best effort per sighting: one unreadable entry must not fail a dive
+  /// that is otherwise fine.
+  Future<void> _importSightings(
+    Map<String, dynamic> diveData,
+    String diveId,
+    ImportRepositories repos,
+  ) async {
+    final repository = repos.speciesRepository;
+    if (repository == null) return;
+    final raw = diveData['sightings'];
+    if (raw is! List || raw.isEmpty) return;
+
+    for (final entry in raw) {
+      if (entry is! Map) continue;
+      // Typed with `is String` rather than a cast: a payload carrying a
+      // number where a name belongs would otherwise throw out of this loop
+      // and take the whole import with it, which is the opposite of the
+      // best-effort contract above.
+      // A source may name the species outright, or only reference it, in
+      // which case the ref carries the name.
+      final named = entry['speciesName'] is String
+          ? (entry['speciesName'] as String).trim()
+          : null;
+      final ref = entry['speciesRef'] is String
+          ? (entry['speciesRef'] as String).trim()
+          : null;
+      final commonName = named != null && named.isNotEmpty
+          ? named
+          : (ref == null || ref.isEmpty ? null : _speciesNameFromRef(ref));
+      if (commonName == null || commonName.isEmpty) continue;
+
+      try {
+        final scientific = entry['speciesScientificName'] is String
+            ? (entry['speciesScientificName'] as String).trim()
+            : null;
+        final species = await repository.getOrCreateSpecies(
+          commonName: commonName,
+          scientificName: scientific,
+          category: SpeciesCategory.other,
+        );
+        await repository.addSighting(
+          diveId: diveId,
+          speciesId: species.id,
+          count: entry['count'] is int ? entry['count'] as int : 1,
+          notes: entry['notes'] is String ? entry['notes'] as String : '',
+        );
+      } catch (e) {
+        _log.warning('Could not import a sighting for dive $diveId: $e');
+      }
+    }
   }
 
   List<MarineSighting> _buildSightings(Map<String, dynamic> diveData) {

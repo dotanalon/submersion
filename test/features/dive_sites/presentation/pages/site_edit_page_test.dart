@@ -285,6 +285,58 @@ void main() {
       expect(find.text('Please enter a site name'), findsOneWidget);
     });
 
+    testWidgets('an unreadable max depth blocks save and says why (#1900)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _buildHarness(prefs: prefs, divers: const [], shareByDefault: false),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(_rowField('Site Name *'), 'Blue Hole');
+      await tester.scrollUntilVisible(
+        find.textContaining('Maximum Depth'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.enterText(_rowField('Maximum Depth (m)'), '1..0');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    });
+
+    testWidgets('an unreadable depth in a section collapsed before Save still '
+        'blocks the save (#1900 review)', (tester) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _buildHarness(prefs: prefs, divers: const [], shareByDefault: false),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(_rowField('Site Name *'), 'Blue Hole');
+      await tester.scrollUntilVisible(
+        find.textContaining('Maximum Depth'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.enterText(_rowField('Maximum Depth (m)'), '1..0');
+      await tester.pumpAndSettle();
+
+      // Collapse the group, so its fields unmount before Save.
+      await tester.tap(find.text('Dive info').first);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Maximum Depth'), findsNothing);
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    });
+
     testWidgets('renders depth/difficulty/rating/gps/altitude sections', (
       tester,
     ) async {
@@ -664,6 +716,122 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.edit), findsOneWidget);
       expect(find.text('Edit Site'), findsWidgets);
+    });
+
+    Future<void> pumpEmbeddedEdit(
+      WidgetTester tester, {
+      VoidCallback? onDeleted,
+    }) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            allDiversProvider.overrideWith((_) async => const <Diver>[]),
+            shareByDefaultProvider.overrideWith((_) async => false),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SiteEditPage(
+                siteId: 'e-del',
+                embedded: true,
+                onSaved: (id) {},
+                onCancel: () {},
+                onDeleted: onDeleted,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('confirming a standalone delete returns to the site list', (
+      tester,
+    ) async {
+      await SiteRepository().createSite(
+        const DiveSite(id: 'e-del', name: 'Doomed Site'),
+      );
+      final router = GoRouter(
+        initialLocation: '/sites/e-del/edit',
+        routes: [
+          GoRoute(
+            path: '/sites',
+            builder: (context, state) =>
+                const Scaffold(body: Text('SITES_LIST')),
+          ),
+          GoRoute(
+            path: '/sites/:id/edit',
+            builder: (context, state) =>
+                SiteEditPage(siteId: state.pathParameters['id']),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            allDiversProvider.overrideWith((_) async => const <Diver>[]),
+            shareByDefaultProvider.overrideWith((_) async => false),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.delete));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('SITES_LIST'), findsOneWidget);
+      expect(await SiteRepository().getSiteById('e-del'), isNull);
+    });
+
+    testWidgets('embedded edit offers delete when the host handles it', (
+      tester,
+    ) async {
+      await SiteRepository().createSite(
+        const DiveSite(id: 'e-del', name: 'Doomed Site'),
+      );
+      await pumpEmbeddedEdit(tester, onDeleted: () {});
+
+      expect(find.widgetWithIcon(IconButton, Icons.delete), findsOneWidget);
+    });
+
+    testWidgets('embedded edit hides delete when no host handles it', (
+      tester,
+    ) async {
+      await SiteRepository().createSite(
+        const DiveSite(id: 'e-del', name: 'Doomed Site'),
+      );
+      await pumpEmbeddedEdit(tester);
+
+      expect(find.widgetWithIcon(IconButton, Icons.delete), findsNothing);
+    });
+
+    testWidgets('confirming an embedded delete removes the site and calls '
+        'onDeleted', (tester) async {
+      await SiteRepository().createSite(
+        const DiveSite(id: 'e-del', name: 'Doomed Site'),
+      );
+      var deleted = 0;
+      await pumpEmbeddedEdit(tester, onDeleted: () => deleted++);
+
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.delete));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(deleted, 1);
+      expect(await SiteRepository().getSiteById('e-del'), isNull);
     });
   });
 

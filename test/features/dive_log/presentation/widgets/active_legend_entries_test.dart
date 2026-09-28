@@ -150,9 +150,8 @@ void main() {
       expect(entries.map((e) => e.label), ['Depth', 'D80 (Air)']);
     });
 
-    testWidgets('treats a tank with no recorded preference as visible', (
-      tester,
-    ) async {
+    testWidgets('shows a tank with no recorded preference when the Pressure '
+        'default is on', (tester) async {
       final entries = await _entries(
         tester,
         config: const ProfileLegendConfig(
@@ -160,11 +159,29 @@ void main() {
           tanks: _tanks,
           tankPressures: _tankPressures,
         ),
-        state: const ProfileLegendState(),
+        state: const ProfileLegendState(showPressure: true),
       );
 
       // Depth plus the two tanks.
       expect(entries, hasLength(3));
+    });
+
+    testWidgets('hides a tank with no recorded preference when the Pressure '
+        'default is off (issue #1999)', (tester) async {
+      final entries = await _entries(
+        tester,
+        config: const ProfileLegendConfig(
+          hasMultiTankPressure: true,
+          tanks: _tanks,
+          tankPressures: _tankPressures,
+        ),
+        state: const ProfileLegendState(
+          showPressure: false,
+          showTankPressure: {'tank-2': true},
+        ),
+      );
+
+      expect(entries.map((e) => e.label), ['Depth', 'AL80 (EAN50)']);
     });
 
     testWidgets('leaves out the gas strip and display behaviour', (
@@ -182,6 +199,32 @@ void main() {
       // Neither has a single line colour, so neither earns a dash. Depth is
       // the only entry left.
       expect(entries.map((e) => e.label), ['Depth']);
+    });
+
+    testWidgets('O2 cells are offered for cells that report only ppO2', (
+      tester,
+    ) async {
+      // A Subsurface or UDDF import carries the cells in bar and no
+      // millivolts at all; gating the chip on millivolts hid it entirely.
+      final entries = await _entries(
+        tester,
+        config: const ProfileLegendConfig(hasO2CellData: true),
+        state: const ProfileLegendState(showO2Cells: true),
+      );
+
+      expect(entries.map((e) => e.label), contains('O2 cells'));
+    });
+
+    testWidgets('O2 cells stay out of the legend with no cell data', (
+      tester,
+    ) async {
+      final entries = await _entries(
+        tester,
+        config: const ProfileLegendConfig(),
+        state: const ProfileLegendState(showO2Cells: true),
+      );
+
+      expect(entries.map((e) => e.label), isNot(contains('O2 cells')));
     });
   });
 

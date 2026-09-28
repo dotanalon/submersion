@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/domain/services/cell_linearity.dart';
 import 'package:submersion/features/pre_dive/domain/services/checklist_session_engine.dart';
@@ -13,6 +12,7 @@ import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_pro
 import 'package:submersion/features/pre_dive/presentation/widgets/session_item_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Runs (or, once locked, displays) a pre-dive checklist session. Every tap
 /// writes through to the database immediately: crash-safe resume for free,
@@ -94,9 +94,12 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
   ) async {
     final equipmentId = item.equipmentId;
     if (equipmentId == null) return null;
-    final statuses = await ref.read(
-      serviceClockStatusesProvider(equipmentId).future,
+    // The same batched evaluation the rows display, so freezing a row never
+    // brings back a provider per row.
+    final clocks = await ref.read(
+      sessionServiceClocksProvider(sessionId).future,
     );
+    final statuses = clocks[equipmentId] ?? const [];
     return [
       for (final status in statuses) OverdueServiceEntry.fromStatus(status),
     ];
@@ -432,6 +435,7 @@ class _ValueEntryDialog extends StatefulWidget {
 
 class _ValueEntryDialogState extends State<_ValueEntryDialog> {
   late final TextEditingController _valueController;
+  final _valueFormKey = GlobalKey<FormState>();
   late final TextEditingController _noteController;
 
   @override
@@ -456,7 +460,11 @@ class _ValueEntryDialogState extends State<_ValueEntryDialog> {
   /// before committing to it. Null when there is nothing to compute.
   String? _readout(BuildContext context) {
     if (!widget.item.isCellLinearity) return null;
-    final typed = parseUserDecimal(_valueController.text);
+    final typed = switch (readNumber(_valueController.text)) {
+      NumberValue(:final value) => value,
+      // Nothing to compute yet; an unreadable value shows its own error.
+      NumberBlank() || NumberInvalid() => null,
+    };
     final expected = CellLinearity.expectedO2Millivolts(widget.sourceValue);
     final percent = CellLinearity.percent(
       airMillivolts: widget.sourceValue,
@@ -497,16 +505,22 @@ class _ValueEntryDialogState extends State<_ValueEntryDialog> {
                 ),
               ),
             ),
-          TextField(
-            controller: _valueController,
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            onChanged: isLinearity ? (_) => setState(() {}) : null,
-            decoration: InputDecoration(
-              labelText: isLinearity
-                  ? l10n.preDive_runner_enterO2Value
-                  : l10n.preDive_runner_enterValue,
-              suffixText: widget.item.valueUnit,
+          Form(
+            key: _valueFormKey,
+            child: TextFormField(
+              controller: _valueController,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              validator: numberValidator(context),
+              onChanged: isLinearity ? (_) => setState(() {}) : null,
+              decoration: InputDecoration(
+                labelText: isLinearity
+                    ? l10n.preDive_runner_enterO2Value
+                    : l10n.preDive_runner_enterValue,
+                suffixText: widget.item.valueUnit,
+              ),
             ),
           ),
           if (readout != null)
@@ -527,10 +541,18 @@ class _ValueEntryDialogState extends State<_ValueEntryDialog> {
           child: Text(l10n.common_action_cancel),
         ),
         FilledButton(
-          onPressed: () => Navigator.of(context).pop((
-            value: parseUserDecimal(_valueController.text),
-            note: _noteController.text.trim(),
-          )),
+          onPressed: () {
+            // An unreadable value used to record the item with no value.
+            if (!_valueFormKey.currentState!.validate()) return;
+            Navigator.of(context).pop((
+              value: switch (readNumber(_valueController.text)) {
+                NumberValue(:final value) => value,
+                NumberBlank() => null, // no value recorded, as before
+                NumberInvalid() => null, // unreachable: validated above
+              },
+              note: _noteController.text.trim(),
+            ));
+          },
           child: Text(l10n.common_action_ok),
         ),
       ],
