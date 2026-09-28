@@ -723,9 +723,12 @@ class ProfileLegend extends _$ProfileLegend {
     );
   }
 
-  /// Reset all toggles to their default values
+  /// Reset all toggles and sources to the diver's settings, the same state
+  /// [build] seeds. Rebuilding rather than assigning `const
+  /// ProfileLegendState()` keeps a diver who stored Calculated from being
+  /// moved to the constructor's computer default (#1859).
   void reset() {
     _computedEventsUserSet = false;
-    state = const ProfileLegendState();
+    ref.invalidateSelf();
   }
 }

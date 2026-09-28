@@ -26,10 +26,9 @@ void main() {
     expect(calculated.defaultTtsSource, MetricDataSource.computer);
   });
 
-  // The legend state has its own constructor defaults, used by
-  // ProfileLegend.reset() and any state built without settings. They must
-  // name the same source as AppSettings, or a reset quietly switches a diver
-  // back to calculated.
+  // The legend state has its own constructor defaults, used by any state built
+  // without settings. They must name the same source as AppSettings, or that
+  // state quietly disagrees with a new diver's default.
   test('a default legend state matches the settings defaults', () {
     const settings = AppSettings();
     const legend = ProfileLegendState();
