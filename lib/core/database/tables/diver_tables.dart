@@ -203,21 +203,20 @@ class DiverSettings extends Table {
   RealColumn get endLimit => real().withDefault(const Constant(30.0))();
   BoolColumn get useDiveComputerCnsData =>
       boolean().withDefault(const Constant(false))();
-  // The six per-metric data sources default to computer (0), so a dive
-  // computer's own readings lead wherever it recorded them and the calculated
-  // curve stands in only where it did not (#1859). SQLite fixes a column
-  // default at CREATE TABLE, so only a fresh database picks this up; existing
-  // libraries keep both their stored values and their old DEFAULT 1, and no
-  // migration rewrites either. Settings rows are written from AppSettings,
-  // whose defaults match, so the column default is rarely reached anyway.
-  IntColumn get defaultNdlSource => integer().withDefault(const Constant(0))();
+  // The per-metric data sources stay at DEFAULT 1 (calculated) even though a
+  // new diver gets computer (#1859): that default lives in AppSettings, which
+  // every settings row is written from. Sync fills a key missing from an
+  // older peer's payload with this column default and writes it over the
+  // local row, so a 0 here would move existing libraries to computer.
+  // Applies to the GTR and deco stop sources below too.
+  IntColumn get defaultNdlSource => integer().withDefault(const Constant(1))();
   IntColumn get defaultCeilingSource =>
-      integer().withDefault(const Constant(0))();
-  IntColumn get defaultTtsSource => integer().withDefault(const Constant(0))();
-  IntColumn get defaultCnsSource => integer().withDefault(const Constant(0))();
+      integer().withDefault(const Constant(1))();
+  IntColumn get defaultTtsSource => integer().withDefault(const Constant(1))();
+  IntColumn get defaultCnsSource => integer().withDefault(const Constant(1))();
   // Gas time remaining on the profile chart (v177). Source is a
   // MetricDataSource index: 0 = computer, 1 = calculated. Reserve is bar.
-  IntColumn get defaultGtrSource => integer().withDefault(const Constant(0))();
+  IntColumn get defaultGtrSource => integer().withDefault(const Constant(1))();
   RealColumn get gtrReservePressure =>
       real().withDefault(const Constant(50.0))();
   // CNS calculation method: 'classic' | 'shearwater' | 'subsurface' (v113)
@@ -228,7 +227,7 @@ class DiverSettings extends Table {
   BoolColumn get showDecoStopsOnProfile =>
       boolean().withDefault(const Constant(true))();
   IntColumn get defaultDecoStopSource =>
-      integer().withDefault(const Constant(0))();
+      integer().withDefault(const Constant(1))();
   // Post-dive safety review (safety features phase 1, v123)
   BoolColumn get safetyReviewEnabled =>
       boolean().withDefault(const Constant(true))();

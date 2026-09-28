@@ -8499,12 +8499,10 @@ class SyncDataSerializer {
       'o2Narcotic': true,
       'endLimit': 30.0,
       'useDiveComputerCnsData': false,
-      // Computer (0) is the default for every per-metric source (#1859), so
-      // a payload from a peer predating these columns hydrates to it too.
-      'defaultNdlSource': 0,
-      'defaultCeilingSource': 0,
-      'defaultTtsSource': 0,
-      'defaultCnsSource': 0,
+      'defaultNdlSource': 1,
+      'defaultCeilingSource': 1,
+      'defaultTtsSource': 1,
+      'defaultCnsSource': 1,
       // Appearance settings
       'showDepthColoredDiveCards': false,
       'cardColorAttribute': 'none',
@@ -8557,8 +8555,7 @@ class SyncDataSerializer {
       // v177: GTR settings; seed them so payloads predating the columns
       // hydrate instead of throwing in DiverSetting.fromJson.
       'defaultShowGtr': false,
-      // Computer (0) is the default source (#1859).
-      'defaultGtrSource': 0,
+      'defaultGtrSource': 1,
       'gtrReservePressure': 50.0,
       // v166: seed it so payloads predating the column hydrate instead of
       // throwing in DiverSetting.fromJson (issue #1187).
@@ -8575,8 +8572,7 @@ class SyncDataSerializer {
       // v133: non-nullable columns; seed them so payloads predating the
       // columns hydrate instead of throwing in DiverSetting.fromJson.
       'showDecoStopsOnProfile': true,
-      // Computer (0) is the default source (#1859).
-      'defaultDecoStopSource': 0,
+      'defaultDecoStopSource': 1,
       // additional non-nullable
       'safetyReviewEnabled': true,
       'noFlyPreset': 'standard',

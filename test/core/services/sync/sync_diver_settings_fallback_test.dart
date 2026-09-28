@@ -145,8 +145,7 @@ void main() {
       )..where((t) => t.id.equals('ds3'))).getSingle();
       // The v133 columns hydrate to their defaults rather than throwing.
       expect(row.showDecoStopsOnProfile, isTrue);
-      // Computer (0) is the default source (#1859).
-      expect(row.defaultDecoStopSource, 0);
+      expect(row.defaultDecoStopSource, 1);
     },
   );
 
