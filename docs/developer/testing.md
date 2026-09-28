@@ -1,15 +1,8 @@
 # Testing Guide
 
-Submersion has comprehensive test coverage including unit, widget, integration, and performance tests.
-
-## Overview
-
-| Test Type | Count | Coverage |
-|-----------|-------|----------|
-| **Unit Tests** | 165+ | 80%+ |
-| **Widget Tests** | 48+ | Critical paths |
-| **Integration Tests** | 2+ | Full workflows |
-| **Performance Tests** | 6+ | Large datasets |
+Submersion has unit, widget, integration and performance tests. See
+[Coverage](#coverage) for what the coverage numbers measure and what they do
+not ask for.
 
 ## Test Structure
 
@@ -435,7 +428,7 @@ file that throws while declaring fails in a test named `declares its tests`,
 and one that leaves a global changed fails in `declares its tests without
 changing global state`. The other files in the bundle still run.
 
-A shared isolate exposes two more things:
+A shared isolate exposes three more things:
 
 - Code in the body of `main()` or `group()` runs while the file is declared,
   before any test. By then an earlier file has set up the test binding. Build
@@ -443,6 +436,19 @@ A shared isolate exposes two more things:
   test, or make it `late final`.
 - A warm isolate is faster than a cold one. An assertion that two timestamps
   differ needs the difference built in, not left to the clock.
+- The theme presets are built once per isolate, by the first test that reads
+  them, and building them starts google_fonts loads. A `testWidgets` body that
+  is first strands those loads on its fake clock, and they never complete, so
+  never wait on `GoogleFonts.pendingFonts()` directly: use `settleGoogleFonts()`
+  from `test/helpers/google_fonts_settle.dart`, which bounds the wait. A
+  stranded load costs time only in a bundle where a later file waits with
+  `settleGoogleFonts()`: that file then sits out the whole limit. Today the
+  only files that wait are the theme tests under `test/core/theme/`, so a
+  widget test elsewhere under `test/core/` that reads the registry, directly
+  or through a widget such as `StartupPage`, calls
+  `setUpAll(warmUpThemePresets)` from `test/helpers/theme_presets_warm_up.dart`
+  to build the presets outside the fake clock. A new file that waits on the
+  loads makes the same true of the files ahead of it in its bundle.
 
 ### Reproducing a CI failure locally
 
@@ -512,13 +518,47 @@ When adding new features:
 4. Run performance tests if data model changes
 5. Update this documentation
 
-## Coverage Goals
+## Coverage
 
-| Test Type | Target |
-|-----------|--------|
-| Unit Tests | 80%+ code coverage |
-| Widget Tests | All critical user paths |
-| Integration Tests | Complete workflows |
-| Performance Tests | All operations with large datasets |
+Codecov reports two numbers on every PR:
 
-**Current Status:** All goals met
+| Status | Target | Measures |
+|---|---|---|
+| `codecov/patch` | 80% | The lines the PR adds or changes |
+| `codecov/project` | 70%, within 5 points | All of `lib/`, plus the Python scripts the Script Tests job covers |
+
+Codecov builds both from seven uploads: one per test shard for `lib/`, and one
+from the Script Tests job for the scripts in its `guards` list
+(`coverage/scripts.xml`, flag `scripts`). Neither status blocks a merge: only
+`CI Success` is required. They are there to show when new logic went untested.
+
+### What counts
+
+Before each test shard uploads its report, CI removes the lines of trivial
+members (`scripts/filter_trivial_coverage.py`):
+
+- `copyWith`, when its body only copies fields into a constructor
+  (`name: name ?? this.name`, `name: this.name`);
+- Equatable `props`;
+- `operator ==`, `hashCode` and `toString`, when the body is one plain
+  expression (`=> Object.hash(a, b)`, or a single `return`, optionally after
+  `if (identical(this, other)) return true;`).
+
+A `copyWith` with any other logic, such as a clear flag or a computed value,
+still counts. So does an `==`, `hashCode` or `toString` with a condition, a
+loop, a local variable or a closure, and so do `toJson` and `fromJson`.
+Generated files and `lib/l10n/` are not counted at all.
+
+Test behaviour, not lines. A test that only checks that a field copies, or
+that two equal objects are equal, would almost never catch a bug, and the
+target no longer asks for one.
+
+### Checking patch coverage locally
+
+```bash
+flutter test --coverage test/path/to/the/tests/you/changed
+python3 scripts/filter_trivial_coverage.py coverage/lcov.info
+```
+
+Then compare the lines your change adds (`git diff --unified=0 origin/main...HEAD -- lib/`)
+with the `DA:` records in `coverage/lcov.info`, the way Codecov does.
