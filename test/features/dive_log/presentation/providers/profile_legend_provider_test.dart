@@ -233,11 +233,11 @@ void main() {
     group('explicit source set methods', () {
       // The ceiling line has no source toggle (issue #755); it always uses the
       // calculated curve, so there is no ceilingSource field or setter to test.
-      test('setNdlSource sets to computer', () {
+      test('setNdlSource sets to calculated', () {
         const state = ProfileLegendState();
-        expect(state.ndlSource, MetricDataSource.calculated);
-        final updated = state.copyWith(ndlSource: MetricDataSource.computer);
-        expect(updated.ndlSource, MetricDataSource.computer);
+        expect(state.ndlSource, MetricDataSource.computer);
+        final updated = state.copyWith(ndlSource: MetricDataSource.calculated);
+        expect(updated.ndlSource, MetricDataSource.calculated);
       });
     });
 

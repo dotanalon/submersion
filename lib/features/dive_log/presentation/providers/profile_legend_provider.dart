@@ -145,11 +145,13 @@ class ProfileLegendState {
     this.showO2Cells = false,
     this.o2CellUnit = O2CellUnit.ppO2,
     this.showGtr = false,
-    this.ndlSource = MetricDataSource.calculated,
-    this.ttsSource = MetricDataSource.calculated,
-    this.cnsSource = MetricDataSource.calculated,
-    this.decoStopSource = MetricDataSource.calculated,
-    this.gtrSource = MetricDataSource.calculated,
+    // Same per-metric default as AppSettings (#1859); build() seeds from
+    // settings, so these only apply to reset() and a state built without them.
+    this.ndlSource = MetricDataSource.computer,
+    this.ttsSource = MetricDataSource.computer,
+    this.cnsSource = MetricDataSource.computer,
+    this.decoStopSource = MetricDataSource.computer,
+    this.gtrSource = MetricDataSource.computer,
     this.showTankPressure = const {},
     this.showGas = true,
     this.sectionExpanded = const {

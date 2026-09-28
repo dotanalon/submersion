@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 void main() {
@@ -23,5 +24,20 @@ void main() {
 
     expect(calculated.defaultNdlSource, MetricDataSource.calculated);
     expect(calculated.defaultTtsSource, MetricDataSource.computer);
+  });
+
+  // The legend state has its own constructor defaults, used by
+  // ProfileLegend.reset() and any state built without settings. They must
+  // name the same source as AppSettings, or a reset quietly switches a diver
+  // back to calculated.
+  test('a default legend state matches the settings defaults', () {
+    const settings = AppSettings();
+    const legend = ProfileLegendState();
+
+    expect(legend.ndlSource, settings.defaultNdlSource);
+    expect(legend.decoStopSource, settings.defaultDecoStopSource);
+    expect(legend.ttsSource, settings.defaultTtsSource);
+    expect(legend.cnsSource, settings.defaultCnsSource);
+    expect(legend.gtrSource, settings.defaultGtrSource);
   });
 }
