@@ -46,6 +46,7 @@ import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/tag_fill_copy_merge.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -1395,6 +1396,22 @@ class SyncService {
             records: data.divePlanSegments,
             hasUpdatedAt: true,
           ),
+          // Mission rows reference only their plan, applied above.
+          (
+            type: 'divePlanMissions',
+            records: data.divePlanMissions,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'divePlanMissionLegs',
+            records: data.divePlanMissionLegs,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'divePlanMissionMembers',
+            records: data.divePlanMissionMembers,
+            hasUpdatedAt: true,
+          ),
           (type: 'equipment', records: data.equipment, hasUpdatedAt: true),
           // Trip cylinder slots reference trips and equipment; their ledger
           // references the slots and dive centers. Both before dives, whose
@@ -2399,7 +2416,15 @@ class SyncService {
               localUpdatedAt > lastSyncMs;
           final newerThanTombstone =
               localUpdatedAt != null && localUpdatedAt > deletionTimestamp;
-          final hasConflict = editedSinceLastSync || newerThanTombstone;
+          // A fill copied from a tag is not an edit of the fill the peer
+          // deleted: the delete wins, with no conflict to resolve, so every
+          // device agrees it stays deleted (tag_fill_copy_merge.dart).
+          final tagCopy =
+              entityType == 'cylinderFills' &&
+              local != null &&
+              isTagFillCopy(local);
+          final hasConflict =
+              !tagCopy && (editedSinceLastSync || newerThanTombstone);
 
           if (hasConflict) {
             conflicts += 1;
@@ -2495,6 +2520,9 @@ class SyncService {
     'divePlans': true,
     'divePlanTanks': true,
     'divePlanSegments': true,
+    'divePlanMissions': true,
+    'divePlanMissionLegs': true,
+    'divePlanMissionMembers': true,
     'equipment': true,
     'equipmentSets': true,
     'equipmentSetItems': false,
@@ -2740,7 +2768,7 @@ class SyncService {
     'diveSafetyFindings': [(field: 'diveId', parent: 'dives', nullable: false)],
     'gasSwitches': [
       (field: 'diveId', parent: 'dives', nullable: false),
-      // v241: the computer that logged the switch (#2560).
+      // v248: the computer that logged the switch (#2560).
       (field: 'computerId', parent: 'diveComputers', nullable: true),
     ],
     'diveCustomFields': [(field: 'diveId', parent: 'dives', nullable: false)],
@@ -2758,6 +2786,8 @@ class SyncService {
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'tankId', parent: 'diveTanks', nullable: false),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
+      // v241 (issue #2440): the owning source, like diveProfileSeries.
+      (field: 'sourceId', parent: 'diveDataSources', nullable: true),
     ],
     'sightings': [
       (field: 'diveId', parent: 'dives', nullable: false),
@@ -2852,6 +2882,20 @@ class SyncService {
     'divePlanSegments': [
       (field: 'planId', parent: 'divePlans', nullable: false),
       (field: 'tankId', parent: 'divePlanTanks', nullable: false),
+    ],
+    'divePlanMissions': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+    ],
+    // A mission row's id is its plan's id, so planId also names the
+    // mission: a leg or member whose mission this device removed is dropped
+    // rather than landing as an orphan the mission read never shows.
+    'divePlanMissionLegs': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+      (field: 'planId', parent: 'divePlanMissions', nullable: false),
+    ],
+    'divePlanMissionMembers': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+      (field: 'planId', parent: 'divePlanMissions', nullable: false),
     ],
     'certifications': [
       (field: 'courseId', parent: 'courses', nullable: true),
@@ -3080,6 +3124,11 @@ class SyncService {
               entityType: entityType,
               recordId: recordId,
             );
+          } else if (entityType == 'cylinderFills' && isTagFillCopy(record)) {
+            // A fill copied from a tag is not an edit of the fill we deleted,
+            // so it never revives it, whatever its clock
+            // (tag_fill_copy_merge.dart).
+            continue;
           } else {
             // Read the remote clock whether or not this entity resolves as
             // LWW. [hasUpdatedAt] selects the merge STRATEGY (an entity that
@@ -3217,6 +3266,21 @@ class SyncService {
         // next local write is ordered after what it has seen (the skew fix).
         if (remoteHlc != null) {
           SyncClock.instance.receive(remoteHlc);
+        }
+
+        // A fill copied from an NFC tag never beats the fill it was copied
+        // from, whatever the clocks say (tag_fill_copy_merge.dart).
+        if (entityType == 'cylinderFills') {
+          switch (tagFillCopyMerge(local, record)) {
+            case TagFillCopyMerge.keepLocal:
+              continue;
+            case TagFillCopyMerge.takeRemote:
+              toUpsert.add(_overlayOntoLocal(entityType, recordToApply, local));
+              applied += 1;
+              continue;
+            case null:
+              break;
+          }
         }
 
         // When BOTH sides carry an HLC it is the authoritative, deterministic

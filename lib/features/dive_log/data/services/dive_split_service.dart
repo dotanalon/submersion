@@ -82,10 +82,12 @@ class DiveSplitService {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     // Series move by computer attribution. A computer-less source cannot be
-    // attributed at the row level, so only non-primary null-computer series
-    // follow it (never user-edited isPrimary series) and no tanks,
-    // pressures, or events move. This follows the retired unlinkComputer's
-    // convention.
+    // attributed at the row level by computer, so only non-primary
+    // null-computer profile series follow it (never user-edited isPrimary
+    // series) and no tanks or events move. This follows the retired
+    // unlinkComputer's convention. Pressure series are the exception: one
+    // that names the source moves with it whatever its computer, cloning
+    // the tank it sits on (issue #2440).
 
     bool ownedByComputer(String? computerId) =>
         source.computerId != null && computerId == source.computerId;
@@ -115,9 +117,15 @@ class DiveSplitService {
         for (final s in allProfileSeries)
           if (profileBelongsToSource(s)) s,
       ];
+      // A series that names its source moves with exactly that source,
+      // computer or not (issue #2440); an unattributed one falls back to the
+      // computer rule.
       final movingPressures = [
         for (final s in allPressureSeries)
-          if (ownedByComputer(s.computerId)) s,
+          if (s.sourceId == null
+              ? ownedByComputer(s.computerId)
+              : s.sourceId == source.id)
+            s,
       ];
 
       // 1. New dive: copy the original row, attribute it to the source's
@@ -393,6 +401,7 @@ class DiveSplitService {
           diveId: newDiveId,
           tankId: tankIdMap[s.tankId] ?? s.tankId,
           computerId: s.computerId,
+          sourceId: newSourceId,
           samples: s.samples,
           now: now,
         );
@@ -423,9 +432,9 @@ class DiveSplitService {
         );
       }
 
-      // 7b. Gas switches the departing computer logged (v241, #2560) go
+      // 7b. Gas switches the departing computer logged (v248, #2560) go
       // with its gas plan, onto its copy of the tank. Unattributed switches
-      // belong to the dive and stay, as every switch did before v241.
+      // belong to the dive and stay, as every switch did before v248.
       final movingSwitches = [
         for (final r in switchRows)
           if (ownedByComputer(r.computerId) && tankIdMap.containsKey(r.tankId))

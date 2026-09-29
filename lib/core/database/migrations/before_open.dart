@@ -9,7 +9,7 @@ extension BeforeOpenBackstops on AppDatabase {
   Future<void> _beforeOpen(OpeningDetails details) async {
     // v240 backstop: the events-by-dive index.
     await _assertProfileEventsDiveIdIndex();
-    // v241 backstop: dive_tanks.shared_computer_ids and
+    // v248 backstop: dive_tanks.shared_computer_ids and
     // gas_switches.computer_id. Every read of either selects the whole row, so a database that arrives by restore or
     // sync-adopt without it would throw on the first read.
     await _assertGasPlanAttributionColumns();
@@ -173,6 +173,14 @@ extension BeforeOpenBackstops on AppDatabase {
     // arrives by restore or sync-adopt never runs onUpgrade, and one
     // already at 239 or later skips the v238 rung.
     await _assertSavedQueriesSchema();
+
+    // v242 backstop: the equipment service cache (local, idempotent).
+    await _assertEquipmentServiceStatusTable();
+
+    // v245 backstop: the certifications buddy index (idempotent).
+    await _assertCertificationsBuddyIndex();
+    // v247 backstop: the Explore derived metrics (local, idempotent).
+    await _assertDerivedMetricsTable();
 
     // v122 backstop: re-assert service ledger schema + built-in kinds.
     // The legacy backfill is NOT here (onUpgrade only) -- re-running it
@@ -507,6 +515,13 @@ extension BeforeOpenBackstops on AppDatabase {
       );
     }
 
+    // v241 backstop: re-assert tank_pressure_series.source_id
+    // (parallel-branch version-collision self-heal). Column only; the
+    // backfill stays in the rung. After the v182 backstop above, whose raw
+    // DDL predates the column: a series table it creates on this open
+    // gets the column on this open too.
+    await _assertTankSeriesSourceIdColumn();
+
     // v186 backstop: re-assert pre_dive_checklist_template_items.
     // equipment_id (same parallel-branch version-collision self-heal).
     // Safe to re-run on every open: the helper is column-only with no
@@ -624,6 +639,10 @@ extension BeforeOpenBackstops on AppDatabase {
     await Migrator(this).createTable(divePlans);
     await Migrator(this).createTable(divePlanTanks);
     await Migrator(this).createTable(divePlanSegments);
+
+    // v244 backstop: re-assert the DPV mission tables. A database that
+    // arrives by restore or sync-adopt never runs onUpgrade.
+    await _assertDivePlanMissionSchema();
 
     // v103 backstop: dive_roles table + built-in seed + dives.diver_role
     // column (same collision disease; all DDL idempotent). The seed is

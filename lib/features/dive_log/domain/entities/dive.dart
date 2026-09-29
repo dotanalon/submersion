@@ -1122,7 +1122,7 @@ class DiveTank extends Equatable {
   final int? sourceTankIndex;
 
   /// The other computers on a consolidated dive that logged this same
-  /// cylinder (v241): consolidation keeps one row per physical cylinder,
+  /// cylinder (v248): consolidation keeps one row per physical cylinder,
   /// attributed to [computerId], and lists here the computers merged into
   /// it. Computer-owned identity, like [computerId]: user edits never
   /// rewrite it.
@@ -1219,6 +1219,7 @@ class DiveTank extends Equatable {
     String? regulatorEquipmentId,
     String? equipmentId,
     bool clearRegulatorEquipmentId = false,
+    bool clearMaterial = false,
     String? tripCylinderId,
     bool clearTripCylinderId = false,
     double? decoSwitchDepth,
@@ -1234,7 +1235,7 @@ class DiveTank extends Equatable {
       endPressure: endPressure ?? this.endPressure,
       gasMix: gasMix ?? this.gasMix,
       role: role ?? this.role,
-      material: material ?? this.material,
+      material: clearMaterial ? null : (material ?? this.material),
       order: order ?? this.order,
       presetName: clearPresetName ? null : (presetName ?? this.presetName),
       computerId: computerId ?? this.computerId,

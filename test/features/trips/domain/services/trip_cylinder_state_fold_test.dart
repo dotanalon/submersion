@@ -244,6 +244,41 @@ void main() {
       expect(fold(events: [fill(0)], uses: twoTanks).linkedDiveCount, 2);
     });
 
+    test('a short fill is judged by the same thresholds as a reading', () {
+      // 207 bar cylinder: full from 186.3, empty at 50 or less.
+      expect(
+        fold(events: [fill(0, pressure: 40)]).status,
+        TripCylinderStatus.empty,
+      );
+      expect(
+        fold(events: [fill(0, pressure: 120)]).status,
+        TripCylinderStatus.partial,
+      );
+      expect(
+        fold(events: [fill(0, pressure: 190)]).status,
+        TripCylinderStatus.full,
+      );
+    });
+
+    test('a fill with no pressure, or no working pressure, stays full', () {
+      expect(
+        fold(events: [fill(0, pressure: null)]).status,
+        TripCylinderStatus.full,
+      );
+      final unrated = foldCylinderState(
+        cylinder: TripCylinder(
+          id: 'c1',
+          tripId: 't1',
+          label: 'Truck 1',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        events: [fill(0, pressure: 120)],
+        uses: const [],
+      );
+      expect(unrated.status, TripCylinderStatus.full);
+    });
+
     test('a second fill after a dive restores full', () {
       final s = fold(events: [fill(0), fill(120)], uses: [dive(60)]);
       expect(s.status, TripCylinderStatus.full);
@@ -388,6 +423,74 @@ void main() {
         tankMix: const GasMix(o2: 32),
       );
       expect(pick!.id, 'first');
+    });
+  });
+
+  group('the last item', () {
+    test('the last item is the event when an event came last', () {
+      final f = fill(120, label: '14');
+      final s = fold(events: [f], uses: [dive(60)]);
+      expect(s.lastEvent, f);
+      expect(s.lastUse, isNull);
+    });
+
+    test('the last item is the tank use when a dive came last', () {
+      final d = dive(60);
+      final s = fold(events: [fill(0)], uses: [d]);
+      expect(s.lastUse, d);
+      expect(s.lastEvent, isNull);
+    });
+
+    test('an untouched slot has no last item', () {
+      final s = fold();
+      expect(s.lastEvent, isNull);
+      expect(s.lastUse, isNull);
+    });
+  });
+
+  group('foldCylinderStatesAt', () {
+    List<TripCylinderState> atTime(
+      int minutes, {
+      String? excludeDiveId,
+      List<TripCylinderEvent>? events,
+      List<TripCylinderTankUse> uses = const [],
+    }) => foldCylinderStatesAt(
+      cylinders: [slot],
+      eventsBySlot: {
+        'c1': events ?? [fill(0), fill(300, pressure: 180)],
+      },
+      usesBySlot: {'c1': uses},
+      atMillis: at(minutes).millisecondsSinceEpoch,
+      excludeDiveId: excludeDiveId,
+    );
+
+    test('a fill after the instant is not yet in the slot', () {
+      final s = atTime(120).single;
+      expect(s.pressure, 200);
+      expect(s.lastFill!.id, 'f0');
+    });
+
+    test('a fill at the instant counts, as the fold ranks it first', () {
+      expect(atTime(300).single.pressure, 180);
+    });
+
+    test('before any event the slot is unknown', () {
+      expect(atTime(-10).single.status, TripCylinderStatus.unknown);
+    });
+
+    test('earlier dives count and the dive being edited does not', () {
+      final uses = [
+        dive(60, diveId: 'd', end: 90),
+        dive(120, diveId: 'e', end: 60),
+      ];
+      // At minute 120 only the minute-60 dive happened before.
+      expect(atTime(120, uses: uses).single.pressure, 90);
+      // Editing the minute-60 dive: its own use is left out.
+      expect(atTime(200, uses: uses, excludeDiveId: 'd60').single.pressure, 60);
+      expect(
+        atTime(100, uses: uses, excludeDiveId: 'd60').single.pressure,
+        200,
+      );
     });
   });
 }

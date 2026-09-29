@@ -9,6 +9,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -17,6 +18,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -35,6 +37,7 @@ import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
@@ -619,6 +622,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 ...ids,
                 toUndo.mergedDive.id,
               ], force: true);
+              scheduleDerivedMetricsRefresh([
+                ...ids,
+                toUndo.mergedDive.id,
+              ], force: true);
               if (mounted) {
                 // The merged dive no longer exists; clear it from the detail
                 // pane and the row highlight if it is still selected.
@@ -1090,7 +1097,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     // can never reach a dive the user cannot see. pruneTo is a no-op when
     // nothing changed, which is what keeps this off a rebuild loop.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && paginatedAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     return SelectableListScope(
@@ -1169,6 +1176,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             icon: const Icon(Icons.map),
             tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
             onPressed: () => context.push('/dives/activity'),
+          ),
+        // Only where an on-device model exists for the active locale.
+        if (ref.watch(exploreEnabledProvider))
+          IconButton(
+            icon: const Icon(Icons.auto_awesome),
+            tooltip: context.l10n.diveLog_listPage_tooltip_explore,
+            onPressed: () => context.push('/dives/explore'),
           ),
         IconButton(
           icon: const Icon(Icons.search),
@@ -1379,6 +1393,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               icon: const Icon(Icons.map, size: 20),
               tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
               onPressed: () => context.push('/dives/activity'),
+            ),
+          if (ref.watch(exploreEnabledProvider))
+            IconButton(
+              icon: const Icon(Icons.auto_awesome, size: 20),
+              tooltip: context.l10n.diveLog_listPage_tooltip_explore,
+              onPressed: () => context.push('/dives/explore'),
             ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
@@ -1641,13 +1661,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     // Pass the real dive list, not an empty one. Passing const [] made
     // select-all vanish and select-by-date-range select nothing whenever the
     // list was in table mode.
-    final tableDives = ref.watch(allDivesForTableProvider).value ?? const [];
+    final tableAsync = ref.watch(allDivesForTableProvider);
+    final tableDives = tableAsync.value ?? const [];
     final visibleIds = tableDives.map((d) => d.id).toList();
 
     // Same pruning the list path does: drop checked dives that fell out of
     // the visible list, so the count always matches what is on screen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && tableAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and
