@@ -340,6 +340,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerMission_buddyPicker_title => 'Scegli un compagno';
 
   @override
+  String plannerMission_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Missione: $count problemi',
+      one: 'Missione: $count problema',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get plannerMission_current_setsToward => 'Scorre verso';
 
   @override
@@ -374,6 +385,33 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get plannerMission_environment_overhead => 'Ambiente ostruito';
+
+  @override
+  String get plannerMission_factor_battery => 'riserva della batteria';
+
+  @override
+  String get plannerMission_factor_blockedByCurrent =>
+      'una corrente che blocca l\'uscita';
+
+  @override
+  String get plannerMission_factor_exposure => 'esposizione all\'ossigeno';
+
+  @override
+  String get plannerMission_factor_noFeasibleTow => 'nessun traino praticabile';
+
+  @override
+  String get plannerMission_factor_ownGas => 'il proprio gas';
+
+  @override
+  String get plannerMission_factor_scenarioFailed =>
+      'uno scenario di guasto che non è stato possibile calcolare';
+
+  @override
+  String get plannerMission_factor_surfaceSwimLimit =>
+      'il limite di nuoto in superficie';
+
+  @override
+  String get plannerMission_factor_teamGas => 'il gas di un compagno';
 
   @override
   String get plannerMission_issue_batteryReserveInvalid =>
@@ -502,6 +540,179 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get plannerMission_profile_title => 'Profilo generato';
+
+  @override
+  String plannerMission_results_abandonment(String waypoint) {
+    return 'Ultimo punto da cui tutti possono uscire: $waypoint';
+  }
+
+  @override
+  String get plannerMission_results_abandonmentUnknown =>
+      'Non è stato possibile stabilire da quali punti si può uscire';
+
+  @override
+  String plannerMission_results_assumptions(String reserve) {
+    return 'Riserva della batteria $reserve% dell\'autonomia. Chi ha lo scooter in avaria respira il proprio RMV aumentato del fattore di stress del piano fino alla prima sosta.';
+  }
+
+  @override
+  String plannerMission_results_battery(
+    String minutes,
+    String percent,
+    String reserve,
+  ) {
+    return 'Batteria $percent% dell\'autonomia ($minutes′), riserva $reserve%';
+  }
+
+  @override
+  String plannerMission_results_bindsAt(String factor, String waypoint) {
+    return 'Limite a $waypoint: $factor';
+  }
+
+  @override
+  String get plannerMission_results_blocked =>
+      'La missione non può ancora essere calcolata:';
+
+  @override
+  String get plannerMission_results_cannotGetOut => 'non può uscire';
+
+  @override
+  String get plannerMission_results_computing =>
+      'Calcolo degli scenari di guasto in corso';
+
+  @override
+  String get plannerMission_results_failed =>
+      'Non è stato possibile calcolare la missione';
+
+  @override
+  String plannerMission_results_home(String distance) {
+    return '$distance in linea retta fino all\'ingresso';
+  }
+
+  @override
+  String plannerMission_results_legLine(
+    String backMinutes,
+    String backSpeed,
+    String outMinutes,
+    String outSpeed,
+  ) {
+    return 'andata $outSpeed $outMinutes′, ritorno $backSpeed $backMinutes′';
+  }
+
+  @override
+  String plannerMission_results_legRow(String leg, String line) {
+    return '$leg: $line';
+  }
+
+  @override
+  String get plannerMission_results_legs => 'Tratti';
+
+  @override
+  String plannerMission_results_limitedBy(
+    String factor,
+    String name,
+    String scooter,
+    String waypoint,
+  ) {
+    return 'Limitato dallo $scooter di $name a $waypoint: $factor';
+  }
+
+  @override
+  String plannerMission_results_limitedByDiver(
+    String factor,
+    String name,
+    String waypoint,
+  ) {
+    return 'Limitato da $name a $waypoint: $factor';
+  }
+
+  @override
+  String get plannerMission_results_listSeparator => ', ';
+
+  @override
+  String plannerMission_results_memberLine(String name, String status) {
+    return '$name: $status';
+  }
+
+  @override
+  String plannerMission_results_memberLineExits(
+    String exits,
+    String name,
+    String status,
+  ) {
+    return '$name: $status ($exits)';
+  }
+
+  @override
+  String get plannerMission_results_noAbandonment =>
+      'Nessun punto consente di uscire con qualsiasi guasto';
+
+  @override
+  String get plannerMission_results_noBuddy => 'nessun compagno';
+
+  @override
+  String get plannerMission_results_noLimit =>
+      'Nessun limite su questo percorso';
+
+  @override
+  String get plannerMission_results_notComputed =>
+      'non è stato possibile calcolarlo';
+
+  @override
+  String plannerMission_results_safeSurface(String minutes) {
+    return 'Superficie sicura in $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown =>
+      'Superficie sicura: non è stato possibile calcolarla';
+
+  @override
+  String get plannerMission_results_setsCruise =>
+      'Determina la velocità di crociera della squadra';
+
+  @override
+  String plannerMission_results_surface(String minutes) {
+    return 'superficie $minutes′';
+  }
+
+  @override
+  String plannerMission_results_surfaceViaShore(String minutes) {
+    return 'superficie dalla riva $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_survives => 'esce';
+
+  @override
+  String plannerMission_results_swim(String minutes) {
+    return 'nuoto $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_title => 'Missione';
+
+  @override
+  String plannerMission_results_tow(String minutes, String name) {
+    return 'trainato da $name $minutes′';
+  }
+
+  @override
+  String plannerMission_results_turnPressure(String pressure) {
+    return 'Inversione a $pressure';
+  }
+
+  @override
+  String get plannerMission_results_unconstrained =>
+      'Da ogni punto si esce con il guasto di qualsiasi scooter';
+
+  @override
+  String plannerMission_results_waypointLine(String distance, String minutes) {
+    return '$distance, arrivo $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_waypoints => 'Punti';
 
   @override
   String get plannerMission_route_addLeg => 'Aggiungi tratto';
@@ -5566,6 +5777,33 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveCenters_section_gpsCoordinates => 'Coordinate GPS';
+
+  @override
+  String get diveCenters_section_fillHours => 'Orari di ricarica';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'Quando la stazione ricarica le bombole. La previsione di ricarica del viaggio usa l\'orario di chiusura.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'Apre';
+
+  @override
+  String get diveCenters_fillHours_closes => 'Chiude';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'Non impostato';
+
+  @override
+  String get diveCenters_fillHours_clear => 'Cancella orari di ricarica';
+
+  @override
+  String get diveCenters_fillHours_errorBoth =>
+      'Imposta entrambi gli orari o nessuno.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'L\'orario di chiusura deve seguire quello di apertura.';
 
   @override
   String get diveCenters_section_notes => 'Note';
@@ -13273,6 +13511,35 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get passport_logFill_analysedHint => 'Inserisci i valori analizzati';
+
+  @override
+  String get passport_trip_title => 'Viaggi';
+
+  @override
+  String get passport_trip_none => 'Non preparato per un viaggio';
+
+  @override
+  String passport_trip_packedFor(String trip) {
+    return 'Preparato per $trip';
+  }
+
+  @override
+  String passport_trip_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get passport_trip_assign => 'Prepara per un viaggio';
+
+  @override
+  String get passport_trip_unassign => 'Togli da questo viaggio';
+
+  @override
+  String get passport_trip_onBoard => 'Sulla bacheca bombole del viaggio';
+
+  @override
+  String get passport_trip_failed =>
+      'Impossibile modificare il viaggio. Riprova.';
 
   @override
   String get passport_logFill_notes => 'Note';
@@ -24664,6 +24931,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Esporta inventario attrezzatura e informazioni sulla manutenzione';
 
   @override
+  String get transfer_csvExport_descriptionFills =>
+      'Ogni ricarica registrata su un passaporto bombola, con analisi, pressione e stazione';
+
+  @override
   String get transfer_csvExport_descriptionObservations =>
       'Ogni controllo OK e ogni problema segnalato, con immersione, etichette e nota';
 
@@ -24684,6 +24955,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'CSV Attrezzatura';
 
   @override
+  String get transfer_csvExport_optionFillsTitle =>
+      'CSV delle ricariche bombola';
+
+  @override
   String get transfer_csvExport_optionObservationsTitle =>
       'CSV dei controlli attrezzatura';
 
@@ -24700,6 +24975,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Attrezzatura';
+
+  @override
+  String get transfer_csvExport_typeFills => 'Ricariche bombola';
 
   @override
   String get transfer_csvExport_typeObservations => 'Controlli attrezzatura';
@@ -25580,6 +25858,20 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'Pianificazione';
 
   @override
+  String get trips_edit_label_diversSharing =>
+      'Subacquei che condividono le bombole';
+
+  @override
+  String get trips_edit_hint_diversSharing => 'Te compreso. Vuoto significa 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'Immersioni al giorno';
+
+  @override
+  String get trips_edit_hint_divesPerDay =>
+      'Per la previsione di ricarica. Vuoto significa stima.';
+
+  @override
   String get trips_edit_label_expectedDives => 'Immersioni previste';
 
   @override
@@ -25683,6 +25975,150 @@ class AppLocalizationsIt extends AppLocalizations {
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count rebreather, il margine più basso è $minutes min';
   }
+
+  @override
+  String get trips_gear_title => 'Attrezzatura';
+
+  @override
+  String get trips_gear_none => 'Nessuna attrezzatura preparata';
+
+  @override
+  String get trips_gear_add => 'Aggiungi attrezzatura';
+
+  @override
+  String get trips_gear_remove => 'Togli';
+
+  @override
+  String get trips_gear_failed =>
+      'Impossibile modificare l\'attrezzatura. Riprova.';
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'Oggi ne servono $needed, ne hai $full piene.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'Domani ne servono $needed, ne avrai $full piene.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'Ricarica prima delle $time.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough =>
+      'Bombole piene sufficienti fino a domani.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'Immersioni pianificate';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '$count immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'Immersioni pianificate, $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'Usa la stima';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'Meno immersioni';
+
+  @override
+  String get trips_cylinders_forecast_more => 'Più immersioni';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'Impossibile salvare il piano: $error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => 'Pianificato da te';
+
+  @override
+  String get trips_cylinders_segment_record => 'Consumi';
+
+  @override
+  String get trips_cylinders_recordEmpty =>
+      'Ancora nessuna immersione con queste bombole.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ricariche registrate',
+      one: '$count ricarica registrata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni escluse',
+      one: '$count immersione esclusa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ricariche nel pacchetto',
+      one: '$count ricarica nel pacchetto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bombole di immersione non collegate',
+      one: '$count bombola di immersione non collegata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle =>
+      'Non collegate a una bombola';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return 'Bombola $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'Ricaricata a $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'Analizzato $mix';
+  }
+
+  @override
+  String get trips_cylinders_record_exported => 'Consumi di gas esportati';
 
   @override
   String get trips_cylinders_title => 'Bombole';
@@ -28117,6 +28553,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveImport_uddf_media => 'Foto';
+
+  @override
+  String get diveImport_uddf_fills => 'Ricariche';
 
   @override
   String get diveImport_uddf_title => 'Importa da UDDF';
@@ -42979,6 +43418,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Esportazione dei controlli attrezzatura in CSV...';
 
   @override
+  String get settings_export_progress_fillsCsv =>
+      'Esportazione delle ricariche bombola in CSV...';
+
+  @override
   String get settings_export_progress_pdf => 'Generazione del logbook PDF...';
 
   @override
@@ -43052,6 +43495,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Preparazione del CSV dei controlli attrezzatura...';
 
   @override
+  String get settings_export_progress_preparingFillsCsv =>
+      'Preparazione del CSV delle ricariche bombola...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'Preparazione del file UDDF...';
 
@@ -43071,6 +43518,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_export_empty_observations =>
       'Nessun controllo attrezzatura da esportare';
+
+  @override
+  String get settings_export_empty_fills =>
+      'Nessuna ricarica bombola da esportare';
 
   @override
   String get settings_export_empty_data => 'Nessun dato da esportare';
@@ -43098,6 +43549,9 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_export_success_observations =>
       'Controlli attrezzatura esportati';
+
+  @override
+  String get settings_export_success_fills => 'Ricariche bombola esportate';
 
   @override
   String get settings_export_success_pdf => 'Logbook PDF generato con successo';
@@ -43154,6 +43608,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'CSV dei controlli attrezzatura salvato';
 
   @override
+  String get settings_export_saved_fillsCsv =>
+      'CSV delle ricariche bombola salvato';
+
+  @override
   String get settings_export_saved_uddf => 'File UDDF salvato con successo';
 
   @override
@@ -43178,6 +43636,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_export_saveObservationsCsvDialogTitle =>
       'Salva CSV dei controlli attrezzatura';
+
+  @override
+  String get settings_export_saveFillsCsvDialogTitle =>
+      'Salva CSV delle ricariche bombola';
 
   @override
   String backup_operation_created(String size) {

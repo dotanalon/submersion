@@ -56,9 +56,9 @@ Future<AppDatabase> _reopenWithout({required int storedVersion}) async {
 }
 
 void main() {
-  test('v247 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v248 (gas plan attribution, #2560) landed on top; the
-    // newest rung owns the exact assertions.
+  test('v247 is in the ladder', () {
+    // Relaxed once v248 (trip_equipment) and v249 (the trip fill forecast) landed on top; the newest
+    // rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(247));
     expect(AppDatabase.migrationVersions, contains(247));
     expect(AppDatabase.migrationStepCount(245), greaterThanOrEqualTo(1));

@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
-/// A dive_tanks row as the v248 backfill sees it.
+/// A dive_tanks row as the v250 backfill sees it.
 typedef BackfillTank = ({
   String id,
   String? computerId,
@@ -16,7 +16,7 @@ typedef BackfillTank = ({
 const double _gasTolerancePct = 0.5;
 
 /// Which computers share which of the primary's cylinders on one dive
-/// consolidated before v248 recorded it: tank id -> computer ids.
+/// consolidated before v250 recorded it: tank id -> computer ids.
 ///
 /// Consolidation merges a secondary's cylinder only into a PRIMARY tank
 /// with the same gas, and drops the secondary's row. So a secondary
@@ -48,7 +48,7 @@ Map<String, List<String>> inferSharedComputers({
   return result;
 }
 
-/// v248: fills `dive_tanks.shared_computer_ids` on dives consolidated before
+/// v250: fills `dive_tanks.shared_computer_ids` on dives consolidated before
 /// the fold recorded it (see [inferSharedComputers]).
 ///
 /// Local-only and idempotent: deterministic from rows every device holds,

@@ -102,16 +102,28 @@ extension RungsFromV231 on AppDatabase {
       await _assertDerivedMetricsTable();
     }
     if (from < 247) await reportProgress();
-    // v248: dive_tanks.shared_computer_ids and gas_switches.computer_id,
+    // v248: gear packed for a trip (issue #2338). Table-only rung, no
+    // backfill; re-asserted in beforeOpen.
+    if (from < 248) {
+      await _assertTripEquipmentSchema();
+    }
+    if (from < 248) await reportProgress();
+    // v249: the trip fill forecast's inputs (issue #2325, PR 4). Columns
+    // only, no backfill; re-asserted in beforeOpen. 248 is #2585.
+    if (from < 249) {
+      await _assertTripFillForecastColumns();
+    }
+    if (from < 249) await reportProgress();
+    // v250: dive_tanks.shared_computer_ids and gas_switches.computer_id,
     // then infer the shared tanks of dives consolidated before the fold
     // recorded them (issue #2560). Older switches stay unattributed:
     // nothing on the row says which computer logged one, and null applies
     // to every computer. The columns are re-asserted in beforeOpen; the
     // backfill runs once.
-    if (from < 248) {
+    if (from < 250) {
       await _assertGasPlanAttributionColumns();
       await backfillTankSharedComputers(this);
     }
-    if (from < 248) await reportProgress();
+    if (from < 250) await reportProgress();
   }
 }

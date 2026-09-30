@@ -1767,6 +1767,14 @@
   "diveCenters_section_contact": "Kontakt",
   "diveCenters_section_contactInfo": "Kontaktinformationen",
   "diveCenters_section_gpsCoordinates": "GPS-Koordinaten",
+  "diveCenters_section_fillHours": "Füllzeiten",
+  "diveCenters_fillHours_caption": "Wann die Station Flaschen füllt. Die Füllprognose der Reise nutzt die Schließzeit.",
+  "diveCenters_fillHours_opens": "Öffnet",
+  "diveCenters_fillHours_closes": "Schließt",
+  "diveCenters_fillHours_notSet": "Nicht gesetzt",
+  "diveCenters_fillHours_clear": "Füllzeiten löschen",
+  "diveCenters_fillHours_errorBoth": "Setze beide Zeiten oder keine.",
+  "diveCenters_fillHours_errorOrder": "Die Schließzeit muss nach der Öffnungszeit liegen.",
   "diveCenters_section_notes": "Notizen",
   "diveCenters_snackbar_coordinatesFound": "Koordinaten aus Adresse gefunden",
   "diveCenters_snackbar_copiedToClipboard": "In Zwischenablage kopiert",
@@ -2124,6 +2132,7 @@
   "diveImport_uddf_tabTypes": "Typen",
   "diveImport_uddf_tags": "Tags",
   "diveImport_uddf_media": "Fotos",
+  "diveImport_uddf_fills": "Füllungen",
   "diveImport_uddf_title": "Aus UDDF importieren",
   "diveImport_uddf_toggleDiveSelection": "Auswahl für Tauchgang umschalten",
   "diveImport_uddf_toggleEntitySelection": "Auswahl für {name} umschalten",
@@ -4173,6 +4182,14 @@
   "passport_logFill_station": "Füllstation",
   "passport_logFill_analyzer": "Analysegerät",
   "passport_logFill_analysedHint": "Gib deine analysierten Werte ein",
+  "passport_trip_title": "Reisen",
+  "passport_trip_none": "Für keine Reise gepackt",
+  "passport_trip_packedFor": "Gepackt für {trip}",
+  "passport_trip_more": "+{count}",
+  "passport_trip_assign": "Für eine Reise packen",
+  "passport_trip_unassign": "Von dieser Reise entfernen",
+  "passport_trip_onBoard": "Auf der Flaschenübersicht der Reise",
+  "passport_trip_failed": "Die Reise konnte nicht geändert werden. Versuche es erneut.",
   "passport_logFill_notes": "Notizen",
   "passport_logFill_invalidMix": "O2 und He müssen jeweils 0 bis 100 sein und zusammen höchstens 100 ergeben",
   "passport_logFill_saveFailed": "Die Füllung konnte nicht gespeichert werden. Bitte erneut versuchen.",
@@ -5629,6 +5646,50 @@
   "plannerMission_disableConfirm": "Ausschalten",
   "plannerMission_disableMessage": "Route und Team werden entfernt. Das erzeugte Profil bleibt als normale, bearbeitbare Segmente erhalten.",
   "plannerMission_disableTitle": "DPV-Mission ausschalten?",
+  "plannerMission_results_legRow": "{leg}: {line}",
+  "plannerMission_results_listSeparator": ", ",
+  "plannerMission_results_memberLine": "{name}: {status}",
+  "plannerMission_results_memberLineExits": "{name}: {status} ({exits})",
+  "plannerMission_results_abandonmentUnknown": "Welche Wegpunkte überlebbar sind, konnte nicht ermittelt werden",
+  "plannerMission_results_safeSurfaceUnknown": "Sichere Oberfläche: konnte nicht berechnet werden",
+  "plannerMission_chip_issues": "{count, plural, =1{Mission: {count} Problem} other{Mission: {count} Probleme}}",
+  "plannerMission_factor_battery": "Akkureserve",
+  "plannerMission_factor_blockedByCurrent": "eine Strömung, die den Rückweg blockiert",
+  "plannerMission_factor_exposure": "Sauerstoffbelastung",
+  "plannerMission_factor_noFeasibleTow": "kein machbares Schleppen",
+  "plannerMission_factor_ownGas": "eigenes Gas",
+  "plannerMission_factor_scenarioFailed": "ein Ausfallszenario, das nicht berechnet werden konnte",
+  "plannerMission_factor_surfaceSwimLimit": "das Limit für Oberflächenschwimmen",
+  "plannerMission_factor_teamGas": "Gas eines Teammitglieds",
+  "plannerMission_results_abandonment": "Letzter Wegpunkt, von dem alle herauskommen: {waypoint}",
+  "plannerMission_results_assumptions": "Akkureserve {reserve} % der Laufzeit. Wessen Scooter ausfällt, atmet bis zum ersten Stopp das eigene AMV, erhöht um den Stressfaktor des Plans.",
+  "plannerMission_results_battery": "Akku {percent} % der Laufzeit ({minutes}′), Reserve {reserve} %",
+  "plannerMission_results_bindsAt": "Limit bei {waypoint}: {factor}",
+  "plannerMission_results_blocked": "Die Mission kann noch nicht berechnet werden:",
+  "plannerMission_results_cannotGetOut": "kommt nicht heraus",
+  "plannerMission_results_computing": "Ausfallszenarien werden berechnet",
+  "plannerMission_results_failed": "Die Mission konnte nicht berechnet werden",
+  "plannerMission_results_home": "{distance} direkt zum Einstieg",
+  "plannerMission_results_legLine": "hin {outSpeed} {outMinutes}′, zurück {backSpeed} {backMinutes}′",
+  "plannerMission_results_legs": "Abschnitte",
+  "plannerMission_results_limitedBy": "Begrenzt durch {scooter} von {name} bei {waypoint}: {factor}",
+  "plannerMission_results_limitedByDiver": "Begrenzt durch {name} bei {waypoint}: {factor}",
+  "plannerMission_results_noAbandonment": "Kein Wegpunkt übersteht jeden Ausfall",
+  "plannerMission_results_noBuddy": "kein Buddy",
+  "plannerMission_results_noLimit": "Kein Limit auf dieser Route",
+  "plannerMission_results_notComputed": "konnte nicht berechnet werden",
+  "plannerMission_results_safeSurface": "Sichere Oberfläche in {minutes}′",
+  "plannerMission_results_setsCruise": "Bestimmt die Reisegeschwindigkeit des Teams",
+  "plannerMission_results_surface": "auftauchen {minutes}′",
+  "plannerMission_results_surfaceViaShore": "auftauchen über das Ufer {minutes}′",
+  "plannerMission_results_survives": "kommt heraus",
+  "plannerMission_results_swim": "schwimmen {minutes}′",
+  "plannerMission_results_title": "Mission",
+  "plannerMission_results_tow": "Schleppen durch {name} {minutes}′",
+  "plannerMission_results_turnPressure": "Umkehren bei {pressure}",
+  "plannerMission_results_unconstrained": "Von jedem Wegpunkt kommen alle heraus, egal welcher Scooter ausfällt",
+  "plannerMission_results_waypointLine": "{distance}, Ankunft {minutes}′",
+  "plannerMission_results_waypoints": "Wegpunkte",
   "plannerMission_profile_segment": "{depth}, {minutes} Min.",
   "plannerMission_enableConfirm": "Ersetzen",
   "plannerMission_enableMessage": "Die Mission erzeugt das Profil aus Route und Team, daher werden die Segmente dieses Plans ersetzt. Wenn du die Mission später ausschaltest, bleibt das Profil der Mission erhalten, nicht diese Segmente.",
@@ -7119,17 +7180,20 @@
   "transfer_csvExport_dataTypeHeader": "Datentyp",
   "transfer_csvExport_descriptionDives": "Alle Tauchprotokolle als Tabelle exportieren",
   "transfer_csvExport_descriptionEquipment": "Ausrüstungsinventar und Serviceinformationen exportieren",
+  "transfer_csvExport_descriptionFills": "Jede auf einem Flaschenpass protokollierte Füllung mit Analyse, Druck und Füllstation",
   "transfer_csvExport_descriptionObservations": "Jede OK-Prüfung und jedes gemeldete Problem mit Tauchgang, Schlagwörtern und Notiz",
   "transfer_csvExport_descriptionSites": "Tauchplatzstandorte und Details exportieren",
   "transfer_csvExport_dialogTitle": "CSV exportieren",
   "transfer_csvExport_exportButton": "CSV exportieren",
   "transfer_csvExport_optionDivesTitle": "Tauchgänge CSV",
   "transfer_csvExport_optionEquipmentTitle": "Ausrüstung CSV",
+  "transfer_csvExport_optionFillsTitle": "CSV der Flaschenfüllungen",
   "transfer_csvExport_optionObservationsTitle": "Ausrüstungs-Check-ins als CSV",
   "transfer_csvExport_optionSitesTitle": "Tauchplätze CSV",
   "transfer_csvExport_semanticLabel": "{typeName} exportieren",
   "transfer_csvExport_typeDives": "Tauchgänge",
   "transfer_csvExport_typeEquipment": "Ausrüstung",
+  "transfer_csvExport_typeFills": "Flaschenfüllungen",
   "transfer_csvExport_typeObservations": "Ausrüstungs-Check-ins",
   "transfer_csvExport_typeSites": "Tauchplätze",
   "transfer_csvExport_unitsHeader": "Einheiten",
@@ -7295,6 +7359,10 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "Planung",
+  "trips_edit_label_diversSharing": "Taucher, die sich Flaschen teilen",
+  "trips_edit_hint_diversSharing": "Dich eingeschlossen. Leer bedeutet 1.",
+  "trips_edit_label_divesPerDay": "Tauchgänge pro Tag",
+  "trips_edit_hint_divesPerDay": "Für die Füllprognose. Leer bedeutet Schätzung.",
   "trips_edit_label_expectedDives": "Erwartete Tauchgänge",
   "trips_edit_hint_expectedDives": "Leer lassen, um aus deinen letzten Reisen zu schätzen",
   "trips_edit_label_expectedRuntime": "Erwartete Laufzeit je Tauchgang (Minuten)",
@@ -7399,6 +7467,131 @@
       }
     }
   },
+  "trips_gear_title": "Ausrüstung",
+  "trips_gear_none": "Noch keine Ausrüstung gepackt",
+  "trips_gear_add": "Ausrüstung hinzufügen",
+  "trips_gear_remove": "Entfernen",
+  "trips_gear_failed": "Die Ausrüstung konnte nicht geändert werden. Versuche es erneut.",
+  "trips_cylinders_forecast_todayShort": "Heute werden {needed} gebraucht, du hast {full} volle.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "Morgen werden {needed} gebraucht, du hast dann {full} volle.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "Vor {time} füllen.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "Genug volle Flaschen bis morgen.",
+  "trips_cylinders_forecast_daysTitle": "Geplante Tauchgänge",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} Tauchgang} other{{count} Tauchgänge}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "Geplante Tauchgänge, {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "Schätzung verwenden",
+  "trips_cylinders_forecast_fewer": "Weniger Tauchgänge",
+  "trips_cylinders_forecast_more": "Mehr Tauchgänge",
+  "trips_cylinders_forecast_saveError": "Plan konnte nicht gespeichert werden: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "Von dir geplant",
+  "trips_cylinders_segment_record": "Protokoll",
+  "trips_cylinders_recordEmpty": "Noch keine Tauchgänge mit diesen Flaschen.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} Füllung erfasst} other{{count} Füllungen erfasst}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} Tauchgang nicht gezählt} other{{count} Tauchgänge nicht gezählt}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} Füllung im Paket} other{{count} Füllungen im Paket}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} Tauchgangsflasche ohne Reiseflasche} other{{count} Tauchgangsflaschen ohne Reiseflasche}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "Keiner Flasche zugeordnet",
+  "trips_cylinders_record_tank": "Flasche {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "Gefüllt auf {pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "Analysiert {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_exported": "Gasprotokoll exportiert",
   "trips_cylinders_title": "Flaschen",
   "trips_cylinders_summary": "Voll {full} · Teilweise {partial} · Leer {empty}",
   "@trips_cylinders_summary": {
@@ -12858,6 +13051,7 @@
   "settings_export_progress_sitesCsv": "Tauchplätze werden nach CSV exportiert...",
   "settings_export_progress_equipmentCsv": "Ausrüstung wird nach CSV exportiert...",
   "settings_export_progress_observationsCsv": "Ausrüstungs-Check-ins werden als CSV exportiert...",
+  "settings_export_progress_fillsCsv": "Flaschenfüllungen werden als CSV exportiert...",
   "settings_export_progress_pdf": "PDF-Logbuch wird erstellt...",
   "settings_export_progress_loadingSignatures": "Signaturen werden geladen...",
   "settings_export_progress_loadingProfiles": "Tauchprofile werden geladen...",
@@ -12877,12 +13071,14 @@
   "settings_export_progress_preparingSitesCsv": "Tauchplätze-CSV wird vorbereitet...",
   "settings_export_progress_preparingEquipmentCsv": "Ausrüstungs-CSV wird vorbereitet...",
   "settings_export_progress_preparingObservationsCsv": "CSV der Ausrüstungs-Check-ins wird vorbereitet...",
+  "settings_export_progress_preparingFillsCsv": "CSV der Flaschenfüllungen wird vorbereitet...",
   "settings_export_progress_preparingUddf": "UDDF-Datei wird vorbereitet...",
   "settings_export_progress_preparingPdf": "PDF wird vorbereitet...",
   "settings_export_empty_dives": "Keine Tauchgänge zum Exportieren",
   "settings_export_empty_sites": "Keine Tauchplätze zum Exportieren",
   "settings_export_empty_equipment": "Keine Ausrüstung zum Exportieren",
   "settings_export_empty_observations": "Keine Ausrüstungs-Check-ins zum Exportieren",
+  "settings_export_empty_fills": "Keine Flaschenfüllungen zum Exportieren",
   "settings_export_empty_data": "Keine Daten zum Exportieren",
   "settings_export_empty_diveSites": "Keine Tauchplätze zum Exportieren",
   "settings_export_saveFailed": "Speichern fehlgeschlagen: {error}",
@@ -12890,6 +13086,7 @@
   "settings_export_success_sites": "Tauchplätze erfolgreich exportiert",
   "settings_export_success_equipment": "Ausrüstung erfolgreich exportiert",
   "settings_export_success_observations": "Ausrüstungs-Check-ins exportiert",
+  "settings_export_success_fills": "Flaschenfüllungen exportiert",
   "settings_export_success_pdf": "PDF-Logbuch erfolgreich erstellt",
   "settings_export_success_uddf": "UDDF-Datei erfolgreich erstellt",
   "settings_export_success_excel": "Excel-Datei erfolgreich exportiert",
@@ -12900,6 +13097,7 @@
   "settings_export_saved_sitesCsv": "Tauchplätze-CSV erfolgreich gespeichert",
   "settings_export_saved_equipmentCsv": "Ausrüstungs-CSV erfolgreich gespeichert",
   "settings_export_saved_observationsCsv": "CSV der Ausrüstungs-Check-ins gespeichert",
+  "settings_export_saved_fillsCsv": "CSV der Flaschenfüllungen gespeichert",
   "settings_export_saved_uddf": "UDDF-Datei erfolgreich gespeichert",
   "settings_export_saved_pdf": "PDF erfolgreich gespeichert",
   "settings_export_cancelled_save": "Speichern abgebrochen",
@@ -13043,6 +13241,7 @@
   "settings_export_saveSitesCsvDialogTitle": "Tauchplätze-CSV speichern",
   "settings_export_saveEquipmentCsvDialogTitle": "Ausrüstungs-CSV speichern",
   "settings_export_saveObservationsCsvDialogTitle": "CSV der Ausrüstungs-Check-ins speichern",
+  "settings_export_saveFillsCsvDialogTitle": "CSV der Flaschenfüllungen speichern",
   "backup_operation_created": "Sicherung erstellt: {size}",
   "backup_operation_backupFailed": "Sicherung fehlgeschlagen: {error}",
   "backup_operation_restoring": "Sicherung wird wiederhergestellt...",

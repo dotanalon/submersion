@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-/// The `dive_tanks.shared_computer_ids` column (v248): the other computers
+/// The `dive_tanks.shared_computer_ids` column (v250): the other computers
 /// on a consolidated dive that logged this same physical cylinder.
 ///
 /// Consolidation keeps one row for a cylinder two computers both logged

@@ -218,6 +218,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     TripCylinderEvents,
     // Saved Connections maps (v235, issue #2322)
     ConnectionMaps,
+    // Gear packed for a trip (v248, issue #2338)
+    TripEquipment,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -227,7 +229,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 248;
+  static const int currentSchemaVersion = 250;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1004,14 +1006,23 @@ class AppDatabase extends _$AppDatabase {
     // fields read (issue #2195, phase 2). A table with no hlc, never synced,
     // so the floor does not move. 246 is held by #2409 (open).
     247,
-    // v248: dive_tanks.shared_computer_ids (the other computers on a
+    // v248: trip_equipment, gear packed for a trip (issue #2338).
+    // Table-only rung, no backfill; the floor does not move. 246 is held by
+    // #2409 and 247 went to #2195 (Explore derived metrics).
+    248,
+    // v249: the trip fill forecast's inputs (issue #2325, PR 4): trips
+    // divers sharing and dives per day, itinerary planned dives, dive
+    // center fill hours. Additive columns, so the floor does not move. 248
+    // is trip_equipment (#2338).
+    249,
+    // v250: dive_tanks.shared_computer_ids (the other computers on a
     // consolidated dive that logged the same cylinder) and
     // gas_switches.computer_id, so each computer on a consolidated dive is
     // analysed on its own gas plan (issue #2560). Additive nullable columns
     // plus a local, deterministic backfill of the shared tanks; the floor
-    // stays. Renumbered from 241: main shipped 241 (#2440) to 247 while
-    // this was open, and 243 and 246 are held by #2409.
-    248,
+    // stays. Renumbered from 241 and then 248: main shipped 241 to 249
+    // while this was open, and 243 and 246 are held by #2409.
+    250,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -7,9 +7,12 @@ part of 'app_database_migrations.dart';
 /// asserted again here.
 extension BeforeOpenBackstops on AppDatabase {
   Future<void> _beforeOpen(OpeningDetails details) async {
+    // v249 backstop: the trip fill forecast's columns.
+    await _assertTripFillForecastColumns();
+
     // v240 backstop: the events-by-dive index.
     await _assertProfileEventsDiveIdIndex();
-    // v248 backstop: dive_tanks.shared_computer_ids and
+    // v250 backstop: dive_tanks.shared_computer_ids and
     // gas_switches.computer_id. Every read of either selects the whole row, so a database that arrives by restore or
     // sync-adopt without it would throw on the first read.
     await _assertGasPlanAttributionColumns();
@@ -181,6 +184,9 @@ extension BeforeOpenBackstops on AppDatabase {
     await _assertCertificationsBuddyIndex();
     // v247 backstop: the Explore derived metrics (local, idempotent).
     await _assertDerivedMetricsTable();
+
+    // v248 backstop: trip_equipment and its item index (idempotent).
+    await _assertTripEquipmentSchema();
 
     // v122 backstop: re-assert service ledger schema + built-in kinds.
     // The legacy backfill is NOT here (onUpgrade only) -- re-running it

@@ -2,7 +2,7 @@ part of '../app_database_migrations.dart';
 
 /// Dives, dive tanks and the values derived from a dive.
 extension DiveMigrations on AppDatabase {
-  /// v248: dive_tanks.shared_computer_ids and gas_switches.computer_id, the
+  /// v250: dive_tanks.shared_computer_ids and gas_switches.computer_id, the
   /// per-computer attribution of a consolidated dive's gas plan. Idempotent,
   /// so it is safe to call from both onUpgrade and the beforeOpen backstop,
   /// and a no-op for a table that does not exist yet.

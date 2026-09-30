@@ -432,9 +432,9 @@ class DiveSplitService {
         );
       }
 
-      // 7b. Gas switches the departing computer logged (v248, #2560) go
+      // 7b. Gas switches the departing computer logged (v250, #2560) go
       // with its gas plan, onto its copy of the tank. Unattributed switches
-      // belong to the dive and stay, as every switch did before v248.
+      // belong to the dive and stay, as every switch did before v250.
       final movingSwitches = [
         for (final r in switchRows)
           if (ownedByComputer(r.computerId) && tankIdMap.containsKey(r.tankId))

@@ -334,6 +334,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerMission_buddyPicker_title => '选择潜伴';
 
   @override
+  String plannerMission_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '任务：$count 个问题',
+      one: '任务：$count 个问题',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get plannerMission_current_setsToward => '流向';
 
   @override
@@ -366,6 +377,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerMission_environment_overhead => '有顶环境';
+
+  @override
+  String get plannerMission_factor_battery => '电池储备';
+
+  @override
+  String get plannerMission_factor_blockedByCurrent => '阻挡撤出路线的水流';
+
+  @override
+  String get plannerMission_factor_exposure => '氧暴露';
+
+  @override
+  String get plannerMission_factor_noFeasibleTow => '无可行的拖带';
+
+  @override
+  String get plannerMission_factor_ownGas => '自身气体';
+
+  @override
+  String get plannerMission_factor_scenarioFailed => '无法计算的故障场景';
+
+  @override
+  String get plannerMission_factor_surfaceSwimLimit => '水面游泳限制';
+
+  @override
+  String get plannerMission_factor_teamGas => '队友的气体';
 
   @override
   String get plannerMission_issue_batteryReserveInvalid =>
@@ -488,6 +523,169 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerMission_profile_title => '生成的剖面';
+
+  @override
+  String plannerMission_results_abandonment(String waypoint) {
+    return '所有人都能撤出的最后一个航点：$waypoint';
+  }
+
+  @override
+  String get plannerMission_results_abandonmentUnknown => '无法确定哪些航点可以撤出';
+
+  @override
+  String plannerMission_results_assumptions(String reserve) {
+    return '电池储备为续航时间的 $reserve%。推进器故障的潜水员在首次停留前按其自身 RMV 乘以计划的应激系数呼吸。';
+  }
+
+  @override
+  String plannerMission_results_battery(
+    String minutes,
+    String percent,
+    String reserve,
+  ) {
+    return '电池：续航时间的 $percent%（$minutes′），储备 $reserve%';
+  }
+
+  @override
+  String plannerMission_results_bindsAt(String factor, String waypoint) {
+    return '在 $waypoint 受限：$factor';
+  }
+
+  @override
+  String get plannerMission_results_blocked => '任务暂时无法计算：';
+
+  @override
+  String get plannerMission_results_cannotGetOut => '无法撤出';
+
+  @override
+  String get plannerMission_results_computing => '正在计算故障场景';
+
+  @override
+  String get plannerMission_results_failed => '无法计算此任务';
+
+  @override
+  String plannerMission_results_home(String distance) {
+    return '距入口直线 $distance';
+  }
+
+  @override
+  String plannerMission_results_legLine(
+    String backMinutes,
+    String backSpeed,
+    String outMinutes,
+    String outSpeed,
+  ) {
+    return '去程 $outSpeed $outMinutes′，返程 $backSpeed $backMinutes′';
+  }
+
+  @override
+  String plannerMission_results_legRow(String leg, String line) {
+    return '$leg：$line';
+  }
+
+  @override
+  String get plannerMission_results_legs => '航段';
+
+  @override
+  String plannerMission_results_limitedBy(
+    String factor,
+    String name,
+    String scooter,
+    String waypoint,
+  ) {
+    return '受限于 $name 的 $scooter，位于 $waypoint：$factor';
+  }
+
+  @override
+  String plannerMission_results_limitedByDiver(
+    String factor,
+    String name,
+    String waypoint,
+  ) {
+    return '受限于 $name，位于 $waypoint：$factor';
+  }
+
+  @override
+  String get plannerMission_results_listSeparator => '，';
+
+  @override
+  String plannerMission_results_memberLine(String name, String status) {
+    return '$name：$status';
+  }
+
+  @override
+  String plannerMission_results_memberLineExits(
+    String exits,
+    String name,
+    String status,
+  ) {
+    return '$name：$status（$exits）';
+  }
+
+  @override
+  String get plannerMission_results_noAbandonment => '没有任何航点能应对所有故障';
+
+  @override
+  String get plannerMission_results_noBuddy => '无潜伴';
+
+  @override
+  String get plannerMission_results_noLimit => '此路线无限制';
+
+  @override
+  String get plannerMission_results_notComputed => '无法计算';
+
+  @override
+  String plannerMission_results_safeSurface(String minutes) {
+    return '$minutes′ 内安全出水';
+  }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown => '安全出水：无法计算';
+
+  @override
+  String get plannerMission_results_setsCruise => '决定团队的巡航速度';
+
+  @override
+  String plannerMission_results_surface(String minutes) {
+    return '出水 $minutes′';
+  }
+
+  @override
+  String plannerMission_results_surfaceViaShore(String minutes) {
+    return '经岸边出水 $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_survives => '可撤出';
+
+  @override
+  String plannerMission_results_swim(String minutes) {
+    return '游回 $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_title => '任务';
+
+  @override
+  String plannerMission_results_tow(String minutes, String name) {
+    return '由 $name 拖带 $minutes′';
+  }
+
+  @override
+  String plannerMission_results_turnPressure(String pressure) {
+    return '在 $pressure 返程';
+  }
+
+  @override
+  String get plannerMission_results_unconstrained => '任一推进器故障时，每个航点都能撤出';
+
+  @override
+  String plannerMission_results_waypointLine(String distance, String minutes) {
+    return '$distance，到达 $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_waypoints => '航点';
 
   @override
   String get plannerMission_route_addLeg => '添加航段';
@@ -5291,6 +5489,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveCenters_section_gpsCoordinates => 'GPS 坐标';
+
+  @override
+  String get diveCenters_section_fillHours => '充气时间';
+
+  @override
+  String get diveCenters_fillHours_caption => '气站充气的时间。行程充气预测使用关门时间。';
+
+  @override
+  String get diveCenters_fillHours_opens => '开门';
+
+  @override
+  String get diveCenters_fillHours_closes => '关门';
+
+  @override
+  String get diveCenters_fillHours_notSet => '未设置';
+
+  @override
+  String get diveCenters_fillHours_clear => '清除充气时间';
+
+  @override
+  String get diveCenters_fillHours_errorBoth => '请同时设置两个时间，或都不设置。';
+
+  @override
+  String get diveCenters_fillHours_errorOrder => '关门时间必须晚于开门时间。';
 
   @override
   String get diveCenters_section_notes => '备注';
@@ -12679,6 +12901,34 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get passport_logFill_analysedHint => '请输入你实测的数值';
+
+  @override
+  String get passport_trip_title => '行程';
+
+  @override
+  String get passport_trip_none => '未打包到任何行程';
+
+  @override
+  String passport_trip_packedFor(String trip) {
+    return '已为 $trip 打包';
+  }
+
+  @override
+  String passport_trip_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get passport_trip_assign => '打包到行程';
+
+  @override
+  String get passport_trip_unassign => '从此行程移除';
+
+  @override
+  String get passport_trip_onBoard => '在行程的气瓶看板上';
+
+  @override
+  String get passport_trip_failed => '无法更改行程，请重试。';
 
   @override
   String get passport_logFill_notes => '备注';
@@ -23416,6 +23666,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_csvExport_descriptionEquipment => '导出装备库存和维护信息';
 
   @override
+  String get transfer_csvExport_descriptionFills => '气瓶护照上记录的每次充气，含气体分析、压力和充气站';
+
+  @override
   String get transfer_csvExport_descriptionObservations =>
       '每条正常检查和报告的问题，含潜水、标签和备注';
 
@@ -23435,6 +23688,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => '装备 CSV';
 
   @override
+  String get transfer_csvExport_optionFillsTitle => '气瓶充气记录 CSV';
+
+  @override
   String get transfer_csvExport_optionObservationsTitle => '装备检查记录 CSV';
 
   @override
@@ -23450,6 +23706,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => '装备';
+
+  @override
+  String get transfer_csvExport_typeFills => '气瓶充气记录';
 
   @override
   String get transfer_csvExport_typeObservations => '装备检查记录';
@@ -24295,6 +24554,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => '计划';
 
   @override
+  String get trips_edit_label_diversSharing => '共用气瓶的潜水员';
+
+  @override
+  String get trips_edit_hint_diversSharing => '包括你自己。留空表示 1。';
+
+  @override
+  String get trips_edit_label_divesPerDay => '每天潜水次数';
+
+  @override
+  String get trips_edit_hint_divesPerDay => '用于充气预测。留空表示估算。';
+
+  @override
   String get trips_edit_label_expectedDives => '预计潜水次数';
 
   @override
@@ -24390,6 +24661,141 @@ class AppLocalizationsZh extends AppLocalizations {
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count 台呼吸器，最低吸收剂余量 $minutes 分钟';
   }
+
+  @override
+  String get trips_gear_title => '装备';
+
+  @override
+  String get trips_gear_none => '尚未打包任何装备';
+
+  @override
+  String get trips_gear_add => '添加装备';
+
+  @override
+  String get trips_gear_remove => '移除';
+
+  @override
+  String get trips_gear_failed => '无法更改装备，请重试。';
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return '今天需要 $needed 个，你有 $full 个满瓶。';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return '明天需要 $needed 个，届时你有 $full 个满瓶。';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return '请在 $time 前充气。';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough => '满瓶足够用到明天。';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => '计划潜水';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return '计划潜水，$date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => '使用估计值';
+
+  @override
+  String get trips_cylinders_forecast_fewer => '减少潜水';
+
+  @override
+  String get trips_cylinders_forecast_more => '增加潜水';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return '无法保存计划：$error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => '由你计划';
+
+  @override
+  String get trips_cylinders_segment_record => '用气';
+
+  @override
+  String get trips_cylinders_recordEmpty => '还没有使用这些气瓶的潜水。';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已记录 $count 次充气',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水未计入',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次套餐充气',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个潜水气瓶未关联行程气瓶',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle => '未关联气瓶';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return '气瓶 $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return '充至 $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return '分析 $mix';
+  }
+
+  @override
+  String get trips_cylinders_record_exported => '用气记录已导出';
 
   @override
   String get trips_cylinders_title => '气瓶';
@@ -26683,6 +27089,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveImport_uddf_media => '照片';
+
+  @override
+  String get diveImport_uddf_fills => '充气记录';
 
   @override
   String get diveImport_uddf_title => '从 UDDF 导入';
@@ -40540,6 +40949,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_export_progress_observationsCsv => '正在将装备检查记录导出为 CSV...';
 
   @override
+  String get settings_export_progress_fillsCsv => '正在将气瓶充气记录导出为 CSV...';
+
+  @override
   String get settings_export_progress_pdf => '正在生成 PDF 潜水日志...';
 
   @override
@@ -40600,6 +41012,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '正在准备装备检查记录 CSV...';
 
   @override
+  String get settings_export_progress_preparingFillsCsv => '正在准备气瓶充气记录 CSV...';
+
+  @override
   String get settings_export_progress_preparingUddf => '正在准备 UDDF 文件...';
 
   @override
@@ -40616,6 +41031,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_export_empty_observations => '没有可导出的装备检查记录';
+
+  @override
+  String get settings_export_empty_fills => '没有可导出的气瓶充气记录';
 
   @override
   String get settings_export_empty_data => '没有可导出的数据';
@@ -40639,6 +41057,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_export_success_observations => '装备检查记录已导出';
+
+  @override
+  String get settings_export_success_fills => '气瓶充气记录已导出';
 
   @override
   String get settings_export_success_pdf => 'PDF 潜水日志生成成功';
@@ -40689,6 +41110,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_export_saved_observationsCsv => '装备检查记录 CSV 已保存';
 
   @override
+  String get settings_export_saved_fillsCsv => '气瓶充气记录 CSV 已保存';
+
+  @override
   String get settings_export_saved_uddf => 'UDDF 文件保存成功';
 
   @override
@@ -40711,6 +41135,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_export_saveObservationsCsvDialogTitle => '保存装备检查记录 CSV';
+
+  @override
+  String get settings_export_saveFillsCsvDialogTitle => '保存气瓶充气记录 CSV';
 
   @override
   String backup_operation_created(String size) {
