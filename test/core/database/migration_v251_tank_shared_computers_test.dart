@@ -5,12 +5,12 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/tank_shared_computer_backfill.dart';
 
 void main() {
-  test('v250 is the current schema version and is in the ladder', () {
+  test('v251 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 250);
-    expect(AppDatabase.migrationVersions, contains(250));
-    expect(AppDatabase.migrationStepCount(249), 1);
+    expect(AppDatabase.currentSchemaVersion, 251);
+    expect(AppDatabase.migrationVersions, contains(251));
+    expect(AppDatabase.migrationStepCount(250), 1);
   });
 
   test('the column is additive, so the sync floor does not move', () {
@@ -84,11 +84,11 @@ void main() {
     });
   });
 
-  test('a v249 database gains the column and its consolidated dives are '
+  test('a v250 database gains the column and its consolidated dives are '
       'backfilled', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 249');
+        rawDb.execute('PRAGMA user_version = 250');
         rawDb.execute('''
           CREATE TABLE dive_tanks (
             id TEXT NOT NULL PRIMARY KEY,

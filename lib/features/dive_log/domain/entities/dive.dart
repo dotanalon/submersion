@@ -1122,7 +1122,7 @@ class DiveTank extends Equatable {
   final int? sourceTankIndex;
 
   /// The other computers on a consolidated dive that logged this same
-  /// cylinder (v250): consolidation keeps one row per physical cylinder,
+  /// cylinder (v251): consolidation keeps one row per physical cylinder,
   /// attributed to [computerId], and lists here the computers merged into
   /// it. Computer-owned identity, like [computerId]: user edits never
   /// rewrite it.

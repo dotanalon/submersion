@@ -12,7 +12,7 @@ extension BeforeOpenBackstops on AppDatabase {
 
     // v240 backstop: the events-by-dive index.
     await _assertProfileEventsDiveIdIndex();
-    // v250 backstop: dive_tanks.shared_computer_ids and
+    // v251 backstop: dive_tanks.shared_computer_ids and
     // gas_switches.computer_id. Every read of either selects the whole row, so a database that arrives by restore or
     // sync-adopt without it would throw on the first read.
     await _assertGasPlanAttributionColumns();
@@ -187,6 +187,10 @@ extension BeforeOpenBackstops on AppDatabase {
 
     // v248 backstop: trip_equipment and its item index (idempotent).
     await _assertTripEquipmentSchema();
+
+    // v250 backstop: trip_hides and site_hides (idempotent).
+    await _assertTripHidesSchema();
+    await _assertSiteHidesSchema();
 
     // v122 backstop: re-assert service ledger schema + built-in kinds.
     // The legacy backfill is NOT here (onUpgrade only) -- re-running it

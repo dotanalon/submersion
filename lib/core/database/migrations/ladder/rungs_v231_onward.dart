@@ -114,16 +114,23 @@ extension RungsFromV231 on AppDatabase {
       await _assertTripFillForecastColumns();
     }
     if (from < 249) await reportProgress();
-    // v250: dive_tanks.shared_computer_ids and gas_switches.computer_id,
+    // v250: a profile's hidden shared trips and sites (issue #2594).
+    // Table-only rung, no backfill; re-asserted in beforeOpen.
+    if (from < 250) {
+      await _assertTripHidesSchema();
+      await _assertSiteHidesSchema();
+    }
+    if (from < 250) await reportProgress();
+    // v251: dive_tanks.shared_computer_ids and gas_switches.computer_id,
     // then infer the shared tanks of dives consolidated before the fold
     // recorded them (issue #2560). Older switches stay unattributed:
     // nothing on the row says which computer logged one, and null applies
     // to every computer. The columns are re-asserted in beforeOpen; the
     // backfill runs once.
-    if (from < 250) {
+    if (from < 251) {
       await _assertGasPlanAttributionColumns();
       await backfillTankSharedComputers(this);
     }
-    if (from < 250) await reportProgress();
+    if (from < 251) await reportProgress();
   }
 }
