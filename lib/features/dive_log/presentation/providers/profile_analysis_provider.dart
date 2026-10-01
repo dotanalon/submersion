@@ -953,6 +953,9 @@ Future<void> _awaitDiverSettingsLoaded(Ref ref) async {
 /// cylinders it shares with another computer, and unattributed (manually
 /// added) tanks, which belong to the dive rather than to either computer.
 ///
+/// [sourceId] is the data source [profile] belongs to; with [computerId] it
+/// picks that source's own pressure series on each tank.
+///
 /// [decoSource] is the non-primary data source whose samples [profile] is:
 /// its own recorded gradient factors and deco algorithm drive the
 /// recompute. The dive row carries only the primary computer's (or the
@@ -966,6 +969,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
   Dive dive,
   List<DiveProfilePoint> profile, {
   String? computerId,
+  String? sourceId,
   DiveDataSource? decoSource,
 }) async {
   {
@@ -1036,15 +1040,20 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     if (tanks.isNotEmpty) {
       // Load per-tank pressure data from the tank_pressure_series table
       final tankPressureRepo = ref.watch(tankPressureRepositoryProvider);
-      final allTankPressures = await tankPressureRepo.getTankPressuresForDive(
-        diveId,
-      );
-      // Scope pressure curves to the requested computer's tanks; null keeps
-      // every tank (primary-source / legacy behavior).
+      // Scope pressure curves to the requested computer: its own series on
+      // each tank it breathed. A cylinder two computers share carries both
+      // computers' series, and the dive-wide read prefers the primary's, so
+      // a secondary would otherwise analyse another computer's curve
+      // (#2560). Null keeps every tank (primary-source / legacy behavior).
       final tankPressures = computerId == null
-          ? allTankPressures
+          ? await tankPressureRepo.getTankPressuresForDive(diveId)
           : <String, List<TankPressurePoint>>{
-              for (final entry in allTankPressures.entries)
+              for (final entry
+                  in (await tankPressureRepo.getTankPressuresForComputer(
+                    diveId,
+                    computerId,
+                    sourceId: sourceId,
+                  )).entries)
                 if (tankIds.contains(entry.key)) entry.key: entry.value,
             };
 
@@ -1323,6 +1332,7 @@ final sourceProfileAnalysisProvider =
           dive,
           sourceProfile.points,
           computerId: sourceProfile.computerId,
+          sourceId: sourceProfile.sourceId,
           // A secondary computer's own GFs; the dive row holds the primary's.
           decoSource: source.isPrimary ? null : source,
         );

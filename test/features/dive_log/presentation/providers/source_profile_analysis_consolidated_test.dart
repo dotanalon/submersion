@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -126,6 +128,36 @@ DownloadedDive _decoGasDive(
       if (o2Percents.length > 2)
         const GasSwitchEvent(timeSeconds: 2340, depth: 6, toTankIndex: 2),
     ],
+  );
+}
+
+/// A 20 m single-cylinder dive on 21% whose transmitter falls from 200 bar
+/// to 100 bar, linearly or, when [frontLoaded], faster early on: two
+/// computers logging one cylinder (start and end agree, so consolidation
+/// merges it) with different pressure curves.
+DownloadedDive _pressureDive(DateTime start, {required bool frontLoaded}) {
+  double depthAt(int t) {
+    if (t < 60) return t / 3;
+    if (t < 1500) return 20;
+    return (20 - (t - 1500) / 15).clamp(0, 20).toDouble();
+  }
+
+  return DownloadedDive(
+    startTime: start,
+    durationSeconds: 1800,
+    maxDepth: 20,
+    profile: [
+      for (var t = 0; t <= 1800; t += 10)
+        ProfileSample(
+          timeSeconds: t,
+          depth: depthAt(t),
+          pressure: frontLoaded
+              ? 200 - 100 * math.sqrt(t / 1800)
+              : 200 - 100 * t / 1800,
+          tankIndex: 0,
+        ),
+    ],
+    tanks: const [DownloadedTank(index: 0, o2Percent: 21, volumeLiters: 12)],
   );
 }
 
@@ -296,5 +328,66 @@ void main() {
       folded.ceilingCurve.reduce((a, b) => a > b ? a : b),
       closeTo(alone.ceilingCurve.reduce((a, b) => a > b ? a : b), 1e-6),
     );
+  });
+
+  /// One cylinder both computers logged is kept once, attributed to the
+  /// primary; each computer's own transmitter series stays on it. The
+  /// secondary's analysis must read its own series, not the primary's.
+  test('a consolidated secondary reads its own pressure series on a shared '
+      'cylinder', () async {
+    final diveRepo = DiveRepository();
+    final computers = DiveComputerRepository();
+    for (final id in ['suunto', 'garmin']) {
+      await computers.createComputer(
+        DiveComputer.create(id: id, name: id, diverId: 'diver-1'),
+      );
+    }
+    final importer = DiveImportService(
+      repository: computers,
+      diveRepository: diveRepo,
+    );
+    final start = DateTime.utc(2026, 8, 8, 10, 16);
+    final targetId = await importer.importSingleDiveAsNew(
+      _pressureDive(start, frontLoaded: false),
+      computerId: 'suunto',
+      diverId: 'diver-1',
+    );
+    final secondaryId = await importer.importSingleDiveAsNew(
+      _pressureDive(start, frontLoaded: true),
+      computerId: 'garmin',
+      diverId: 'diver-1',
+    );
+
+    final before = container();
+    final alone = (await before.read(
+      profileAnalysisProvider(secondaryId).future,
+    ))!;
+    before.dispose();
+    expect(alone.sacCurve, isNotNull, reason: 'fixture must yield a SAC');
+
+    await DiveConsolidationService(
+      diveRepo,
+    ).apply(targetDiveId: targetId, secondaryDiveIds: [secondaryId]);
+
+    final after = container();
+    addTearDown(after.dispose);
+    final sources = await after.read(diveDataSourcesProvider(targetId).future);
+    final garmin = sources.singleWhere((s) => s.computerId == 'garmin');
+    final folded = (await after.read(
+      sourceProfileAnalysisProvider((
+        diveId: targetId,
+        sourceId: garmin.id,
+      )).future,
+    ))!;
+
+    // The fixture must have merged the cylinder, or nothing is shared.
+    final tanks = (await diveRepo.getDiveById(targetId))!.tanks;
+    expect(tanks, hasLength(1));
+    expect(tanks.single.sharedComputerIds, ['garmin']);
+
+    expect(folded.sacCurve, hasLength(alone.sacCurve!.length));
+    for (var i = 0; i < alone.sacCurve!.length; i++) {
+      expect(folded.sacCurve![i], closeTo(alone.sacCurve![i], 1e-6));
+    }
   });
 }

@@ -201,4 +201,30 @@ void main() {
       expect(moved.every((sw) => newTankIds.contains(sw.tankId)), isTrue);
     },
   );
+
+  test('a later fold leaves an already consolidated dive\'s unattributed '
+      'switches alone', () async {
+    await consolidateSuuntoAndGarmin();
+    // A switch from before v251: nothing says which of the two logged it,
+    // so it applies to both and must keep doing so.
+    await db
+        .into(db.gasSwitches)
+        .insert(
+          GasSwitchesCompanion.insert(
+            id: 'legacy-switch',
+            diveId: 't',
+            timestamp: 1200,
+            tankId: 't-t1',
+            createdAt: 0,
+          ),
+        );
+    await seedDive('o', 'ocean', [21], switches: [(0, 0)]);
+
+    await consolidation.apply(targetDiveId: 't', secondaryDiveIds: ['o']);
+
+    final legacy = await (db.select(
+      db.gasSwitches,
+    )..where((t) => t.id.equals('legacy-switch'))).getSingle();
+    expect(legacy.computerId, isNull);
+  });
 }

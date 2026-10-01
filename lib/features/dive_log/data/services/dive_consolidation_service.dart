@@ -131,13 +131,18 @@ class DiveConsolidationService {
           targetRow.computerId!,
           now: now,
         );
-        // The target's switches are its own computer's gas plan: stamp them
-        // so the secondary's analysis does not pick them up (#2560).
-        final unstampedSwitches =
-            await (_db.select(_db.gasSwitches)..where(
-                  (t) => t.diveId.equals(targetDiveId) & t.computerId.isNull(),
-                ))
-                .get();
+        // A single-source target's switches are its own computer's gas
+        // plan: stamp them so the secondary's analysis does not pick them up
+        // (#2560). A target already holding several sources is left alone,
+        // like the pressure series above: its unattributed switches predate
+        // v251, could be any computer's, and keep applying to all of them.
+        final unstampedSwitches = targetSources.length != 1
+            ? const <GasSwitche>[]
+            : await (_db.select(_db.gasSwitches)..where(
+                    (t) =>
+                        t.diveId.equals(targetDiveId) & t.computerId.isNull(),
+                  ))
+                  .get();
         for (final row in unstampedSwitches) {
           await (_db.update(
             _db.gasSwitches,
