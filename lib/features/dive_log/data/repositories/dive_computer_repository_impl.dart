@@ -1402,16 +1402,20 @@ class DiveComputerRepository {
             ))
             .map((s) => s.id)
             .get();
+    // One transaction, so a failure cannot leave a switch gone with no
+    // tombstone for peers.
     if (doomedSwitches.isNotEmpty) {
-      await (_db.delete(
-        _db.gasSwitches,
-      )..where((t) => t.id.isIn(doomedSwitches))).go();
-      for (final id in doomedSwitches) {
-        await _syncRepository.logDeletion(
-          entityType: 'gasSwitches',
-          recordId: id,
-        );
-      }
+      await _db.transaction(() async {
+        await (_db.delete(
+          _db.gasSwitches,
+        )..where((t) => t.id.isIn(doomedSwitches))).go();
+        for (final id in doomedSwitches) {
+          await _syncRepository.logDeletion(
+            entityType: 'gasSwitches',
+            recordId: id,
+          );
+        }
+      });
     }
     // Delete profile points for this computer+dive
     await _profileSeries.deleteByComputer(diveId, computerId);
