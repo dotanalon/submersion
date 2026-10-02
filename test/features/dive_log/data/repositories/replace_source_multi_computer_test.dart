@@ -307,6 +307,44 @@ void main() {
     ]);
   });
 
+  test('a reading whose summary-only source row survives on a dive with no '
+      'series takes that row\'s role', () async {
+    final diveId = await downloadA();
+    // A's samples gone, its primary summary row kept, and a secondary
+    // summary-only row for B, as a restore without samples can leave.
+    await db.customStatement(
+      'DELETE FROM dive_profile_series WHERE dive_id = ?',
+      [diveId],
+    );
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion(
+            id: const Value('src-b'),
+            diveId: Value(diveId),
+            computerId: const Value('comp-b'),
+            isPrimary: const Value(false),
+            sourceFormat: const Value('dive_computer'),
+            importedAt: Value(DateTime(2026)),
+            createdAt: Value(DateTime(2026)),
+          ),
+        );
+
+    expect(await downloadB(isPrimary: true), diveId);
+
+    final profiles = await (db.select(
+      db.diveProfileSeries,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    expect(profiles.single.computerId, 'comp-b');
+    expect(profiles.single.isPrimary, isFalse);
+    final sources = await (db.select(
+      db.diveDataSources,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    expect(sources.where((s) => s.isPrimary).map((s) => s.computerId), [
+      'comp-a',
+    ]);
+  });
+
   test('a single-computer dive still clears every event and gas switch of '
       'the dive', () async {
     final diveId = await downloadA();

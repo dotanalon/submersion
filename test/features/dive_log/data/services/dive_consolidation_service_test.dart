@@ -658,10 +658,12 @@ void main() {
       )..where((t) => t.id.equals('tank-t1'))).getSingle();
       expect(after.computerId, targetRow.computerId);
       expect(after.computerId, 'comp-t');
+      // A switch with no computer is one the diver entered, and stays
+      // unattributed so a Replace Source cannot delete it (#2582).
       final targetSwitch = await (db.select(
         db.gasSwitches,
       )..where((t) => t.id.equals('switch-t1'))).getSingle();
-      expect(targetSwitch.computerId, 'comp-t');
+      expect(targetSwitch.computerId, isNull);
     });
 
     test('the tank computer backfill carries a fresh clock (#2644)', () async {

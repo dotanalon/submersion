@@ -1777,17 +1777,21 @@ class DiveComputerRepository {
 
       // If this dive has no series yet, make this one primary
       final hadSeries = await _profileSeries.hasAnySeries(diveId);
-      if (!hadSeries) {
+      // One role for this reading's series and its source row (#2582). The
+      // source row says which it is when it survives, even on a dive with no
+      // series yet (a summary-only row); otherwise the reading is primary on
+      // a dive with nothing yet, and elsewhere the caller's request holds
+      // only while no other reading has the role, so a dive never carries
+      // two primaries.
+      final ownSource = isNewDive
+          ? null
+          : await _dataSourceFor(diveId, computerId);
+      if (ownSource != null) {
+        isPrimary = ownSource.isPrimary;
+      } else if (!hadSeries) {
         isPrimary = true;
       } else if (!isNewDive) {
-        // One role for this reading's series and its source row (#2582).
-        // The source row says which it is when it survives; otherwise the
-        // caller's request for primary holds only while no other reading
-        // has the role, so a dive never carries two primaries.
-        final ownSource = await _dataSourceFor(diveId, computerId);
-        isPrimary =
-            ownSource?.isPrimary ??
-            (isPrimary && !await _hasPrimaryReading(diveId));
+        isPrimary = isPrimary && !await _hasPrimaryReading(diveId);
       }
 
       // A profile attached to an existing dive used to leave no

@@ -147,17 +147,10 @@ class DiveConsolidationService {
                 hlc: Value(await _sync.issueRowClock()),
               ),
             );
-        // The gas switches too (#2582), so a later Replace Source of one
-        // computer can tell its switches from the others'.
-        await (_db.update(_db.gasSwitches)..where(
-              (t) => t.diveId.equals(targetDiveId) & t.computerId.isNull(),
-            ))
-            .write(
-              GasSwitchesCompanion(
-                computerId: Value(targetRow.computerId),
-                hlc: Value(await _sync.issueRowClock()),
-              ),
-            );
+        // Not the gas switches (#2582): a download stamps its own, and v258
+        // attributed the stored ones through their cylinder, so a switch
+        // still unattributed is one the diver entered. Claiming it for the
+        // primary would let a later Replace Source of that computer delete it.
       }
 
       var nextTankOrder =
