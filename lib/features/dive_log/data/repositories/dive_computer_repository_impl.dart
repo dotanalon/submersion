@@ -1333,9 +1333,20 @@ class DiveComputerRepository {
     final sources = await (_db.select(
       _db.diveDataSources,
     )..where((t) => t.diveId.equals(diveId))).get();
-    final wasPrimary = sources.any(
-      (s) => s.computerId == computerId && s.isPrimary,
-    );
+    // Its primary series counts too: a Replace Source of the primary before
+    // #2582 left that series primary and demoted the source row.
+    final wasPrimary =
+        sources.any((s) => s.computerId == computerId && s.isPrimary) ||
+        await (_db.selectOnly(_db.diveProfileSeries)
+                  ..addColumns([_db.diveProfileSeries.id])
+                  ..where(
+                    _db.diveProfileSeries.diveId.equals(diveId) &
+                        _db.diveProfileSeries.computerId.equals(computerId) &
+                        _db.diveProfileSeries.isPrimary.equals(true),
+                  )
+                  ..limit(1))
+                .getSingleOrNull() !=
+            null;
     // Another computer's series counts too: a profile attached before #2002
     // left that computer no source row.
     final sharedDive =

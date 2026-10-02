@@ -234,6 +234,32 @@ void main() {
   });
 
   group('replacing the primary computer', () {
+    test('restores the role a replace before #2582 left on its series '
+        'alone', () async {
+      final diveId = await twoComputerDive();
+      // The old Replace Source of the primary kept its series primary but
+      // wrote its source row secondary.
+      await db.customStatement(
+        'UPDATE dive_data_sources SET is_primary = 0 WHERE dive_id = ?',
+        [diveId],
+      );
+
+      await replace(diveId, 'comp-a', downloadA);
+
+      final sources = await (db.select(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      expect(sources.where((s) => s.isPrimary).map((s) => s.computerId), [
+        'comp-a',
+      ]);
+      final profiles = await (db.select(
+        db.diveProfileSeries,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      expect(profiles.where((p) => p.isPrimary).map((p) => p.computerId), [
+        'comp-a',
+      ]);
+    });
+
     test('keeps it primary and the secondary\'s reading intact', () async {
       final diveId = await twoComputerDive();
       final bSeries = (await tankSeries(
