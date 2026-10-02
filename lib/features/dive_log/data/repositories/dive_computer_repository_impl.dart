@@ -916,26 +916,55 @@ class DiveComputerRepository {
     );
   }
 
-  /// The dive_data_sources row on [diveId] that describes [computerId], or
-  /// null when the dive has no source row for that computer yet.
+  /// The id of the dive_data_sources row on [diveId] that describes
+  /// [computerId], or null when the dive has no source row for that computer
+  /// yet.
   ///
   /// Used to stamp the series row's `sourceId` at insert time (issue #1149).
+  Future<String?> _dataSourceIdFor(String diveId, String computerId) async =>
+      (await _dataSourceFor(diveId, computerId))?.id;
+
+  /// The dive_data_sources row on [diveId] that describes [computerId].
   /// Primary first so a dive that somehow carries two rows for one computer
   /// resolves to the one the rest of the app treats as canonical.
-  Future<String?> _dataSourceIdFor(String diveId, String computerId) async {
-    final row =
-        await (_db.select(_db.diveDataSources)
+  Future<db.DiveDataSourcesData?> _dataSourceFor(
+    String diveId,
+    String computerId,
+  ) =>
+      (_db.select(_db.diveDataSources)
+            ..where(
+              (t) => t.diveId.equals(diveId) & t.computerId.equals(computerId),
+            )
+            ..orderBy([
+              (t) => OrderingTerm.desc(t.isPrimary),
+              (t) => OrderingTerm.asc(t.createdAt),
+            ])
+            ..limit(1))
+          .getSingleOrNull();
+
+  /// Whether any reading of [diveId] holds the primary role: a primary
+  /// source row or a primary profile series.
+  Future<bool> _hasPrimaryReading(String diveId) async {
+    final source =
+        await (_db.selectOnly(_db.diveDataSources)
+              ..addColumns([_db.diveDataSources.id])
               ..where(
-                (t) =>
-                    t.diveId.equals(diveId) & t.computerId.equals(computerId),
+                _db.diveDataSources.diveId.equals(diveId) &
+                    _db.diveDataSources.isPrimary.equals(true),
               )
-              ..orderBy([
-                (t) => OrderingTerm.desc(t.isPrimary),
-                (t) => OrderingTerm.asc(t.createdAt),
-              ])
               ..limit(1))
             .getSingleOrNull();
-    return row?.id;
+    if (source != null) return true;
+    final series =
+        await (_db.selectOnly(_db.diveProfileSeries)
+              ..addColumns([_db.diveProfileSeries.id])
+              ..where(
+                _db.diveProfileSeries.diveId.equals(diveId) &
+                    _db.diveProfileSeries.isPrimary.equals(true),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    return series != null;
   }
 
   /// Get the primary profile's computer for a dive
@@ -1288,30 +1317,91 @@ class DiveComputerRepository {
   /// dive+computer pair.
   ///
   /// Used by the replaceSource path so that a subsequent [importProfile] call
-  /// inserts fresh data instead of short-circuiting. Also clears per-dive
-  /// derived rows (events, gas switches, tank pressure series) that lack a
-  /// computer_id column and would otherwise accumulate stale rows.
-  Future<void> clearSourceAndProfiles({
+  /// inserts fresh data instead of short-circuiting. Also clears the derived
+  /// rows importProfile re-creates (events, gas switches, tank pressure
+  /// series). On a dive another source also recorded, only this computer's
+  /// rows go, so its re-import leaves the other readings intact (#2582). A
+  /// dive this computer alone recorded is cleared whole, which also takes
+  /// the rows a database from before their computer column left unowned.
+  ///
+  /// Returns whether the cleared reading was the dive's primary, the role
+  /// its re-import takes back.
+  Future<bool> clearSourceAndProfiles({
     required String diveId,
     required String computerId,
   }) async {
-    // Delete per-dive derived rows that importProfile will re-create.
-    // These tables lack a computer_id column, so we clear by dive_id.
-    final deletedEvents = await (_db.delete(
-      _db.diveProfileEvents,
-    )..where((t) => t.diveId.equals(diveId))).go();
-    // One tombstone for the dive's events (#1926). Without one, peers kept
-    // the old events beside the re-imported ones. importProfile stamps the
-    // fresh events after this, so their clocks are newer and peers keep them.
+    final sources = await (_db.select(
+      _db.diveDataSources,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    final wasPrimary = sources.any(
+      (s) => s.computerId == computerId && s.isPrimary,
+    );
+    // Another computer's series counts too: a profile attached before #2002
+    // left that computer no source row.
+    final sharedDive =
+        sources.any((s) => s.computerId != computerId) ||
+        await (_db.selectOnly(_db.diveProfileSeries)
+                  ..addColumns([_db.diveProfileSeries.id])
+                  ..where(
+                    _db.diveProfileSeries.diveId.equals(diveId) &
+                        _db.diveProfileSeries.computerId.isNotNull() &
+                        _db.diveProfileSeries.computerId
+                            .equals(computerId)
+                            .not(),
+                  )
+                  ..limit(1))
+                .getSingleOrNull() !=
+            null;
+
+    final deletedEvents =
+        await (_db.delete(_db.diveProfileEvents)..where(
+              (t) =>
+                  t.diveId.equals(diveId) &
+                  (sharedDive
+                      ? t.computerId.equals(computerId)
+                      : const Constant(true)),
+            ))
+            .go();
+    // One tombstone for the cleared events (#1926), scoped like the delete.
+    // Without one, peers kept the old events beside the re-imported ones.
+    // importProfile stamps the fresh events after this, so their clocks are
+    // newer and peers keep them.
     if (deletedEvents > 0) {
       await _syncRepository.logScopedDeletion(
-        EventScopeTombstone(diveId: diveId),
+        EventScopeTombstone(
+          diveId: diveId,
+          computerId: sharedDive ? computerId : null,
+        ),
       );
     }
-    await _tankSeries.deleteForDive(diveId);
-    await _db.customStatement('DELETE FROM gas_switches WHERE dive_id = ?', [
-      diveId,
-    ]);
+    if (sharedDive) {
+      await _tankSeries.deleteOwnedByComputer(diveId, computerId);
+    } else {
+      await _tankSeries.deleteForDive(diveId);
+    }
+    // Tombstoned one by one: a peer's import only upserts switches, so one
+    // removed here without a tombstone stayed there beside its replacement.
+    final doomedSwitches =
+        await (_db.select(_db.gasSwitches)..where(
+              (t) =>
+                  t.diveId.equals(diveId) &
+                  (sharedDive
+                      ? t.computerId.equals(computerId)
+                      : const Constant(true)),
+            ))
+            .map((s) => s.id)
+            .get();
+    if (doomedSwitches.isNotEmpty) {
+      await (_db.delete(
+        _db.gasSwitches,
+      )..where((t) => t.id.isIn(doomedSwitches))).go();
+      for (final id in doomedSwitches) {
+        await _syncRepository.logDeletion(
+          entityType: 'gasSwitches',
+          recordId: id,
+        );
+      }
+    }
     // Delete profile points for this computer+dive
     await _profileSeries.deleteByComputer(diveId, computerId);
     // Whatever series survive that (deleteByComputer never matches the
@@ -1352,6 +1442,7 @@ class DiveComputerRepository {
     // leaks a row rather than stranding a surviving source row on bytes that
     // are gone.
     await _importedFileReclaimer.reclaimOrphans();
+    return wasPrimary;
   }
 
   /// Import a profile and associate it with a dive (creating one if needed).
@@ -1677,19 +1768,29 @@ class DiveComputerRepository {
       final hadSeries = await _profileSeries.hasAnySeries(diveId);
       if (!hadSeries) {
         isPrimary = true;
+      } else if (!isNewDive) {
+        // One role for this reading's series and its source row (#2582).
+        // The source row says which it is when it survives; otherwise the
+        // caller's request for primary holds only while no other reading
+        // has the role, so a dive never carries two primaries.
+        final ownSource = await _dataSourceFor(diveId, computerId);
+        isPrimary =
+            ownSource?.isPrimary ??
+            (isPrimary && !await _hasPrimaryReading(diveId));
       }
 
       // A profile attached to an existing dive used to leave no
       // dive_data_sources row, so its fingerprint was invisible to the
       // re-download pass and the series had no owning source (issue #2002).
-      // Primary when the dive had nothing yet; a secondary otherwise.
+      // Primary when the dive had nothing yet, or when it takes back the
+      // role a replaced reading held (#2582); a secondary otherwise.
       if (!isNewDive && await _dataSourceIdFor(diveId, computerId) == null) {
         // A dive can already hold a summary-only source row and no series:
         // a UDDF import writes one for every dive it creates. The download
         // is about to become this dive's profile, so it takes the primary
         // flag and any older primary loses it. Readers resolve "the"
         // primary with LIMIT 1, so two primaries would be ambiguous.
-        if (!hadSeries) {
+        if (isPrimary) {
           await (_db.update(_db.diveDataSources)..where(
                 (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
               ))
@@ -1716,7 +1817,7 @@ class DiveComputerRepository {
               _downloadSourceCompanion(
                 diveId: diveId,
                 computerId: computerId,
-                isPrimary: !hadSeries,
+                isPrimary: isPrimary,
                 computer: await getComputerById(computerId),
                 profileStartTime: profileStartTime,
                 durationSeconds: durationSeconds,
@@ -1861,12 +1962,6 @@ class DiveComputerRepository {
                   ..where((t) => t.diveId.equals(diveId))
                   ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
                 .get();
-        for (final tank in existingTanks) {
-          tankIdByGas.putIfAbsent((
-            tank.o2Percent,
-            tank.hePercent,
-          ), () => tank.id);
-        }
         if (addMissingTanks && tanks != null && tanks.isNotEmpty) {
           // This computer's own reading again, so its rows are found the way
           // a re-parse finds them: by source index, which a diver's
@@ -1876,6 +1971,17 @@ class DiveComputerRepository {
           ], computerId: computerId);
           for (final MapEntry(key: index, value: row) in matches.entries) {
             tankIdsByIndex[index] = row.id;
+          }
+          // Its gas switches go to its own cylinders only: on a dive other
+          // computers recorded too, a stored cylinder of the same mix can be
+          // one of theirs (#2582).
+          final claimed = {for (final row in matches.values) row.id};
+          for (final tank in existingTanks) {
+            if (!claimed.contains(tank.id)) continue;
+            tankIdByGas.putIfAbsent((
+              tank.o2Percent,
+              tank.hePercent,
+            ), () => tank.id);
           }
           final missing = [
             for (final tank in tanks)
@@ -1893,6 +1999,10 @@ class DiveComputerRepository {
           }
         } else {
           for (final tank in existingTanks) {
+            tankIdByGas.putIfAbsent((
+              tank.o2Percent,
+              tank.hePercent,
+            ), () => tank.id);
             tankIdsByIndex[tank.tankOrder] = tank.id;
           }
         }
@@ -2034,6 +2144,7 @@ class DiveComputerRepository {
                 timestamp: Value(sw.timestamp),
                 tankId: Value(tankId),
                 depth: Value(sw.depth),
+                computerId: Value(computerId),
                 createdAt: Value(now),
               ),
             );

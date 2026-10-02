@@ -8,6 +8,36 @@ extension DiveMigrations on AppDatabase {
   Future<void> _assertComputerTissueColumn() =>
       _addColumnIfMissing('dives', 'computer_tissue_json', 'TEXT');
 
+  /// v258: gas_switches.computer_id (issue #2582). Idempotent, so it is safe
+  /// to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertGasSwitchComputerIdColumn() => _addColumnIfMissing(
+    'gas_switches',
+    'computer_id',
+    'TEXT REFERENCES dive_computers(id) ON DELETE SET NULL',
+  );
+
+  /// v258: a stored switch belongs to the computer whose cylinder it
+  /// switched to, which is the reading that wrote it. A switch to a cylinder
+  /// no computer owns stays null. Re-runs only touch rows still null.
+  Future<void> _backfillGasSwitchComputerIds() async {
+    final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
+    if (!cols.any((c) => c.read<String>('name') == 'computer_id')) return;
+    final switchCols = await customSelect(
+      "PRAGMA table_info('gas_switches')",
+    ).get();
+    if (!switchCols.any((c) => c.read<String>('name') == 'computer_id')) {
+      return;
+    }
+    await customStatement('''
+      UPDATE gas_switches
+      SET computer_id = (
+        SELECT t.computer_id FROM dive_tanks t
+        WHERE t.id = gas_switches.tank_id
+      )
+      WHERE computer_id IS NULL
+    ''');
+  }
+
   /// Idempotent DDL for dive_tanks.source_tank_index (v200, issue #1314).
   Future<void> _assertDiveTankSourceIndexColumn() async {
     final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();

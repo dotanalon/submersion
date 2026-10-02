@@ -147,6 +147,17 @@ class DiveConsolidationService {
                 hlc: Value(await _sync.issueRowClock()),
               ),
             );
+        // The gas switches too (#2582), so a later Replace Source of one
+        // computer can tell its switches from the others'.
+        await (_db.update(_db.gasSwitches)..where(
+              (t) => t.diveId.equals(targetDiveId) & t.computerId.isNull(),
+            ))
+            .write(
+              GasSwitchesCompanion(
+                computerId: Value(targetRow.computerId),
+                hlc: Value(await _sync.issueRowClock()),
+              ),
+            );
       }
 
       var nextTankOrder =
@@ -440,7 +451,8 @@ class DiveConsolidationService {
           );
         }
 
-        // Gas switches, re-based + tank FK remapped (drop unmappable).
+        // Gas switches, re-based + tank FK remapped (drop unmappable), with
+        // the same computerId attribution as the events (#2582).
         for (final row in snapshot.gasSwitchRows.where(
           (r) => r.diveId == secondary.id,
         )) {
@@ -457,6 +469,7 @@ class DiveConsolidationService {
                       diveId: Value(targetDiveId),
                       tankId: Value(newTankId),
                       timestamp: Value(row.timestamp + offset),
+                      computerId: Value(secRow.computerId),
                     ),
               );
           await _sync.markRecordPending(

@@ -443,6 +443,13 @@ void main() {
         expect(secondaryEvents.map((e) => e.timestamp).toSet(), {90, 960});
         expect(secondaryEvents.every((e) => e.computerId == 'comp-s'), isTrue);
 
+        // So does its gas switch (#2582), so a later Replace Source of one
+        // computer leaves the other's switches alone.
+        final switches = await (db.select(
+          db.gasSwitches,
+        )..where((t) => t.diveId.equals('t'))).get();
+        expect(switches.map((s) => s.computerId), ['comp-s']);
+
         // Secondary's tank pressure series shifted by +60 and carry the
         // secondary's computerId.
         final pressureSeries = await tankSeries.getSeriesForDive('t');
@@ -629,6 +636,12 @@ void main() {
         computerId: 'comp-s',
         serial: 'SER-S',
       );
+      await seedGasSwitch(
+        'switch-t1',
+        diveId: 't',
+        tankId: 'tank-t1',
+        timestamp: 0,
+      );
 
       final before = await (db.select(
         db.diveTanks,
@@ -645,6 +658,10 @@ void main() {
       )..where((t) => t.id.equals('tank-t1'))).getSingle();
       expect(after.computerId, targetRow.computerId);
       expect(after.computerId, 'comp-t');
+      final targetSwitch = await (db.select(
+        db.gasSwitches,
+      )..where((t) => t.id.equals('switch-t1'))).getSingle();
+      expect(targetSwitch.computerId, 'comp-t');
     });
 
     test('the tank computer backfill carries a fresh clock (#2644)', () async {

@@ -175,5 +175,13 @@ extension RungsFromV231 on AppDatabase {
       await _backfillProfileSeriesHistoryRows();
     }
     if (from < 257) await reportProgress();
+    // v258: gas_switches.computer_id (issue #2582), backfilled from each
+    // switch's cylinder. The column is re-asserted in beforeOpen; the
+    // backfill stays in the rung.
+    if (from < 258) {
+      await _assertGasSwitchComputerIdColumn();
+      await _backfillGasSwitchComputerIds();
+    }
+    if (from < 258) await reportProgress();
   }
 }

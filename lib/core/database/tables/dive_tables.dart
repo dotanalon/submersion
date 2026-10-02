@@ -352,6 +352,14 @@ class GasSwitches extends Table {
   TextColumn get tankId =>
       text().references(DiveTanks, #id, onDelete: KeyAction.cascade)();
   RealColumn get depth => real().nullable()(); // depth at switch (meters)
+  // v258: which computer's reading the switch came from (issue #2582), so
+  // replacing one computer's reading leaves the others' switches alone.
+  // Null for a switch the diver entered. Deletes set null.
+  TextColumn get computerId => text().nullable().references(
+    DiveComputers,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   IntColumn get createdAt => integer()();
 
   @override

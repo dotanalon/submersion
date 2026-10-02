@@ -232,7 +232,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 257;
+  static const int currentSchemaVersion = 258;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1064,6 +1064,10 @@ class AppDatabase extends _$AppDatabase {
     // relations. Local-only table, so the floor stays. Renumbered from 246
     // and then 256: main shipped 247 through 256 while this branch was open.
     257,
+    // v258: gas_switches.computer_id, the computer whose reading a switch
+    // came from (issue #2582), backfilled from the switch's cylinder.
+    // Additive nullable column, so the floor stays.
+    258,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
