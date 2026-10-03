@@ -125,6 +125,19 @@ void main() {
     );
   });
 
+  test('the fold marks the cylinders nobody shares as recorded, so the '
+      'open-time inference never guesses for them', () async {
+    await consolidateSuuntoAndGarmin();
+
+    final rows = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals('t'))).get();
+    expect(
+      {for (final r in rows) r.o2Percent: r.sharedComputerIds},
+      {21: '["garmin"]', 50: '["garmin"]', 100: '[]'},
+    );
+  });
+
   test('an edit of the dive keeps what the fold recorded', () async {
     await consolidateSuuntoAndGarmin();
 

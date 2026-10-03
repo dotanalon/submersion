@@ -93,12 +93,24 @@ Map<String, List<String>> inferSharedComputers({
   return result;
 }
 
-/// v260: fills `dive_tanks.shared_computer_ids` on dives consolidated before
-/// the fold recorded it (see [inferSharedComputers]).
+/// The stored value of a cylinder recorded as shared with nobody; the same
+/// marker as tank_shared_computers.dart's noSharedComputersRecorded, which
+/// this layer does not import.
+const String _recordedNobody = '[]';
+
+/// v260: fills `dive_tanks.shared_computer_ids` on every consolidated dive
+/// nothing has recorded it for yet (see [inferSharedComputers]).
 ///
-/// Local-only and idempotent: deterministic from rows every device holds,
-/// so no HLC bump and nothing marked pending; a tank that already records
-/// its sharers is skipped.
+/// Runs on upgrade and on every open, so a consolidated dive that arrives
+/// after the upgrade (folded on a pre-v260 peer, or synced into a fresh
+/// install, which runs no rungs) is inferred too. A dive is inferred only
+/// while every one of its cylinders is unrecorded (null): a fold marks the
+/// cylinders it found nobody to share, and this marks the rest of a dive it
+/// infers, so a dive is never guessed twice and an open with nothing new
+/// costs one query.
+///
+/// Local-only: deterministic from rows every device holds, so no HLC bump
+/// and nothing marked pending.
 Future<void> backfillTankSharedComputers(DatabaseConnectionUser db) async {
   Future<Set<String>> columnsOf(String table) async => {
     for (final c in await db.customSelect("PRAGMA table_info('$table')").get())
@@ -123,14 +135,18 @@ Future<void> backfillTankSharedComputers(DatabaseConnectionUser db) async {
   final seriesCols = await columnsOf('tank_pressure_series');
   final hasSeries = seriesCols.containsAll(['dive_id', 'tank_id']);
 
-  // Consolidated dives: a primary source with a computer, plus at least one
-  // other computer.
+  // Consolidated dives (more than one computer) with nothing recorded on
+  // any cylinder yet.
   final sources = await db.customSelect('''
     SELECT id, dive_id, computer_id, is_primary FROM dive_data_sources
     WHERE computer_id IS NOT NULL AND dive_id IN (
-      SELECT dive_id FROM dive_data_sources
-      WHERE computer_id IS NOT NULL
-      GROUP BY dive_id HAVING COUNT(DISTINCT computer_id) > 1
+      SELECT s.dive_id FROM dive_data_sources s
+      WHERE s.computer_id IS NOT NULL
+        AND NOT EXISTS (
+          SELECT 1 FROM dive_tanks t
+          WHERE t.dive_id = s.dive_id AND t.shared_computer_ids IS NOT NULL
+        )
+      GROUP BY s.dive_id HAVING COUNT(DISTINCT s.computer_id) > 1
     )
   ''').get();
   final primaryByDive = <String, String>{};
@@ -204,5 +220,26 @@ Future<void> backfillTankSharedComputers(DatabaseConnectionUser db) async {
         ],
       );
     }
+  }
+
+  // Every other cylinder of each candidate (a dive with no primary computer
+  // included, which has nothing to infer) is recorded as shared with
+  // nobody, so the next open skips the dive.
+  final candidates = computersByDive.keys.toList();
+  const chunk = 500;
+  for (var i = 0; i < candidates.length; i += chunk) {
+    final ids = candidates.sublist(
+      i,
+      i + chunk > candidates.length ? candidates.length : i + chunk,
+    );
+    await db.customUpdate(
+      'UPDATE dive_tanks SET shared_computer_ids = ? '
+      'WHERE shared_computer_ids IS NULL '
+      'AND dive_id IN (${List.filled(ids.length, '?').join(', ')})',
+      variables: [
+        const Variable<String>(_recordedNobody),
+        for (final id in ids) Variable<String>(id),
+      ],
+    );
   }
 }

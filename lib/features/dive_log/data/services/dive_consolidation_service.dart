@@ -714,6 +714,31 @@ class DiveConsolidationService {
                 .firstWhere((s) => s != null, orElse: () => null)
           : null;
 
+      // Every target cylinder nobody shares is marked as recorded, so the
+      // open-time inference (backfillTankSharedComputers) never guesses for
+      // a dive a fold has handled.
+      final unrecordedTanks =
+          await (_db.select(_db.diveTanks)..where(
+                (t) =>
+                    t.diveId.equals(targetDiveId) &
+                    t.sharedComputerIds.isNull(),
+              ))
+              .get();
+      for (final row in unrecordedTanks) {
+        await (_db.update(
+          _db.diveTanks,
+        )..where((t) => t.id.equals(row.id))).write(
+          const DiveTanksCompanion(
+            sharedComputerIds: Value(noSharedComputersRecorded),
+          ),
+        );
+        await _sync.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+
       // Touch the target so sync carries the consolidation.
       await (_db.update(
         _db.dives,

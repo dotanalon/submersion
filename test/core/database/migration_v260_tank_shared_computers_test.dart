@@ -157,86 +157,126 @@ void main() {
     });
   });
 
-  test('a v259 database gains the column and its consolidated dives are '
-      'backfilled', () async {
-    final nativeDb = NativeDatabase.memory(
-      setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 259');
-        rawDb.execute('''
-          CREATE TABLE dive_tanks (
-            id TEXT NOT NULL PRIMARY KEY,
-            dive_id TEXT NOT NULL,
-            computer_id TEXT,
-            o2_percent REAL NOT NULL DEFAULT 21,
-            he_percent REAL NOT NULL DEFAULT 0,
-            tank_order INTEGER NOT NULL DEFAULT 0,
-            tank_role TEXT NOT NULL DEFAULT 'backGas'
-          )
-        ''');
-        rawDb.execute('''
-          CREATE TABLE tank_pressure_series (
-            id TEXT NOT NULL PRIMARY KEY,
-            dive_id TEXT NOT NULL,
-            tank_id TEXT NOT NULL,
-            computer_id TEXT,
-            source_id TEXT
-          )
-        ''');
-        rawDb.execute('''
-          CREATE TABLE dive_data_sources (
-            id TEXT NOT NULL PRIMARY KEY,
-            dive_id TEXT NOT NULL,
-            computer_id TEXT,
-            is_primary INTEGER NOT NULL DEFAULT 0
-          )
-        ''');
-        rawDb.execute(
-          "INSERT INTO dive_data_sources VALUES "
-          "('s1', 'd', 'suunto', 1), ('s2', 'd', 'garmin', 0), "
-          "('s3', 'solo', 'suunto', 1), "
-          "('s4', 'b', 'perdix', 1), ('s5', 'b', 'backup', 0)",
-        );
-        rawDb.execute(
-          "INSERT INTO dive_tanks VALUES "
-          "('air', 'd', 'suunto', 21, 0, 0, 'backGas'), "
-          "('ean50', 'd', 'suunto', 50, 0, 1, 'deco'), "
-          "('o2', 'd', 'garmin', 100, 0, 2, 'deco'), "
-          "('solo-air', 'solo', 'suunto', 21, 0, 0, 'backGas'), "
-          // Dive b: the backup was left on 21% while the Perdix ran 32%,
-          // and the backup's transmitter series sits on the Perdix's 32%
-          // through its source row only.
-          "('b-ean32', 'b', 'perdix', 32, 0, 0, 'backGas'), "
-          "('b-ean50', 'b', 'perdix', 50, 0, 1, 'deco'), "
-          "('b-air', 'b', 'backup', 21, 0, 2, 'backGas')",
-        );
-        rawDb.execute(
-          "INSERT INTO tank_pressure_series VALUES "
-          "('p1', 'b', 'b-ean32', NULL, 's5')",
-        );
-      },
-    );
-    final db = AppDatabase(nativeDb);
-    addTearDown(db.close);
-
-    final rows = await db
-        .customSelect(
-          'SELECT id, shared_computer_ids FROM dive_tanks ORDER BY id',
+  /// Dive d: a Suunto (primary) and Garmin fold that recorded nothing.
+  /// Dive b: a backup left on 21% while the Perdix ran 32%, the backup's
+  /// transmitter series sitting on the Perdix's 32% through its source row
+  /// only. Dive solo: one computer. At [version] 260 the column already
+  /// exists; [recordedOnD] is what a fold left on every tank of dive d.
+  NativeDatabase consolidatedFixture({
+    int version = 259,
+    String? recordedOnD,
+  }) => NativeDatabase.memory(
+    setup: (rawDb) {
+      rawDb.execute('PRAGMA user_version = $version');
+      rawDb.execute('''
+        CREATE TABLE dive_tanks (
+          id TEXT NOT NULL PRIMARY KEY,
+          dive_id TEXT NOT NULL,
+          computer_id TEXT,
+          o2_percent REAL NOT NULL DEFAULT 21,
+          he_percent REAL NOT NULL DEFAULT 0,
+          tank_order INTEGER NOT NULL DEFAULT 0,
+          tank_role TEXT NOT NULL DEFAULT 'backGas'
+          ${version >= 260 ? ', shared_computer_ids TEXT' : ''}
         )
-        .get();
-    expect(
-      {
-        for (final r in rows)
-          r.read<String>('id'): r.read<String?>('shared_computer_ids'),
-      },
-      {
-        'air': '["garmin"]',
-        'ean50': '["garmin"]',
-        'o2': null,
-        'solo-air': null,
-        'b-ean32': '["backup"]',
-        'b-ean50': '["backup"]',
-        'b-air': null,
-      },
+      ''');
+      rawDb.execute('''
+        CREATE TABLE tank_pressure_series (
+          id TEXT NOT NULL PRIMARY KEY,
+          dive_id TEXT NOT NULL,
+          tank_id TEXT NOT NULL,
+          computer_id TEXT,
+          source_id TEXT
+        )
+      ''');
+      rawDb.execute('''
+        CREATE TABLE dive_data_sources (
+          id TEXT NOT NULL PRIMARY KEY,
+          dive_id TEXT NOT NULL,
+          computer_id TEXT,
+          is_primary INTEGER NOT NULL DEFAULT 0
+        )
+      ''');
+      rawDb.execute(
+        "INSERT INTO dive_data_sources VALUES "
+        "('s1', 'd', 'suunto', 1), ('s2', 'd', 'garmin', 0), "
+        "('s3', 'solo', 'suunto', 1), "
+        "('s4', 'b', 'perdix', 1), ('s5', 'b', 'backup', 0)",
+      );
+      rawDb.execute(
+        "INSERT INTO dive_tanks "
+        "(id, dive_id, computer_id, o2_percent, he_percent, tank_order, "
+        "tank_role) VALUES "
+        "('air', 'd', 'suunto', 21, 0, 0, 'backGas'), "
+        "('ean50', 'd', 'suunto', 50, 0, 1, 'deco'), "
+        "('o2', 'd', 'garmin', 100, 0, 2, 'deco'), "
+        "('solo-air', 'solo', 'suunto', 21, 0, 0, 'backGas'), "
+        "('b-ean32', 'b', 'perdix', 32, 0, 0, 'backGas'), "
+        "('b-ean50', 'b', 'perdix', 50, 0, 1, 'deco'), "
+        "('b-air', 'b', 'backup', 21, 0, 2, 'backGas')",
+      );
+      if (recordedOnD != null) {
+        rawDb.execute(
+          "UPDATE dive_tanks SET shared_computer_ids = '$recordedOnD' "
+          "WHERE dive_id = 'd'",
+        );
+      }
+      rawDb.execute(
+        "INSERT INTO tank_pressure_series VALUES "
+        "('p1', 'b', 'b-ean32', NULL, 's5')",
+      );
+    },
+  );
+
+  Future<Map<String, String?>> sharedById(AppDatabase db) async => {
+    for (final r
+        in await db
+            .customSelect(
+              'SELECT id, shared_computer_ids FROM dive_tanks ORDER BY id',
+            )
+            .get())
+      r.read<String>('id'): r.read<String?>('shared_computer_ids'),
+  };
+
+  // What inference leaves: the sharers, and the recorded-nobody marker on
+  // every other cylinder of an inferred dive, so it is never guessed again.
+  const inferred = {
+    'air': '["garmin"]',
+    'ean50': '["garmin"]',
+    'o2': '[]',
+    'solo-air': null,
+    'b-ean32': '["backup"]',
+    'b-ean50': '["backup"]',
+    'b-air': '[]',
+  };
+
+  test('a v259 database gains the column and its consolidated dives are '
+      'inferred', () async {
+    final db = AppDatabase(consolidatedFixture());
+    addTearDown(db.close);
+    expect(await sharedById(db), inferred);
+  });
+
+  test('a consolidated dive that reaches a v260 database unrecorded (folded '
+      'on an older peer, or synced into a fresh install) is inferred on '
+      'open', () async {
+    final db = AppDatabase(consolidatedFixture(version: 260));
+    addTearDown(db.close);
+    expect(await sharedById(db), inferred);
+  });
+
+  test('a dive a fold recorded is never guessed again', () async {
+    // The fold found nobody to share dive d's cylinders, which inference
+    // would have shared with the Garmin.
+    final db = AppDatabase(
+      consolidatedFixture(version: 260, recordedOnD: '[]'),
     );
+    addTearDown(db.close);
+    expect(await sharedById(db), {
+      ...inferred,
+      'air': '[]',
+      'ean50': '[]',
+      'o2': '[]',
+    });
   });
 }

@@ -20,6 +20,12 @@ List<String> decodeSharedComputerIds(String? text) {
   }
 }
 
+/// The stored value of a cylinder whose sharing was recorded and found
+/// nobody: a fold, or the open-time inference, has handled its dive. Null
+/// means never recorded, which the inference reads as a dive to infer
+/// (backfillTankSharedComputers). Decodes to an empty list like null.
+const String noSharedComputersRecorded = '[]';
+
 /// Inverse of [decodeSharedComputerIds]; an empty list is stored as null.
 String? encodeSharedComputerIds(Iterable<String> ids) {
   final unique = {...ids}.toList();
