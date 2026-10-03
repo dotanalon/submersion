@@ -9,25 +9,28 @@ extension DiveMigrations on AppDatabase {
       _addColumnIfMissing('dives', 'computer_tissue_json', 'TEXT');
 
   /// v258: gas_switches.computer_id (issue #2582). Idempotent, so it is safe
-  /// to call from both onUpgrade and the beforeOpen backstop.
-  Future<void> _assertGasSwitchComputerIdColumn() => _addColumnIfMissing(
-    'gas_switches',
-    'computer_id',
-    'TEXT REFERENCES dive_computers(id) ON DELETE SET NULL',
-  );
+  /// to call from both onUpgrade and the beforeOpen backstop. The backfill
+  /// runs only as the column is added, wherever that happens: v258 sits
+  /// below 259, so a database already at 259 gains the column here from
+  /// beforeOpen, and once the column exists a switch left without a
+  /// computer is one the diver entered, which must stay that way.
+  Future<void> _assertGasSwitchComputerIdColumn() async {
+    final cols = await customSelect("PRAGMA table_info('gas_switches')").get();
+    if (cols.isEmpty) return;
+    if (cols.any((c) => c.read<String>('name') == 'computer_id')) return;
+    await customStatement(
+      'ALTER TABLE gas_switches ADD COLUMN computer_id TEXT '
+      'REFERENCES dive_computers(id) ON DELETE SET NULL',
+    );
+    await _backfillGasSwitchComputerIds();
+  }
 
-  /// v258: a stored switch belongs to the computer whose cylinder it
-  /// switched to, which is the reading that wrote it. A switch to a cylinder
-  /// no computer owns stays null. Re-runs only touch rows still null.
+  /// A stored switch belongs to the computer whose cylinder it switched to,
+  /// which is the reading that wrote it. A switch to a cylinder no computer
+  /// owns stays null.
   Future<void> _backfillGasSwitchComputerIds() async {
     final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
     if (!cols.any((c) => c.read<String>('name') == 'computer_id')) return;
-    final switchCols = await customSelect(
-      "PRAGMA table_info('gas_switches')",
-    ).get();
-    if (!switchCols.any((c) => c.read<String>('name') == 'computer_id')) {
-      return;
-    }
     await customStatement('''
       UPDATE gas_switches
       SET computer_id = (
@@ -484,6 +487,19 @@ extension DiveMigrations on AppDatabase {
     final names = cols.map((c) => c.read<String>('name')).toSet();
     if (names.contains('role_source')) return;
     await customStatement('ALTER TABLE dive_tanks ADD COLUMN role_source TEXT');
+  }
+
+  /// Idempotent DDL for the v259 dive_tanks.usage_duration column (issue
+  /// #1496). Called from the v259 rung and re-asserted in beforeOpen like
+  /// the other column-assert helpers.
+  Future<void> _assertTankUsageDurationColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('usage_duration')) return;
+    await customStatement(
+      'ALTER TABLE dive_tanks ADD COLUMN usage_duration INTEGER',
+    );
   }
 
   /// One-time clear of weather descriptions this app generated itself.
