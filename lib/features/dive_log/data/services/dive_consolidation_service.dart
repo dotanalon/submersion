@@ -444,8 +444,10 @@ class DiveConsolidationService {
           );
         }
 
-        // Gas switches, re-based + tank FK remapped (drop unmappable), with
-        // the same computerId attribution as the events (#2582).
+        // Gas switches, re-based + tank FK remapped (drop unmappable). Each
+        // keeps its own computerId (#2582): a download or the v258 backfill
+        // stamped the imported ones, and a null one is the diver's, which a
+        // Replace Source must not be able to delete.
         for (final row in snapshot.gasSwitchRows.where(
           (r) => r.diveId == secondary.id,
         )) {
@@ -462,7 +464,6 @@ class DiveConsolidationService {
                       diveId: Value(targetDiveId),
                       tankId: Value(newTankId),
                       timestamp: Value(row.timestamp + offset),
-                      computerId: Value(secRow.computerId),
                     ),
               );
           await _sync.markRecordPending(

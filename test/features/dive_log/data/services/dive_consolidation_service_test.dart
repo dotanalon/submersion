@@ -187,6 +187,7 @@ void main() {
     required String diveId,
     required String tankId,
     required int timestamp,
+    String? computerId,
   }) async {
     await db
         .into(db.gasSwitches)
@@ -197,6 +198,7 @@ void main() {
             timestamp: timestamp,
             tankId: tankId,
             createdAt: 0,
+            computerId: Value(computerId),
           ),
         );
   }
@@ -398,6 +400,7 @@ void main() {
       diveId: 's',
       tankId: 'tank-s1',
       timestamp: 30,
+      computerId: 'comp-s',
     );
     await seedEvent('event-s2', diveId: 's', timestamp: 900, eventType: 'deco');
     await seedMedia('media-s', diveId: 's');
@@ -408,6 +411,13 @@ void main() {
       'scenario 1: re-parents everything and tombstones the secondary',
       () async {
         await seedConsolidatableFixture();
+        // A switch the diver entered: no computer.
+        await seedGasSwitch(
+          'switch-s-manual',
+          diveId: 's',
+          tankId: 'tank-s1',
+          timestamp: 600,
+        );
 
         final outcome = await service.apply(
           targetDiveId: 't',
@@ -443,12 +453,16 @@ void main() {
         expect(secondaryEvents.map((e) => e.timestamp).toSet(), {90, 960});
         expect(secondaryEvents.every((e) => e.computerId == 'comp-s'), isTrue);
 
-        // So does its gas switch (#2582), so a later Replace Source of one
-        // computer leaves the other's switches alone.
+        // Its gas switches keep their own attribution (#2582): the
+        // computer's stays the computer's, and the diver's stays
+        // unattributed so no Replace Source can delete it.
         final switches = await (db.select(
           db.gasSwitches,
         )..where((t) => t.diveId.equals('t'))).get();
-        expect(switches.map((s) => s.computerId), ['comp-s']);
+        expect(
+          {for (final s in switches) s.timestamp: s.computerId},
+          {90: 'comp-s', 660: null},
+        );
 
         // Secondary's tank pressure series shifted by +60 and carry the
         // secondary's computerId.
