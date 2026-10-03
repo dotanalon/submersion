@@ -2,37 +2,76 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
-/// A dive_tanks row as the v260 backfill sees it.
+/// A dive_tanks row as the v260 backfill sees it. [role] is the stored
+/// `tank_role` name.
 typedef BackfillTank = ({
   String id,
   String? computerId,
   double o2,
   double he,
+  String role,
   String? sharedComputerIds,
 });
+
+/// A computer that recorded pressures on a tank: a tank pressure series of
+/// that computer (or of one of its data sources) sits on it.
+typedef TankLoggedBy = ({String tankId, String computerId});
 
 /// Same-gas tolerance the consolidation merge uses
 /// (DiveConsolidationBuilder._gasTolerancePct).
 const double _gasTolerancePct = 0.5;
 
+/// The O2 share from which a cylinder is a deco gas rather than a bottom gas,
+/// as the download path infers roles (parsed_tank_resolver's
+/// _decoMinO2Percent).
+const double _decoMinO2Percent = 41.0;
+
 /// Which computers share which of the primary's cylinders on one dive
 /// consolidated before v260 recorded it: tank id -> computer ids.
 ///
-/// Consolidation merges a secondary's cylinder only into a PRIMARY tank
-/// with the same gas, and drops the secondary's row. So a secondary
-/// computer that has no cylinder of its own on a primary tank's gas once
-/// had one there, merged away: it shares that tank. Its own remaining
-/// tanks are the ones that matched nothing. Tanks of other secondaries are
-/// never merge targets, so they are never shared. A tank that already
-/// records its sharers is left alone.
+/// Consolidation merges a secondary's cylinder only into a PRIMARY tank,
+/// moves the secondary's pressure series onto it, and drops the secondary's
+/// row. A secondary shares a primary tank when:
+///
+/// 1. Its pressure series sits on the tank ([loggedOn]): proof it logged
+///    that cylinder.
+/// 2. Otherwise, it has no cylinder of its own on the tank's gas, so one
+///    was most likely merged away. This cannot tell a merged cylinder from
+///    one the secondary never had, so it is held back where a wrong guess
+///    changes the analysis: a bottom-gas tank is never shared with a
+///    secondary that still has a bottom gas of its own, or the secondary
+///    would start the dive on the primary's mix instead of its own (a backup
+///    left on 21% beside a primary on 32% merged nothing). A deco or travel
+///    gas shared by mistake only applies where a switch to it does, which
+///    is the gas the diver breathed.
+///
+/// Tanks of other secondaries are never merge targets, so they are never
+/// shared. A tank that already records its sharers is left alone.
 Map<String, List<String>> inferSharedComputers({
   required String primaryComputerId,
   required Set<String> secondaryComputerIds,
   required List<BackfillTank> tanks,
+  Set<TankLoggedBy> loggedOn = const {},
 }) {
   bool sameGas(BackfillTank a, BackfillTank b) =>
       (a.o2 - b.o2).abs() <= _gasTolerancePct &&
       (a.he - b.he).abs() <= _gasTolerancePct;
+  // A cylinder labelled back gas but at deco strength is not a bottom gas:
+  // an import without roles labels every cylinder back gas.
+  bool isBottomGas(BackfillTank t) =>
+      t.role == 'backGas' && t.o2 < _decoMinO2Percent;
+
+  bool shares(String computer, BackfillTank tank) {
+    if (loggedOn.contains((tankId: tank.id, computerId: computer))) {
+      return true;
+    }
+    final own = [
+      for (final t in tanks)
+        if (t.computerId == computer) t,
+    ];
+    if (own.any((t) => sameGas(t, tank))) return false;
+    return !(isBottomGas(tank) && own.any(isBottomGas));
+  }
 
   final result = <String, List<String>>{};
   for (final tank in tanks) {
@@ -40,8 +79,7 @@ Map<String, List<String>> inferSharedComputers({
     if (tank.sharedComputerIds?.trim().isNotEmpty ?? false) continue;
     final sharers = [
       for (final computer in secondaryComputerIds.toList()..sort())
-        if (!tanks.any((t) => t.computerId == computer && sameGas(t, tank)))
-          computer,
+        if (shares(computer, tank)) computer,
     ];
     if (sharers.isNotEmpty) result[tank.id] = sharers;
   }
@@ -53,33 +91,35 @@ Map<String, List<String>> inferSharedComputers({
 ///
 /// Local-only and idempotent: deterministic from rows every device holds,
 /// so no HLC bump and nothing marked pending; a tank that already records
-/// its sharers is skipped. A no-op until the column exists.
+/// its sharers is skipped.
 Future<void> backfillTankSharedComputers(DatabaseConnectionUser db) async {
-  Future<bool> hasColumns(String table, List<String> names) async {
-    final cols = {
-      for (final c
-          in await db.customSelect("PRAGMA table_info('$table')").get())
-        c.read<String>('name'),
-    };
-    return cols.containsAll(names);
-  }
+  Future<Set<String>> columnsOf(String table) async => {
+    for (final c in await db.customSelect("PRAGMA table_info('$table')").get())
+      c.read<String>('name'),
+  };
 
   // A no-op until the column exists, and on a partial-schema fixture that
   // lacks what the inference reads.
-  if (!await hasColumns('dive_tanks', [
+  final tankCols = await columnsOf('dive_tanks');
+  if (!tankCols.containsAll([
         'shared_computer_ids',
         'computer_id',
         'o2_percent',
         'he_percent',
       ]) ||
-      !await hasColumns('dive_data_sources', ['computer_id', 'is_primary'])) {
+      !(await columnsOf(
+        'dive_data_sources',
+      )).containsAll(['id', 'computer_id', 'is_primary'])) {
     return;
   }
+  final hasRole = tankCols.contains('tank_role');
+  final seriesCols = await columnsOf('tank_pressure_series');
+  final hasSeries = seriesCols.containsAll(['dive_id', 'tank_id']);
 
   // Consolidated dives: a primary source with a computer, plus at least one
   // other computer.
   final sources = await db.customSelect('''
-    SELECT dive_id, computer_id, is_primary FROM dive_data_sources
+    SELECT id, dive_id, computer_id, is_primary FROM dive_data_sources
     WHERE computer_id IS NOT NULL AND dive_id IN (
       SELECT dive_id FROM dive_data_sources
       WHERE computer_id IS NOT NULL
@@ -88,26 +128,53 @@ Future<void> backfillTankSharedComputers(DatabaseConnectionUser db) async {
   ''').get();
   final primaryByDive = <String, String>{};
   final computersByDive = <String, Set<String>>{};
+  final computerBySource = <String, String>{};
   for (final row in sources) {
     final diveId = row.read<String>('dive_id');
     final computerId = row.read<String>('computer_id');
     computersByDive.putIfAbsent(diveId, () => <String>{}).add(computerId);
+    computerBySource[row.read<String>('id')] = computerId;
     if (row.read<bool>('is_primary')) primaryByDive[diveId] = computerId;
   }
 
   for (final entry in primaryByDive.entries) {
+    final diveId = entry.key;
     final tankRows = await db
         .customSelect(
           'SELECT id, computer_id, o2_percent, he_percent, '
+          '${hasRole ? 'tank_role' : "'backGas' AS tank_role"}, '
           'shared_computer_ids FROM dive_tanks WHERE dive_id = ?',
-          variables: [Variable<String>(entry.key)],
+          variables: [Variable<String>(diveId)],
         )
         .get();
+    final loggedOn = <TankLoggedBy>{};
+    if (hasSeries) {
+      final hasComputer = seriesCols.contains('computer_id');
+      final hasSource = seriesCols.contains('source_id');
+      final seriesRows = await db
+          .customSelect(
+            'SELECT tank_id, '
+            '${hasComputer ? 'computer_id' : 'NULL AS computer_id'}, '
+            '${hasSource ? 'source_id' : 'NULL AS source_id'} '
+            'FROM tank_pressure_series WHERE dive_id = ?',
+            variables: [Variable<String>(diveId)],
+          )
+          .get();
+      for (final r in seriesRows) {
+        final computer =
+            r.read<String?>('computer_id') ??
+            computerBySource[r.read<String?>('source_id')];
+        if (computer != null) {
+          loggedOn.add((
+            tankId: r.read<String>('tank_id'),
+            computerId: computer,
+          ));
+        }
+      }
+    }
     final shared = inferSharedComputers(
       primaryComputerId: entry.value,
-      secondaryComputerIds: computersByDive[entry.key]!.difference({
-        entry.value,
-      }),
+      secondaryComputerIds: computersByDive[diveId]!.difference({entry.value}),
       tanks: [
         for (final r in tankRows)
           (
@@ -115,9 +182,11 @@ Future<void> backfillTankSharedComputers(DatabaseConnectionUser db) async {
             computerId: r.read<String?>('computer_id'),
             o2: r.read<double>('o2_percent'),
             he: r.read<double>('he_percent'),
+            role: r.read<String>('tank_role'),
             sharedComputerIds: r.read<String?>('shared_computer_ids'),
           ),
       ],
+      loggedOn: loggedOn,
     );
     for (final tank in shared.entries) {
       await db.customUpdate(
