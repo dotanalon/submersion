@@ -2210,6 +2210,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_schedule_retention => 'الاحتفاظ بالنسخ';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return 'تشغل $count نسخة احتياطية حالياً $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'تتم إزالة النسخ الاحتياطية القديمة تلقائياً';
 
@@ -8815,31 +8820,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'عرض أول $limit نتيجة مطابقة. حسّن البحث لتضييق النتائج.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'لم يتم العثور على غوصات لـ \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'البحث حسب الموقع أو زميل الغوص أو الملاحظات';
-
-  @override
-  String get diveLog_listPage_tooltip_back => 'رجوع';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList =>
       'العودة إلى قائمة الغوصات';
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'مسح البحث';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'تصفية الغوصات';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'عرض القائمة';
@@ -8849,6 +8834,33 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_searchDives => 'البحث في الغوصات';
+
+  @override
+  String get diveLog_search_fieldHint => 'ابحث، أو جرّب depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'تحسين البحث';
+
+  @override
+  String get diveLog_search_closeTooltip => 'إغلاق البحث';
+
+  @override
+  String get diveLog_search_scopeWithin => 'ضمن عوامل التصفية';
+
+  @override
+  String get diveLog_search_scopeAll => 'كل الغوصات';
+
+  @override
+  String get diveLog_search_jumpTitle => 'الانتقال إلى غوصة';
+
+  @override
+  String get diveLog_search_openInsights => 'فتح في الرؤى';
+
+  @override
+  String get diveLog_search_cleared => 'تم مسح البحث';
+
+  @override
+  String get diveLog_search_undo => 'تراجع';
 
   @override
   String get diveLog_listPage_tooltip_sort => 'ترتيب';
@@ -20486,6 +20498,20 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'يلحق كل جهاز منها بمجرد أن يشغّل إصدارًا لا يقل حداثة عن إصدار هذا الجهاز. إذا لم يُعرض عليه هذا التحديث بعد، فسيصل مع الإصدار التالي، أو في وقت أبكر بالانضمام إلى البيتا.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList يشغّل إصدارًا أقدم من Submersion لا يستطيع قراءة أحدث تغييرات هذا الجهاز، لذا لن يستلمها حتى يتم تحديثه.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList تشغّل إصدارًا أقدم من Submersion لا يستطيع قراءة أحدث تغييرات هذا الجهاز، لذا لن تستلمها حتى يتم تحديثها.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList لا يزال يستخدم إصدار مكتبة أقدم أو غير معروف، لذلك لم تُدمج تغييراته. افتح Submersion عليه لاعتماد المكتبة الحالية.';
   }
@@ -20533,8 +20559,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'حدّث هذا الجهاز لاستلامها.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'ستصل عندما يشغّل هذا الجهاز إصدارًا لا يقل حداثة. إذا كان الجهاز الآخر على قناة البيتا، فقد لا يتوفر تحديث مستقر بعد: بدّل هذا الجهاز أيضًا إلى قناة تحديثات البيتا، أو انتظر الإصدار المستقر التالي.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'سيتم تطبيقها تلقائيًا فور وصول تحديث متجر التطبيقات لهذا الجهاز؛ وقد يكون التحديث لا يزال قيد المراجعة.';
+      'سيتم تطبيقها تلقائيًا عندما يصل تحديث متجر التطبيقات لهذا الجهاز إلى ذلك الإصدار. قد يكون التحديث لا يزال قيد المراجعة، أو لم يُطرح بعد إذا كان الجهاز الآخر يشغّل إصدار بيتا (TestFlight أو اختبار Google Play): انضم إلى البيتا نفسها على هذا الجهاز، أو انتظر الإصدار التالي.';
 
   @override
   String get settings_cloudSync_provider_connected => 'متصل';
@@ -22396,8 +22426,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'ستبقى على إصدار البيتا هذا حتى يصبح الإصدار المستقر التالي أحدث منه.';
+  String get settings_updates_stableDialogBody =>
+      'يحتفظ هذا الجهاز بإصداره الحالي حتى يصبح إصدار مستقر أحدث منه، لذا لا يعود التطبيق أبدًا إلى إصدار أقدم ويُحفظ سجل الغوص الخاص بك. حتى ذلك الحين، قد لا تستلم الأجهزة على القناة المستقرة التي تتزامن مع هذا الجهاز أحدث تغييراته. لا تثبّت إصدارًا مستقرًا أقدم فوق هذا الإصدار: فهو لا يستطيع فتح سجل غوص قام إصدار أحدث بترقيته.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'التبديل إلى المستقر';
+
+  @override
+  String get settings_updates_stableDialogTitle =>
+      'هل تريد العودة إلى التحديثات المستقرة؟';
 
   @override
   String get settings_updates_upToDate => 'محدّث';
@@ -24856,10 +24893,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_appBar_title => 'النقل';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'قم بتوصيل حاسوب الغوص عبر البلوتوث لتنزيل سجلات الغوص مباشرة إلى التطبيق. تشمل الحواسيب المدعومة Suunto و Shearwater و Garmin و Mares والعديد من العلامات التجارية الشهيرة الأخرى.\n\nيمكن لمستخدمي Apple Watch Ultra استيراد بيانات الغوص مباشرة من تطبيق الصحة، بما في ذلك العمق والمدة ومعدل ضربات القلب.';
-
-  @override
   String get transfer_computers_aboutTitle => 'حول حواسيب الغوص';
 
   @override
@@ -25517,8 +25550,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_dialog_keepEditing => 'متابعة التعديل';
 
   @override
-  String trips_edit_durationDays(Object days) {
-    return '$days أيام';
+  String trips_edit_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -25853,6 +25893,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_type_dayTrip => 'رحلة يومية';
+
+  @override
+  String get trips_type_description_dayTrip =>
+      'يوم واحد فقط، مثل غطسة محلية واحدة';
+
+  @override
+  String get trips_type_description_liveaboard =>
+      'الإقامة على متن قارب غوص، مع تفاصيل القارب ومسار الرحلة';
+
+  @override
+  String get trips_type_description_resort => 'إقامة في منتجع غوص';
+
+  @override
+  String get trips_type_description_shore =>
+      'غطسات من الشاطئ على مدى يوم أو أكثر';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';
@@ -28107,7 +28162,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater، Suunto، Garmin، Mares، Scubapro، Oceanic، Aqualung، Cressi، وأكثر من 50 موديلًا آخر.';
+      'Shearwater، Suunto، Mares، Scubapro، Oceanic، Aqualung، Cressi، وأكثر من 50 موديلًا آخر.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'العلامات التجارية المدعومة';
@@ -28120,6 +28175,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'حسنًا';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'لا يتم تنزيل ساعات Garmin من هنا. استورد غطساتها من $importPath أو $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 => 'تأكد أن الكمبيوتر في وضع النقل •';
@@ -30197,6 +30257,45 @@ class AppLocalizationsAr extends AppLocalizations {
   ) {
     return '$count غطسة بها بيانات أولية ($without بدون)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'حذف';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'إزالة بيانات التنزيل الأولية المحفوظة لـ $count غطسة من جميع كمبيوترات الغوص ($size)؟ لن يعود بالإمكان إعادة تحليل هذه الغطسات عند تحسين محلل الغطسات. تبقى الغطسات وتعديلاتك كما هي، وستزيل أجهزتك المتزامنة الأخرى البيانات أيضاً.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'حذف البيانات الأولية';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'إزالة بيانات التنزيل الأولية المحفوظة لـ $count غطسة من $computer؟ لن يعود بالإمكان إعادة تحليل هذه الغطسات عند تحسين محلل الغطسات. تبقى الغطسات وتعديلاتك كما هي، وستزيل أجهزتك المتزامنة الأخرى البيانات أيضاً.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed => 'تعذر حذف البيانات الأولية';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'حذف البيانات الأولية؟';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'تم حذف البيانات الأولية لـ $count غطسة';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count غطسة، $size. محفوظة لإعادة تحليل هذه الغطسات عند تحسين المحلل.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle =>
+      'البيانات الأولية لكمبيوترات الغوص';
 
   @override
   String get diveLog_detail_menu_reparseRawData =>
@@ -40995,10 +41094,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'غير معروف';
 
   @override
-  String get insights_summary_divesPerMonth => 'الغوصات / الشهر';
+  String get insights_summary_divesPerMonth => 'متوسط الغوصات / الشهر';
 
   @override
-  String get insights_summary_divesPerYear => 'الغوصات / السنة';
+  String get insights_summary_divesPerYear => 'متوسط الغوصات / السنة';
+
+  @override
+  String get insights_summary_divesThisYear => 'غوصات هذا العام';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {
@@ -42954,6 +43056,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String universalImport_counts_filling(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count لإكمال غوصات مخططة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_counts_skipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -43060,12 +43172,28 @@ class AppLocalizationsAr extends AppLocalizations {
       'جارٍ الانتقال إلى المراجعة...';
 
   @override
+  String get importWizard_dc_importFromFile => 'استيراد من ملف';
+
+  @override
   String get importWizard_dc_knownComputer => 'كمبيوتر غوص معروف';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'محفوظ باسم \"$name\". سيتم تنزيل الغوصات الجديدة فقط.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'لا يمكن التنزيل من كمبيوتر الغوص هذا مباشرةً';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'لا يوجد في Submersion اتصال محفوظ لـ $name. استورد غوصاته من ملف، أو أضفه مجدداً من كمبيوترات الغوص للتنزيل عبر Bluetooth أو USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'تخزّن ساعات Garmin الغوصات كملفات FIT بدلاً من توفير تنزيل مباشر. وصّل الساعة عبر USB، وانسخ الملفات من مجلد GARMIN/Activity فيها، ثم استوردها.';
 
   @override
   String get importWizard_dc_noNewDives => 'لا توجد غوصات جديدة للتنزيل';
@@ -46114,10 +46242,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'تعذرت مطابقة المسارات.';
+  String get navTrack_list_matchError => 'تعذر التحقق من مطابقات المسارات.';
 
   @override
-  String get navTrack_list_matchSuccess => 'تمت مطابقة المسارات مع الغطسات.';
+  String get navTrack_list_matchSuccess =>
+      'تم التحقق من المسارات التي تنتظر اختيارك.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -46128,7 +46257,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_list_importTooltip => 'استيراد ملف مسار';
 
   @override
-  String get navTrack_list_matchTooltip => 'المطابقة الآن';
+  String get navTrack_list_matchTooltip => 'تحقق الآن';
 
   @override
   String get navTrack_list_title => 'المسارات تحت الماء';
@@ -46139,6 +46268,27 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get navTrack_list_empty => 'لا توجد مسارات تحت الماء بعد.';
+
+  @override
+  String get navTrack_review_saveConfirmation => 'تم حفظ المسار.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مسار ينتظر اختيارك',
+      few: '$count مسارات تنتظر اختيارك',
+      two: 'مساران ينتظران اختيارك',
+      one: 'مسار واحد ينتظر اختيارك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String navTrack_list_loadError(String error) {
+    return 'تعذر تحميل المسارات: $error';
+  }
 
   @override
   String get navTrack_seascape_title => 'المشهد البحري للمسار';

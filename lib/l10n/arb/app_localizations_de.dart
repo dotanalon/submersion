@@ -2238,6 +2238,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get backup_schedule_retention => 'Sicherungen behalten';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count Sicherungen belegen derzeit $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'Ältere Sicherungen werden automatisch entfernt';
 
@@ -8990,31 +8995,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'Die ersten $limit Treffer werden angezeigt. Verfeinern Sie die Suche, um die Ergebnisse einzugrenzen.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'Keine Tauchgänge gefunden für \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'Nach Tauchplatz, Tauchpartner oder Notizen suchen';
-
-  @override
-  String get diveLog_listPage_tooltip_back => 'Zurück';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList =>
       'Zurück zur Tauchgangliste';
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'Suche löschen';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'Tauchgänge filtern';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'Listenansicht';
@@ -9024,6 +9009,33 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_searchDives => 'Tauchgänge suchen';
+
+  @override
+  String get diveLog_search_fieldHint => 'Suche, z. B. depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Verfeinern';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Suche schließen';
+
+  @override
+  String get diveLog_search_scopeWithin => 'Innerhalb der Filter';
+
+  @override
+  String get diveLog_search_scopeAll => 'Alle Tauchgänge';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Zum Tauchgang springen';
+
+  @override
+  String get diveLog_search_openInsights => 'In Einblicken öffnen';
+
+  @override
+  String get diveLog_search_cleared => 'Suche zurückgesetzt';
+
+  @override
+  String get diveLog_search_undo => 'Rückgängig';
 
   @override
   String get diveLog_listPage_tooltip_sort => 'Sortieren';
@@ -20778,6 +20790,20 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'Jedes Gerät holt auf, sobald es eine mindestens ebenso neue Version wie dieses verwendet. Wird ihm noch kein solches Update angeboten, kommt es mit der nächsten Version, oder früher über die Teilnahme an der Beta.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList verwendet eine ältere Version von Submersion, die die neuesten Änderungen dieses Geräts nicht lesen kann, und erhält sie daher erst nach einem Update.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList verwenden eine ältere Version von Submersion, die die neuesten Änderungen dieses Geräts nicht lesen kann, und erhalten sie daher erst nach einem Update.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList hat noch eine ältere oder unbekannte Bibliotheksversion, daher wurden die Änderungen nicht zusammengeführt. Öffnen Sie Submersion dort, um die aktuelle Bibliothek zu übernehmen.';
   }
@@ -20825,8 +20851,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Aktualisieren Sie dieses Gerät, um sie zu erhalten.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'Sie kommen an, sobald dieses Gerät eine mindestens ebenso neue Version verwendet. Wenn jenes Gerät den Beta-Kanal nutzt, gibt es möglicherweise noch kein stabiles Update: Stellen Sie dieses Gerät ebenfalls auf den Beta-Update-Kanal um, oder warten Sie auf die nächste stabile Version.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'Sie werden automatisch übernommen, sobald das App-Store-Update für dieses Gerät verfügbar ist; das Update befindet sich möglicherweise noch in der Prüfung.';
+      'Sie werden automatisch übernommen, sobald das App-Store-Update dieses Geräts diese Version erreicht. Das Update befindet sich möglicherweise noch in der Prüfung oder ist, falls jenes Gerät eine Beta verwendet (TestFlight oder Google Play-Test), noch nicht veröffentlicht: Treten Sie auf diesem Gerät derselben Beta bei, oder warten Sie auf die nächste Version.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Verbunden';
@@ -22712,8 +22742,15 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'Sie bleiben auf dieser Beta, bis die nächste stabile Version neuer ist als diese.';
+  String get settings_updates_stableDialogBody =>
+      'Dieses Gerät behält seinen aktuellen Build, bis eine stabile Version neuer ist; die App wird nie herabgestuft und Ihr Tauchlogbuch bleibt erhalten. Bis dahin erhalten Geräte im stabilen Kanal, die mit diesem synchronisieren, möglicherweise nicht seine neuesten Änderungen. Installieren Sie keinen älteren stabilen Build über diesen: Er kann kein Tauchlogbuch öffnen, das ein neuerer Build aktualisiert hat.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'Zu Stabil wechseln';
+
+  @override
+  String get settings_updates_stableDialogTitle =>
+      'Zu stabilen Updates zurückkehren?';
 
   @override
   String get settings_updates_upToDate => 'Auf dem neuesten Stand';
@@ -25125,10 +25162,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transfer_appBar_title => 'Übertragung';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'Verbinden Sie Ihren Tauchcomputer über Bluetooth, um Tauchprotokolle direkt in die App herunterzuladen. Unterstützte Computer sind Suunto, Shearwater, Garmin, Mares und viele andere beliebte Marken.\n\nApple Watch Ultra-Benutzer können Tauchdaten direkt aus der Health-App importieren, einschließlich Tiefe, Dauer und Herzfrequenz.';
-
-  @override
   String get transfer_computers_aboutTitle => 'Über Tauchcomputer';
 
   @override
@@ -25800,8 +25833,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_edit_dialog_keepEditing => 'Weiter bearbeiten';
 
   @override
-  String trips_edit_durationDays(Object days) {
-    return '$days Tage';
+  String trips_edit_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days Tage',
+      one: '$days Tag',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -26144,6 +26183,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_type_dayTrip => 'Tagesausflug';
+
+  @override
+  String get trips_type_description_dayTrip =>
+      'Ein einzelner Tag, etwa ein Tauchgang vor Ort';
+
+  @override
+  String get trips_type_description_liveaboard =>
+      'An Bord eines Tauchschiffs, mit Schiffs- und Routendetails';
+
+  @override
+  String get trips_type_description_resort =>
+      'Ein Aufenthalt in einem Tauchresort';
+
+  @override
+  String get trips_type_description_shore =>
+      'Landtauchgänge an einem oder mehreren Tagen';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';
@@ -28420,7 +28475,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi und über 50 weitere Modelle.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi und über 50 weitere Modelle.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Unterstützte Marken';
@@ -28434,6 +28489,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Verstanden';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Garmin-Uhren werden hier nicht heruntergeladen. Importieren Sie ihre Tauchgänge über $importPath oder $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>
@@ -30529,6 +30589,45 @@ class AppLocalizationsDe extends AppLocalizations {
   ) {
     return '$count Tauchgänge mit Rohdaten ($without ohne)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'Verwerfen';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'Die gespeicherten Rohdaten von $count Tauchgängen aller Tauchcomputer entfernen ($size)? Diese Tauchgänge können danach nicht mehr neu ausgewertet werden, wenn sich der Tauchgang-Parser verbessert. Die Tauchgänge und deine Änderungen bleiben erhalten, und deine anderen synchronisierten Geräte entfernen die Daten ebenfalls.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'Rohdaten verwerfen';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'Die gespeicherten Rohdaten von $count Tauchgängen von $computer entfernen? Diese Tauchgänge können danach nicht mehr neu ausgewertet werden, wenn sich der Tauchgang-Parser verbessert. Die Tauchgänge und deine Änderungen bleiben erhalten, und deine anderen synchronisierten Geräte entfernen die Daten ebenfalls.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed =>
+      'Rohdaten konnten nicht verworfen werden';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'Rohdaten verwerfen?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'Rohdaten von $count Tauchgängen verworfen';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count Tauchgänge, $size. Aufbewahrt, damit diese Tauchgänge neu ausgewertet werden können, wenn sich der Parser verbessert.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle => 'Tauchcomputer-Rohdaten';
 
   @override
   String get diveLog_detail_menu_reparseRawData => 'Rohdaten neu auswerten';
@@ -41333,10 +41432,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'Unbekannt';
 
   @override
-  String get insights_summary_divesPerMonth => 'Tauchgänge / Monat';
+  String get insights_summary_divesPerMonth => 'Ø Tauchgänge / Monat';
 
   @override
-  String get insights_summary_divesPerYear => 'Tauchgänge / Jahr';
+  String get insights_summary_divesPerYear => 'Ø Tauchgänge / Jahr';
+
+  @override
+  String get insights_summary_divesThisYear => 'Tauchgänge dieses Jahr';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {
@@ -43212,6 +43314,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String universalImport_counts_filling(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplante Tauchgänge ausfüllen',
+      one: '$count geplanten Tauchgang ausfüllen',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_counts_skipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -43305,12 +43418,28 @@ class AppLocalizationsDe extends AppLocalizations {
       'Weiter zur Überprüfung...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Aus Datei importieren';
+
+  @override
   String get importWizard_dc_knownComputer => 'Bekannter Computer';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'Gespeichert als „$name“. Es werden nur neue Tauchgänge heruntergeladen.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'Direkter Download von diesem Computer nicht möglich';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Für $name ist in Submersion keine Verbindung gespeichert. Importieren Sie die Tauchgänge aus einer Datei, oder fügen Sie den Computer unter Tauchcomputer erneut hinzu, um per Bluetooth oder USB herunterzuladen.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Garmin-Uhren speichern Tauchgänge als FIT-Dateien und bieten keinen direkten Download. Verbinden Sie die Uhr per USB, kopieren Sie die Dateien aus ihrem Ordner GARMIN/Activity und importieren Sie sie anschließend.';
 
   @override
   String get importWizard_dc_noNewDives =>
@@ -46412,12 +46541,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError =>
-      'Routen konnten nicht zugeordnet werden.';
+  String get navTrack_list_matchError => 'Routen-Abgleich fehlgeschlagen.';
 
   @override
   String get navTrack_list_matchSuccess =>
-      'Routen wurden Tauchgängen zugeordnet.';
+      'Prüfung auf wartende Routen abgeschlossen.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -46428,7 +46556,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navTrack_list_importTooltip => 'Routendatei importieren';
 
   @override
-  String get navTrack_list_matchTooltip => 'Jetzt zuordnen';
+  String get navTrack_list_matchTooltip => 'Jetzt prüfen';
 
   @override
   String get navTrack_list_title => 'Unterwasser-Routen';
@@ -46439,6 +46567,25 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get navTrack_list_empty => 'Noch keine Unterwasser-Routen.';
+
+  @override
+  String get navTrack_review_saveConfirmation => 'Route gespeichert.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Routen warten auf deine Wahl',
+      one: '$count Route wartet auf deine Wahl',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String navTrack_list_loadError(String error) {
+    return 'Routen konnten nicht geladen werden: $error';
+  }
 
   @override
   String get navTrack_seascape_title => 'Routen-Unterwasserwelt';

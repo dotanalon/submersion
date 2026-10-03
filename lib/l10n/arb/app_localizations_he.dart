@@ -2199,6 +2199,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_schedule_retention => 'שמור גיבויים';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count גיבויים תופסים כעת $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'גיבויים ישנים יותר מוסרים אוטומטית';
 
@@ -8777,30 +8782,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'מוצגות $limit ההתאמות הראשונות. חדדו את החיפוש כדי לצמצם את התוצאות.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'לא נמצאו צלילות עבור \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'חיפוש לפי אתר, שותף או הערות';
-
-  @override
-  String get diveLog_listPage_tooltip_back => 'חזרה';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList => 'חזרה לרשימת צלילות';
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'ניקוי חיפוש';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'סינון צלילות';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'תצוגת רשימה';
@@ -8810,6 +8795,33 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_searchDives => 'חיפוש צלילות';
+
+  @override
+  String get diveLog_search_fieldHint => 'חיפוש, או נסו depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'צמצום';
+
+  @override
+  String get diveLog_search_closeTooltip => 'סגירת החיפוש';
+
+  @override
+  String get diveLog_search_scopeWithin => 'בתוך המסננים';
+
+  @override
+  String get diveLog_search_scopeAll => 'כל הצלילות';
+
+  @override
+  String get diveLog_search_jumpTitle => 'מעבר לצלילה';
+
+  @override
+  String get diveLog_search_openInsights => 'פתיחה בתובנות';
+
+  @override
+  String get diveLog_search_cleared => 'החיפוש נוקה';
+
+  @override
+  String get diveLog_search_undo => 'ביטול';
 
   @override
   String get diveLog_listPage_tooltip_sort => 'מיון';
@@ -20324,6 +20336,20 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'כל מכשיר כזה יתעדכן ברגע שיריץ גרסה חדשה לפחות כמו של מכשיר זה. אם עדיין לא מוצע לו עדכון כזה, הוא יגיע עם הגרסה הבאה, או מוקדם יותר בהצטרפות לבטא.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList מריץ גרסה ישנה יותר של Submersion שאינה יכולה לקרוא את השינויים האחרונים של מכשיר זה, ולכן לא יקבל אותם עד שיתעדכן.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList מריצים גרסה ישנה יותר של Submersion שאינה יכולה לקרוא את השינויים האחרונים של מכשיר זה, ולכן לא יקבלו אותם עד שיתעדכנו.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return 'ל$deviceList עדיין יש גרסת ספרייה ישנה או לא מוכרת, ולכן השינויים שלו לא מוזגו. פתח את Submersion במכשיר כדי לאמץ את הספרייה הנוכחית.';
   }
@@ -20371,8 +20397,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'עדכן מכשיר זה כדי לקבל אותם.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'הם יגיעו ברגע שמכשיר זה יריץ גרסה חדשה לפחות באותה מידה. אם המכשיר האחר נמצא בערוץ הבטא, ייתכן שעדיין אין עדכון יציב: העבר גם את מכשיר זה לערוץ עדכוני הבטא, או המתן לגרסה היציבה הבאה.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'הם יוחלו אוטומטית ברגע שעדכון חנות האפליקציות של מכשיר זה יגיע; ייתכן שהעדכון עדיין בבדיקה.';
+      'הם יוחלו אוטומטית ברגע שעדכון חנות האפליקציות של מכשיר זה יגיע לגרסה הזו. ייתכן שהעדכון עדיין בבדיקה, או, אם המכשיר האחר מריץ גרסת בטא (TestFlight או בדיקת Google Play), שהוא עדיין לא פורסם: הצטרף לאותה בטא במכשיר זה, או המתן לגרסה הבאה.';
 
   @override
   String get settings_cloudSync_provider_connected => 'מחובר';
@@ -22213,8 +22243,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'תישאר בגרסת הבטא הזו עד שהגרסה היציבה הבאה תהיה חדשה ממנה.';
+  String get settings_updates_stableDialogBody =>
+      'מכשיר זה שומר על הגרסה הנוכחית שלו עד שגרסה יציבה תהיה חדשה ממנה, כך שהאפליקציה לעולם לא חוזרת לגרסה קודמת ויומן הצלילה שלך נשמר. עד אז, מכשירים בערוץ היציב שמסתנכרנים עם מכשיר זה עשויים שלא לקבל את השינויים האחרונים שלו. אל תתקין גרסה יציבה ישנה יותר מעל גרסה זו: היא לא יכולה לפתוח יומן צלילה שגרסה חדשה יותר שדרגה.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'מעבר ליציב';
+
+  @override
+  String get settings_updates_stableDialogTitle => 'לחזור לעדכונים יציבים?';
 
   @override
   String get settings_updates_upToDate => 'מעודכן';
@@ -24569,10 +24605,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_appBar_title => 'העברה';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'חבר את מחשב הצלילה שלך באמצעות Bluetooth כדי להוריד יומני צלילה ישירות לאפליקציה. מחשבים נתמכים כוללים Suunto, Shearwater, Garmin, Mares ועוד מותגים פופולריים רבים.\n\nמשתמשי Apple Watch Ultra יכולים לייבא נתוני צלילה ישירות מאפליקציית הבריאות, כולל עומק, משך וקצב לב.';
-
-  @override
   String get transfer_computers_aboutTitle => 'אודות מחשבי צלילה';
 
   @override
@@ -25225,8 +25257,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_dialog_keepEditing => 'המשך עריכה';
 
   @override
-  String trips_edit_durationDays(Object days) {
-    return '$days ימים';
+  String trips_edit_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days ימים',
+      two: 'יומיים',
+      one: 'יום אחד',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -25561,6 +25600,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_type_dayTrip => 'טיול יום';
+
+  @override
+  String get trips_type_description_dayTrip =>
+      'יום אחד בלבד, כמו צלילה מקומית אחת';
+
+  @override
+  String get trips_type_description_liveaboard =>
+      'מגורים על סיפון ספינת צלילה, עם פרטי הספינה והמסלול';
+
+  @override
+  String get trips_type_description_resort => 'שהייה באתר נופש לצלילה';
+
+  @override
+  String get trips_type_description_shore => 'צלילות חוף ביום אחד או יותר';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';
@@ -27784,7 +27837,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi, ועוד 50+ דגמים.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi, ועוד 50+ דגמים.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'מותגים נתמכים';
@@ -27797,6 +27850,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'הבנתי';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'שעוני Garmin אינם מורדים כאן. ייבא את הצלילות שלהם דרך $importPath או $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 => '• ודא שהמחשב במצב העברה';
@@ -29856,6 +29914,45 @@ class AppLocalizationsHe extends AppLocalizations {
   ) {
     return '$count צלילות עם נתונים גולמיים ($without ללא)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'מחק';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'להסיר את נתוני ההורדה הגולמיים השמורים של $count צלילות מכל מחשבי הצלילה ($size)? לא ניתן יהיה עוד לנתח מחדש צלילות אלה כאשר מנתח הצלילות ישתפר. הצלילות והעריכות שלך יישארו כפי שהן, וגם המכשירים המסונכרנים האחרים שלך יסירו את הנתונים.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'מחק נתונים גולמיים';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'להסיר את נתוני ההורדה הגולמיים השמורים של $count צלילות מ־$computer? לא ניתן יהיה עוד לנתח מחדש צלילות אלה כאשר מנתח הצלילות ישתפר. הצלילות והעריכות שלך יישארו כפי שהן, וגם המכשירים המסונכרנים האחרים שלך יסירו את הנתונים.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed =>
+      'לא ניתן למחוק את הנתונים הגולמיים';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'למחוק נתונים גולמיים?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'הנתונים הגולמיים של $count צלילות נמחקו';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count צלילות, $size. נשמרים כדי שניתן יהיה לנתח מחדש צלילות אלה כאשר המנתח ישתפר.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle => 'נתונים גולמיים ממחשבי צלילה';
 
   @override
   String get diveLog_detail_menu_reparseRawData => 'נתח מחדש נתונים גולמיים';
@@ -40561,10 +40658,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'לא ידוע';
 
   @override
-  String get insights_summary_divesPerMonth => 'צלילות / חודש';
+  String get insights_summary_divesPerMonth => 'ממוצע צלילות / חודש';
 
   @override
-  String get insights_summary_divesPerYear => 'צלילות / שנה';
+  String get insights_summary_divesPerYear => 'ממוצע צלילות / שנה';
+
+  @override
+  String get insights_summary_divesThisYear => 'צלילות השנה';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {
@@ -42451,6 +42551,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String universalImport_counts_filling(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count בהשלמת צלילות מתוכננות',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_counts_skipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -42549,12 +42659,28 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_healthkit_proceedingToReview => 'ממשיך לסקירה...';
 
   @override
+  String get importWizard_dc_importFromFile => 'ייבוא מקובץ';
+
+  @override
   String get importWizard_dc_knownComputer => 'מחשב צלילה מוכר';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'נשמר בשם \"$name\". רק צלילות חדשות יורדו.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'לא ניתן להוריד ישירות ממחשב הצלילה הזה';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'ל-Submersion אין חיבור שמור עבור $name. ייבא את הצלילות שלו מקובץ, או הוסף אותו מחדש ממחשבי צלילה כדי להוריד דרך Bluetooth או USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'שעוני Garmin שומרים צלילות כקובצי FIT במקום לאפשר הורדה ישירה. חבר את השעון ב-USB, העתק את הקבצים מהתיקייה GARMIN/Activity שלו, ולאחר מכן ייבא אותם.';
 
   @override
   String get importWizard_dc_noNewDives => 'אין צלילות חדשות להורדה';
@@ -45561,10 +45687,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'לא ניתן היה להתאים את המסלולים.';
+  String get navTrack_list_matchError => 'לא ניתן היה לבדוק התאמות של מסלולים.';
 
   @override
-  String get navTrack_list_matchSuccess => 'המסלולים הותאמו לצלילות.';
+  String get navTrack_list_matchSuccess => 'נבדקו המסלולים הממתינים לבחירתך.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -45575,7 +45701,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_list_importTooltip => 'ייבוא קובץ מסלול';
 
   @override
-  String get navTrack_list_matchTooltip => 'התאם עכשיו';
+  String get navTrack_list_matchTooltip => 'בדוק עכשיו';
 
   @override
   String get navTrack_list_title => 'מסלולים תת-ימיים';
@@ -45585,6 +45711,26 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get navTrack_list_empty => 'עדיין אין מסלולים תת-ימיים.';
+
+  @override
+  String get navTrack_review_saveConfirmation => 'המסלול נשמר.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מסלולים ממתינים לבחירתך',
+      two: 'שני מסלולים ממתינים לבחירתך',
+      one: 'מסלול אחד ממתין לבחירתך',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String navTrack_list_loadError(String error) {
+    return 'לא ניתן היה לטעון את המסלולים: $error';
+  }
 
   @override
   String get navTrack_seascape_title => 'נוף תת-ימי של המסלול';
