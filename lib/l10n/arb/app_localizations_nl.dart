@@ -6987,6 +6987,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'Uitrusting die je gebruikte, voor het aantal duiken en de onderhoudsgeschiedenis. Een fles die hier staat levert geen gasgegevens; voeg hem ook toe onder Flessen.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Tik op \"Set gebruiken\" of \"Toevoegen\" om uitrusting te selecteren';
 
@@ -7413,6 +7417,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_tankCard_volume => 'Volume';
 
   @override
+  String get diveLog_edit_tanksCaption =>
+      'Waaruit je ademde. Gasgrafieken, gasverbruik en statistieken komen uit deze flessen.';
+
+  @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
       'Berekenen uit duikprofiel';
 
@@ -7714,16 +7722,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_allTypes => 'Alle types';
 
   @override
-  String get diveLog_filter_apply => 'Filters toepassen';
-
-  @override
   String get diveLog_filter_buddyHint => 'Zoek op buddynaam';
 
   @override
   String get diveLog_filter_buddyName => 'Buddynaam';
-
-  @override
-  String get diveLog_filter_clearAll => 'Alles wissen';
 
   @override
   String get diveLog_filter_clearDates => 'Datums wissen';
@@ -7804,13 +7806,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'Buddy';
 
   @override
-  String get diveLog_filter_sectionDateRange => 'Datumbereik';
-
-  @override
   String get diveLog_filter_sectionDepthRange => 'Dieptebereik (meters)';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => 'Duikstek';
 
   @override
   String get diveLog_filter_sectionDiveType => 'Duiktype';
@@ -7839,15 +7835,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => 'Startdatum';
-
-  @override
-  String get diveLog_filter_title => 'Duiken filteren';
-
-  @override
-  String get diveLog_filter_resizeGrip => 'Formaat van filterpaneel wijzigen';
-
-  @override
-  String get diveLog_filter_tooltip_close => 'Filter sluiten';
 
   @override
   String get diveLog_fullscreenProfile_close => 'Volledig scherm sluiten';
@@ -8063,9 +8050,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => 'Duik loggen';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => 'Geavanceerd zoeken';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => 'Duiknummering';
@@ -8946,6 +8930,46 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Duiken zoeken';
 
   @override
+  String get diveLog_refine_title => 'Verfijnen';
+
+  @override
+  String get diveLog_refine_groupRules => 'Regels';
+
+  @override
+  String get diveLog_refine_groupPeople => 'Personen & leven';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'Aangepaste velden';
+
+  @override
+  String get diveLog_refine_summaryAny => 'Alle';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ingesteld',
+      one: '$count ingesteld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken tonen',
+      one: '$count duik tonen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'Duiken tonen';
+
+  @override
   String get diveLog_search_fieldHint => 'Zoek, bv. depth > 30m';
 
   @override
@@ -9311,13 +9335,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_search_allTrips => 'Alle reizen';
 
   @override
-  String get diveLog_search_appBar => 'Geavanceerd zoeken';
-
-  @override
   String get diveLog_search_cancel => 'Annuleren';
-
-  @override
-  String get diveLog_search_clearAll => 'Alles wissen';
 
   @override
   String get diveLog_search_customFieldKey => 'Custom Field Key';
@@ -9326,14 +9344,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
-  String get diveLog_search_end => 'Einde';
-
-  @override
   String get diveLog_search_errorLoadingCenters =>
       'Fout bij laden van duikcentra';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes => 'Fout bij laden duiktypes';
 
   @override
   String get diveLog_search_errorLoadingEquipment =>
@@ -9361,19 +9373,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_search_label_diveSite => 'Duikstek';
 
   @override
-  String get diveLog_search_label_diveType => 'Duiktype';
-
-  @override
-  String get diveLog_search_label_durationRange => 'Duurbereik (min)';
-
-  @override
   String get diveLog_search_label_equipment => 'Uitrusting';
 
   @override
   String get diveLog_search_label_trip => 'Reis';
-
-  @override
-  String get diveLog_search_search => 'Zoeken';
 
   @override
   String get diveLog_search_section_conditions => 'Omstandigheden';
@@ -9389,12 +9392,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => 'Organisatie';
-
-  @override
-  String get diveLog_search_section_social => 'Sociaal';
-
-  @override
-  String get diveLog_search_start => 'Start';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -9650,6 +9647,20 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Fles verwijderen';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Invullen vanuit mijn flessen';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'De gegevens van die fles konden niet worden overgenomen. Probeer het opnieuw.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Neemt de grootte en de laatste vulling van de gekozen fles over en voegt hem toe aan de uitrusting van deze duik.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'Mijn flessen';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Ademautomaat';
@@ -12852,10 +12863,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_profileEvent_decoViolation => 'Deco-overtreding';
 
   @override
+  String get enum_profileEvent_decompressionDive => 'Decompressieduik';
+
+  @override
   String get enum_profileEvent_gasSwitch => 'Gaswisseling';
 
   @override
   String get enum_profileEvent_lowGas => 'Waarschuwing laag gas';
+
+  @override
+  String get enum_profileEvent_lowNoDecoTime => 'Lage nultijd';
 
   @override
   String get enum_profileEvent_maxDepth => 'Max diepte';
@@ -12880,6 +12897,77 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_profileEvent_setpointChange => 'Setpointwijziging';
+
+  @override
+  String get enum_profileEvent_suunto_ascentRateAlarm =>
+      'Alarm opstijgsnelheid';
+
+  @override
+  String get enum_profileEvent_suunto_ceilingBroken =>
+      'Decoplafond overschreden';
+
+  @override
+  String get enum_profileEvent_suunto_cns100Alarm => 'Alarm CNS 100%';
+
+  @override
+  String get enum_profileEvent_suunto_cns80Warning => 'Waarschuwing CNS 80%';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopBroken => 'Decostop onderbroken';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopReached => 'Decostop bereikt';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopBroken =>
+      'Diepe stop onderbroken';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopReached => 'Diepe stop bereikt';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeAlarm => 'Alarm gastijd';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeNotification => 'Melding gastijd';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeWarning => 'Waarschuwing gastijd';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Alarm => 'Alarm hoge ppO2';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Warning =>
+      'Waarschuwing hoge ppO2';
+
+  @override
+  String get enum_profileEvent_suunto_lowPpo2Alarm => 'Alarm lage ppO2';
+
+  @override
+  String get enum_profileEvent_suunto_otu250Warning => 'Waarschuwing OTU 250';
+
+  @override
+  String get enum_profileEvent_suunto_otu300Alarm => 'Alarm OTU 300';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopBroken =>
+      'Veiligheidsstop onderbroken';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopReached =>
+      'Veiligheidsstop bereikt';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureAlarm => 'Alarm flesdruk';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureNotification =>
+      'Melding flesdruk';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureWarning =>
+      'Waarschuwing flesdruk';
 
   @override
   String get enum_profileMetricCategory_decompression => 'Decompressie';
@@ -43252,6 +43340,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Alle duiken van deze computer zijn al geïmporteerd.';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return '$name maakt verbinding via een USB-kabel, die Submersion op iPhone en iPad niet kan gebruiken. Download de duiken met Submersion op een Mac-, Windows- of Linux-computer, of importeer ze uit een bestand.';
+  }
+
+  @override
   String get universalImport_compare_noDiveData =>
       'Duikgegevens niet beschikbaar voor vergelijking.';
 
@@ -47433,12 +47526,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'Nee';
-
-  @override
-  String get diveLog_filter_queryRow => 'Query';
-
-  @override
-  String get diveLog_search_section_query => 'Query';
 
   @override
   String get query_saveDialog_title => 'Query opslaan';

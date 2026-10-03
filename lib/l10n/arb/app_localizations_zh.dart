@@ -6697,6 +6697,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      '你使用的装备，用于统计其潜水次数和保养记录。列在这里的气瓶不提供气体数据；请同时在气瓶中添加它。';
+
+  @override
   String get diveLog_edit_equipmentHint => '点击「使用套装」或「添加」选择装备';
 
   @override
@@ -7104,6 +7108,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_tankCard_volume => '容积';
 
   @override
+  String get diveLog_edit_tanksCaption => '你呼吸所用的气瓶。气体图表、耗气量和统计数据都来自这些气瓶。';
+
+  @override
   String get diveLog_edit_tooltip_calculateFromProfile => '从潜水轮廓计算';
 
   @override
@@ -7381,16 +7388,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_allTypes => '所有类型';
 
   @override
-  String get diveLog_filter_apply => '应用筛选';
-
-  @override
   String get diveLog_filter_buddyHint => '按潜伴姓名搜索';
 
   @override
   String get diveLog_filter_buddyName => '潜伴姓名';
-
-  @override
-  String get diveLog_filter_clearAll => '清除全部';
 
   @override
   String get diveLog_filter_clearDates => '清除日期';
@@ -7471,13 +7472,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => '潜伴';
 
   @override
-  String get diveLog_filter_sectionDateRange => '日期范围';
-
-  @override
   String get diveLog_filter_sectionDepthRange => '深度范围（米）';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => '潜水点';
 
   @override
   String get diveLog_filter_sectionDiveType => '潜水类型';
@@ -7505,15 +7500,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => '开始日期';
-
-  @override
-  String get diveLog_filter_title => '筛选潜水';
-
-  @override
-  String get diveLog_filter_resizeGrip => '调整筛选面板大小';
-
-  @override
-  String get diveLog_filter_tooltip_close => '关闭筛选';
 
   @override
   String get diveLog_fullscreenProfile_close => '关闭全屏';
@@ -7722,9 +7708,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => '记录潜水';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => '高级搜索';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => '潜水编号';
@@ -8570,6 +8553,46 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => '搜索潜水';
 
   @override
+  String get diveLog_refine_title => '细化';
+
+  @override
+  String get diveLog_refine_groupRules => '规则';
+
+  @override
+  String get diveLog_refine_groupPeople => '人员与生物';
+
+  @override
+  String get diveLog_refine_groupCustomFields => '自定义字段';
+
+  @override
+  String get diveLog_refine_summaryAny => '任意';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已设 $count 项',
+      one: '已设 $count 项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '显示 $count 次潜水',
+      one: '显示 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => '显示潜水';
+
+  @override
   String get diveLog_search_fieldHint => '搜索，或试试 depth > 30m';
 
   @override
@@ -8923,13 +8946,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_search_allTrips => '所有旅行';
 
   @override
-  String get diveLog_search_appBar => '高级搜索';
-
-  @override
   String get diveLog_search_cancel => '取消';
-
-  @override
-  String get diveLog_search_clearAll => '清除全部';
 
   @override
   String get diveLog_search_customFieldKey => '自定义字段键';
@@ -8938,13 +8955,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_search_customFieldValue => '值包含...';
 
   @override
-  String get diveLog_search_end => '结束';
-
-  @override
   String get diveLog_search_errorLoadingCenters => '加载潜水中心出错';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes => '加载潜水类型出错';
 
   @override
   String get diveLog_search_errorLoadingEquipment => '加载装备出错';
@@ -8971,19 +8982,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_search_label_diveSite => '潜水点';
 
   @override
-  String get diveLog_search_label_diveType => '潜水类型';
-
-  @override
-  String get diveLog_search_label_durationRange => '时长范围（分钟）';
-
-  @override
   String get diveLog_search_label_equipment => '装备';
 
   @override
   String get diveLog_search_label_trip => '旅行';
-
-  @override
-  String get diveLog_search_search => '搜索';
 
   @override
   String get diveLog_search_section_conditions => '条件';
@@ -8999,12 +9001,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => '组织';
-
-  @override
-  String get diveLog_search_section_social => '社交';
-
-  @override
-  String get diveLog_search_start => '开始';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -9254,6 +9250,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => '移除气瓶';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => '从我的气瓶填入';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed => '无法复制该气瓶的数据。请重试。';
+
+  @override
+  String get diveLog_tank_ownCylinderHint => '复制所选气瓶的规格和最近一次充气，并将其加入本次潜水的装备。';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => '我的气瓶';
 
   @override
   String get diveLog_tank_regulatorLabel => '调节器';
@@ -12352,10 +12360,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_profileEvent_decoViolation => '减压违规';
 
   @override
+  String get enum_profileEvent_decompressionDive => '减压潜水';
+
+  @override
   String get enum_profileEvent_gasSwitch => '气体切换';
 
   @override
   String get enum_profileEvent_lowGas => '低气体警告';
+
+  @override
+  String get enum_profileEvent_lowNoDecoTime => '免减压时间不足';
 
   @override
   String get enum_profileEvent_maxDepth => '最大深度';
@@ -12380,6 +12394,69 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_profileEvent_setpointChange => '设定值变更';
+
+  @override
+  String get enum_profileEvent_suunto_ascentRateAlarm => '上升速率警报';
+
+  @override
+  String get enum_profileEvent_suunto_ceilingBroken => '突破减压上限';
+
+  @override
+  String get enum_profileEvent_suunto_cns100Alarm => 'CNS 100% 警报';
+
+  @override
+  String get enum_profileEvent_suunto_cns80Warning => 'CNS 80% 警告';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopBroken => '减压停留中断';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopReached => '已到达减压停留';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopBroken => '深停中断';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopReached => '已到达深停';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeAlarm => '气体时间警报';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeNotification => '气体时间提醒';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeWarning => '气体时间警告';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Alarm => '氧分压过高警报';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Warning => '氧分压过高警告';
+
+  @override
+  String get enum_profileEvent_suunto_lowPpo2Alarm => '氧分压过低警报';
+
+  @override
+  String get enum_profileEvent_suunto_otu250Warning => 'OTU 250 警告';
+
+  @override
+  String get enum_profileEvent_suunto_otu300Alarm => 'OTU 300 警报';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopBroken => '安全停留中断';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopReached => '已到达安全停留';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureAlarm => '气瓶压力警报';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureNotification => '气瓶压力提醒';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureWarning => '气瓶压力警告';
 
   @override
   String get enum_profileMetricCategory_decompression => '减压';
@@ -41050,6 +41127,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importWizard_dc_noNewDivesBody => '此潜水电脑的所有潜水记录均已导入。';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return '$name 通过 USB 数据线连接，而 Submersion 无法在 iPhone 或 iPad 上使用 USB 数据线。请在 Mac、Windows 或 Linux 电脑上使用 Submersion 下载其潜水记录，或从文件导入。';
+  }
+
+  @override
   String get universalImport_compare_noDiveData => '无可用于比较的潜水数据。';
 
   @override
@@ -45009,12 +45091,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => '否';
-
-  @override
-  String get diveLog_filter_queryRow => '查询';
-
-  @override
-  String get diveLog_search_section_query => '查询';
 
   @override
   String get query_saveDialog_title => '保存查询';

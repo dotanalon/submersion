@@ -7036,6 +7036,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'Benutzte Ausrüstung, für Tauchgangsanzahl und Wartungshistorie. Eine hier aufgeführte Flasche liefert keine Gasdaten; sie gehört zusätzlich unter Flaschen.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Tippen Sie auf \"Set verwenden\" oder \"Hinzufügen\" um Ausrüstung auszuwählen';
 
@@ -7464,6 +7468,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_tankCard_volume => 'Volumen';
 
   @override
+  String get diveLog_edit_tanksCaption =>
+      'Woraus geatmet wurde. Gasgrafiken, Gasverbrauch und Statistiken stammen aus diesen Flaschen.';
+
+  @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
       'Aus Tauchprofil berechnen';
 
@@ -7763,16 +7771,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filter_allTypes => 'Alle Typen';
 
   @override
-  String get diveLog_filter_apply => 'Filter anwenden';
-
-  @override
   String get diveLog_filter_buddyHint => 'Nach Tauchpartnername suchen';
 
   @override
   String get diveLog_filter_buddyName => 'Tauchpartnername';
-
-  @override
-  String get diveLog_filter_clearAll => 'Alle zurücksetzen';
 
   @override
   String get diveLog_filter_clearDates => 'Daten zurücksetzen';
@@ -7858,13 +7860,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'Tauchpartner';
 
   @override
-  String get diveLog_filter_sectionDateRange => 'Datumsbereich';
-
-  @override
   String get diveLog_filter_sectionDepthRange => 'Tiefenbereich (Meter)';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => 'Tauchplatz';
 
   @override
   String get diveLog_filter_sectionDiveType => 'Tauchgangart';
@@ -7893,15 +7889,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => 'Startdatum';
-
-  @override
-  String get diveLog_filter_title => 'Tauchgänge filtern';
-
-  @override
-  String get diveLog_filter_resizeGrip => 'Filterbereich skalieren';
-
-  @override
-  String get diveLog_filter_tooltip_close => 'Filter schließen';
 
   @override
   String get diveLog_fullscreenProfile_close => 'Vollbild schließen';
@@ -8118,9 +8105,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => 'Tauchgang erfassen';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => 'Erweiterte Suche';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => 'Tauchgangnummerierung';
@@ -9011,6 +8995,46 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Tauchgänge suchen';
 
   @override
+  String get diveLog_refine_title => 'Verfeinern';
+
+  @override
+  String get diveLog_refine_groupRules => 'Regeln';
+
+  @override
+  String get diveLog_refine_groupPeople => 'Personen & Lebewesen';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'Benutzerdefinierte Felder';
+
+  @override
+  String get diveLog_refine_summaryAny => 'Alle';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gesetzt',
+      one: '$count gesetzt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge anzeigen',
+      one: '$count Tauchgang anzeigen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'Tauchgänge anzeigen';
+
+  @override
   String get diveLog_search_fieldHint => 'Suche, z. B. depth > 30m';
 
   @override
@@ -9376,13 +9400,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_search_allTrips => 'Alle Reisen';
 
   @override
-  String get diveLog_search_appBar => 'Erweiterte Suche';
-
-  @override
   String get diveLog_search_cancel => 'Abbrechen';
-
-  @override
-  String get diveLog_search_clearAll => 'Alles löschen';
 
   @override
   String get diveLog_search_customFieldKey => 'Custom Field Key';
@@ -9391,15 +9409,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
-  String get diveLog_search_end => 'Ende';
-
-  @override
   String get diveLog_search_errorLoadingCenters =>
       'Fehler beim Laden der Tauchbasen';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes =>
-      'Fehler beim Laden der Tauchgangstypen';
 
   @override
   String get diveLog_search_errorLoadingEquipment =>
@@ -9427,19 +9438,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_search_label_diveSite => 'Tauchplatz';
 
   @override
-  String get diveLog_search_label_diveType => 'Tauchgangart';
-
-  @override
-  String get diveLog_search_label_durationRange => 'Dauerbereich (min)';
-
-  @override
   String get diveLog_search_label_equipment => 'Ausrüstung';
 
   @override
   String get diveLog_search_label_trip => 'Reise';
-
-  @override
-  String get diveLog_search_search => 'Suchen';
 
   @override
   String get diveLog_search_section_conditions => 'Bedingungen';
@@ -9455,12 +9457,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => 'Organisation';
-
-  @override
-  String get diveLog_search_section_social => 'Soziales';
-
-  @override
-  String get diveLog_search_start => 'Start';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -9715,6 +9711,20 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Flasche entfernen';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Aus meinen Flaschen übernehmen';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'Die Daten der Flasche konnten nicht übernommen werden. Bitte erneut versuchen.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Übernimmt Größe und letzte Füllung der gewählten Flasche und fügt sie der Ausrüstung dieses Tauchgangs hinzu.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'Meine Flaschen';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Atemregler';
@@ -12947,10 +12957,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_profileEvent_decoViolation => 'Deko-Verstoß';
 
   @override
+  String get enum_profileEvent_decompressionDive => 'Dekompressionstauchgang';
+
+  @override
   String get enum_profileEvent_gasSwitch => 'Gaswechsel';
 
   @override
   String get enum_profileEvent_lowGas => 'Warnung niedriger Gasvorrat';
+
+  @override
+  String get enum_profileEvent_lowNoDecoTime => 'Geringe Nullzeit';
 
   @override
   String get enum_profileEvent_maxDepth => 'Maximale Tiefe';
@@ -12975,6 +12991,75 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_profileEvent_setpointChange => 'Setpoint-Wechsel';
+
+  @override
+  String get enum_profileEvent_suunto_ascentRateAlarm =>
+      'Alarm Aufstiegsgeschwindigkeit';
+
+  @override
+  String get enum_profileEvent_suunto_ceilingBroken => 'Deko-Ceiling verletzt';
+
+  @override
+  String get enum_profileEvent_suunto_cns100Alarm => 'Alarm CNS 100%';
+
+  @override
+  String get enum_profileEvent_suunto_cns80Warning => 'Warnung CNS 80%';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopBroken => 'Dekostopp verletzt';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopReached => 'Dekostopp erreicht';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopBroken => 'Tiefenstopp verletzt';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopReached => 'Tiefenstopp erreicht';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeAlarm => 'Alarm Gaszeit';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeNotification => 'Hinweis Gaszeit';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeWarning => 'Warnung Gaszeit';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Alarm => 'Alarm hoher ppO2';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Warning => 'Warnung hoher ppO2';
+
+  @override
+  String get enum_profileEvent_suunto_lowPpo2Alarm => 'Alarm niedriger ppO2';
+
+  @override
+  String get enum_profileEvent_suunto_otu250Warning => 'Warnung OTU 250';
+
+  @override
+  String get enum_profileEvent_suunto_otu300Alarm => 'Alarm OTU 300';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopBroken =>
+      'Sicherheitsstopp verletzt';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopReached =>
+      'Sicherheitsstopp erreicht';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureAlarm =>
+      'Alarm Flaschendruck';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureNotification =>
+      'Hinweis Flaschendruck';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureWarning =>
+      'Warnung Flaschendruck';
 
   @override
   String get enum_profileMetricCategory_decompression => 'Dekompression';
@@ -43450,6 +43535,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Alle Tauchgänge von diesem Computer wurden bereits importiert.';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return '$name wird per USB-Kabel verbunden, das Submersion auf iPhone und iPad nicht nutzen kann. Laden Sie die Tauchgänge mit Submersion auf einem Mac-, Windows- oder Linux-Computer herunter, oder importieren Sie sie aus einer Datei.';
+  }
+
+  @override
   String get universalImport_compare_noDiveData =>
       'Tauchdaten für den Vergleich nicht verfügbar.';
 
@@ -47655,12 +47745,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'Nein';
-
-  @override
-  String get diveLog_filter_queryRow => 'Abfrage';
-
-  @override
-  String get diveLog_search_section_query => 'Abfrage';
 
   @override
   String get query_saveDialog_title => 'Abfrage speichern';

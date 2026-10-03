@@ -11157,6 +11157,12 @@ abstract class AppLocalizations {
   /// **'Duration: {minutes} min'**
   String diveLog_edit_durationMinutes(Object minutes);
 
+  /// No description provided for @diveLog_edit_equipmentCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Tanks too.'**
+  String get diveLog_edit_equipmentCaption;
+
   /// No description provided for @diveLog_edit_equipmentHint.
   ///
   /// In en, this message translates to:
@@ -11835,6 +11841,12 @@ abstract class AppLocalizations {
   /// **'Volume'**
   String get diveLog_edit_tankCard_volume;
 
+  /// No description provided for @diveLog_edit_tanksCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'What you breathed from. Gas graphs, gas consumption and statistics come from these tanks.'**
+  String get diveLog_edit_tanksCaption;
+
   /// No description provided for @diveLog_edit_tooltip_calculateFromProfile.
   ///
   /// In en, this message translates to:
@@ -12321,12 +12333,6 @@ abstract class AppLocalizations {
   /// **'All types'**
   String get diveLog_filter_allTypes;
 
-  /// No description provided for @diveLog_filter_apply.
-  ///
-  /// In en, this message translates to:
-  /// **'Apply Filters'**
-  String get diveLog_filter_apply;
-
   /// No description provided for @diveLog_filter_buddyHint.
   ///
   /// In en, this message translates to:
@@ -12338,12 +12344,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buddy Name'**
   String get diveLog_filter_buddyName;
-
-  /// No description provided for @diveLog_filter_clearAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear All'**
-  String get diveLog_filter_clearAll;
 
   /// No description provided for @diveLog_filter_clearDates.
   ///
@@ -12501,23 +12501,11 @@ abstract class AppLocalizations {
   /// **'Buddy'**
   String get diveLog_filter_sectionBuddy;
 
-  /// No description provided for @diveLog_filter_sectionDateRange.
-  ///
-  /// In en, this message translates to:
-  /// **'Date Range'**
-  String get diveLog_filter_sectionDateRange;
-
   /// No description provided for @diveLog_filter_sectionDepthRange.
   ///
   /// In en, this message translates to:
   /// **'Depth Range (meters)'**
   String get diveLog_filter_sectionDepthRange;
-
-  /// No description provided for @diveLog_filter_sectionDiveSite.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Site'**
-  String get diveLog_filter_sectionDiveSite;
 
   /// No description provided for @diveLog_filter_sectionDiveType.
   ///
@@ -12572,24 +12560,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start Date'**
   String get diveLog_filter_startDate;
-
-  /// No description provided for @diveLog_filter_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Filter Dives'**
-  String get diveLog_filter_title;
-
-  /// No description provided for @diveLog_filter_resizeGrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Resize filter panel'**
-  String get diveLog_filter_resizeGrip;
-
-  /// No description provided for @diveLog_filter_tooltip_close.
-  ///
-  /// In en, this message translates to:
-  /// **'Close filter'**
-  String get diveLog_filter_tooltip_close;
 
   /// No description provided for @diveLog_fullscreenProfile_close.
   ///
@@ -12962,12 +12932,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log Dive'**
   String get diveLog_listPage_fab_logDive;
-
-  /// No description provided for @diveLog_listPage_menuAdvancedSearch.
-  ///
-  /// In en, this message translates to:
-  /// **'Advanced Search'**
-  String get diveLog_listPage_menuAdvancedSearch;
 
   /// No description provided for @diveLog_listPage_menuDiveNumbering.
   ///
@@ -14397,6 +14361,54 @@ abstract class AppLocalizations {
   /// **'Search dives'**
   String get diveLog_listPage_tooltip_searchDives;
 
+  /// No description provided for @diveLog_refine_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Refine'**
+  String get diveLog_refine_title;
+
+  /// No description provided for @diveLog_refine_groupRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get diveLog_refine_groupRules;
+
+  /// No description provided for @diveLog_refine_groupPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'People & life'**
+  String get diveLog_refine_groupPeople;
+
+  /// No description provided for @diveLog_refine_groupCustomFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom fields'**
+  String get diveLog_refine_groupCustomFields;
+
+  /// No description provided for @diveLog_refine_summaryAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get diveLog_refine_summaryAny;
+
+  /// No description provided for @diveLog_refine_summaryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} set} other{{count} set}}'**
+  String diveLog_refine_summaryCount(int count);
+
+  /// No description provided for @diveLog_refine_showDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show {count} dive} other{Show {count} dives}}'**
+  String diveLog_refine_showDives(int count);
+
+  /// No description provided for @diveLog_refine_showDivesNoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Show dives'**
+  String get diveLog_refine_showDivesNoCount;
+
   /// No description provided for @diveLog_search_fieldHint.
   ///
   /// In en, this message translates to:
@@ -15033,23 +15045,11 @@ abstract class AppLocalizations {
   /// **'All trips'**
   String get diveLog_search_allTrips;
 
-  /// No description provided for @diveLog_search_appBar.
-  ///
-  /// In en, this message translates to:
-  /// **'Advanced Search'**
-  String get diveLog_search_appBar;
-
   /// No description provided for @diveLog_search_cancel.
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
   String get diveLog_search_cancel;
-
-  /// No description provided for @diveLog_search_clearAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear All'**
-  String get diveLog_search_clearAll;
 
   /// No description provided for @diveLog_search_customFieldKey.
   ///
@@ -15063,23 +15063,11 @@ abstract class AppLocalizations {
   /// **'Value contains...'**
   String get diveLog_search_customFieldValue;
 
-  /// No description provided for @diveLog_search_end.
-  ///
-  /// In en, this message translates to:
-  /// **'End'**
-  String get diveLog_search_end;
-
   /// No description provided for @diveLog_search_errorLoadingCenters.
   ///
   /// In en, this message translates to:
   /// **'Error loading dive centers'**
   String get diveLog_search_errorLoadingCenters;
-
-  /// No description provided for @diveLog_search_errorLoadingDiveTypes.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading dive types'**
-  String get diveLog_search_errorLoadingDiveTypes;
 
   /// No description provided for @diveLog_search_errorLoadingEquipment.
   ///
@@ -15129,18 +15117,6 @@ abstract class AppLocalizations {
   /// **'Dive Site'**
   String get diveLog_search_label_diveSite;
 
-  /// No description provided for @diveLog_search_label_diveType.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Type'**
-  String get diveLog_search_label_diveType;
-
-  /// No description provided for @diveLog_search_label_durationRange.
-  ///
-  /// In en, this message translates to:
-  /// **'Duration Range (min)'**
-  String get diveLog_search_label_durationRange;
-
   /// No description provided for @diveLog_search_label_equipment.
   ///
   /// In en, this message translates to:
@@ -15152,12 +15128,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trip'**
   String get diveLog_search_label_trip;
-
-  /// No description provided for @diveLog_search_search.
-  ///
-  /// In en, this message translates to:
-  /// **'Search'**
-  String get diveLog_search_search;
 
   /// No description provided for @diveLog_search_section_conditions.
   ///
@@ -15188,18 +15158,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Organization'**
   String get diveLog_search_section_organization;
-
-  /// No description provided for @diveLog_search_section_social.
-  ///
-  /// In en, this message translates to:
-  /// **'Social'**
-  String get diveLog_search_section_social;
-
-  /// No description provided for @diveLog_search_start.
-  ///
-  /// In en, this message translates to:
-  /// **'Start'**
-  String get diveLog_search_start;
 
   /// No description provided for @diveLog_selection_countSelected.
   ///
@@ -15638,6 +15596,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove tank'**
   String get diveLog_tank_tooltip_remove;
+
+  /// No description provided for @diveLog_tank_fromOwnCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill from my cylinders'**
+  String get diveLog_tank_fromOwnCylinder;
+
+  /// No description provided for @diveLog_tank_ownCylinderFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not fill the tank from that cylinder. Try again.'**
+  String get diveLog_tank_ownCylinderFailed;
+
+  /// No description provided for @diveLog_tank_ownCylinderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Copies the cylinder\'s size and latest fill into this tank and adds the cylinder to this dive\'s equipment.'**
+  String get diveLog_tank_ownCylinderHint;
+
+  /// No description provided for @diveLog_tank_ownCylinderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My cylinders'**
+  String get diveLog_tank_ownCylinderTitle;
 
   /// No description provided for @diveLog_tank_regulatorLabel.
   ///
@@ -21082,6 +21064,12 @@ abstract class AppLocalizations {
   /// **'Deco Violation'**
   String get enum_profileEvent_decoViolation;
 
+  /// No description provided for @enum_profileEvent_decompressionDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression Dive'**
+  String get enum_profileEvent_decompressionDive;
+
   /// No description provided for @enum_profileEvent_gasSwitch.
   ///
   /// In en, this message translates to:
@@ -21093,6 +21081,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Low Gas Warning'**
   String get enum_profileEvent_lowGas;
+
+  /// No description provided for @enum_profileEvent_lowNoDecoTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Low No-Deco Time'**
+  String get enum_profileEvent_lowNoDecoTime;
 
   /// No description provided for @enum_profileEvent_maxDepth.
   ///
@@ -21141,6 +21135,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Setpoint Change'**
   String get enum_profileEvent_setpointChange;
+
+  /// No description provided for @enum_profileEvent_suunto_ascentRateAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent Rate Alarm'**
+  String get enum_profileEvent_suunto_ascentRateAlarm;
+
+  /// No description provided for @enum_profileEvent_suunto_ceilingBroken.
+  ///
+  /// In en, this message translates to:
+  /// **'Ceiling Broken'**
+  String get enum_profileEvent_suunto_ceilingBroken;
+
+  /// No description provided for @enum_profileEvent_suunto_cns100Alarm.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS 100% Alarm'**
+  String get enum_profileEvent_suunto_cns100Alarm;
+
+  /// No description provided for @enum_profileEvent_suunto_cns80Warning.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS 80% Warning'**
+  String get enum_profileEvent_suunto_cns80Warning;
+
+  /// No description provided for @enum_profileEvent_suunto_decoStopBroken.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco Stop Broken'**
+  String get enum_profileEvent_suunto_decoStopBroken;
+
+  /// No description provided for @enum_profileEvent_suunto_decoStopReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco Stop Reached'**
+  String get enum_profileEvent_suunto_decoStopReached;
+
+  /// No description provided for @enum_profileEvent_suunto_deepStopBroken.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep Stop Broken'**
+  String get enum_profileEvent_suunto_deepStopBroken;
+
+  /// No description provided for @enum_profileEvent_suunto_deepStopReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep Stop Reached'**
+  String get enum_profileEvent_suunto_deepStopReached;
+
+  /// No description provided for @enum_profileEvent_suunto_gasTimeAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Time Alarm'**
+  String get enum_profileEvent_suunto_gasTimeAlarm;
+
+  /// No description provided for @enum_profileEvent_suunto_gasTimeNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Time Notification'**
+  String get enum_profileEvent_suunto_gasTimeNotification;
+
+  /// No description provided for @enum_profileEvent_suunto_gasTimeWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Time Warning'**
+  String get enum_profileEvent_suunto_gasTimeWarning;
+
+  /// No description provided for @enum_profileEvent_suunto_highPpo2Alarm.
+  ///
+  /// In en, this message translates to:
+  /// **'High ppO2 Alarm'**
+  String get enum_profileEvent_suunto_highPpo2Alarm;
+
+  /// No description provided for @enum_profileEvent_suunto_highPpo2Warning.
+  ///
+  /// In en, this message translates to:
+  /// **'High ppO2 Warning'**
+  String get enum_profileEvent_suunto_highPpo2Warning;
+
+  /// No description provided for @enum_profileEvent_suunto_lowPpo2Alarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Low ppO2 Alarm'**
+  String get enum_profileEvent_suunto_lowPpo2Alarm;
+
+  /// No description provided for @enum_profileEvent_suunto_otu250Warning.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU 250 Warning'**
+  String get enum_profileEvent_suunto_otu250Warning;
+
+  /// No description provided for @enum_profileEvent_suunto_otu300Alarm.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU 300 Alarm'**
+  String get enum_profileEvent_suunto_otu300Alarm;
+
+  /// No description provided for @enum_profileEvent_suunto_safetyStopBroken.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety Stop Broken'**
+  String get enum_profileEvent_suunto_safetyStopBroken;
+
+  /// No description provided for @enum_profileEvent_suunto_safetyStopReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety Stop Reached'**
+  String get enum_profileEvent_suunto_safetyStopReached;
+
+  /// No description provided for @enum_profileEvent_suunto_tankPressureAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank Pressure Alarm'**
+  String get enum_profileEvent_suunto_tankPressureAlarm;
+
+  /// No description provided for @enum_profileEvent_suunto_tankPressureNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank Pressure Notification'**
+  String get enum_profileEvent_suunto_tankPressureNotification;
+
+  /// No description provided for @enum_profileEvent_suunto_tankPressureWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank Pressure Warning'**
+  String get enum_profileEvent_suunto_tankPressureWarning;
 
   /// No description provided for @enum_profileMetricCategory_decompression.
   ///
@@ -69300,6 +69420,12 @@ abstract class AppLocalizations {
   /// **'All dives from this computer have already been imported.'**
   String get importWizard_dc_noNewDivesBody;
 
+  /// Download step body on iOS when a saved dive computer connects over USB, which iOS cannot use.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} connects with a USB cable, which Submersion cannot use on iPhone or iPad. Download its dives with Submersion on a Mac, Windows or Linux computer, or import them from a file.'**
+  String importWizard_dc_noUsbOnThisPlatformBody(String name);
+
   /// No description provided for @universalImport_compare_noDiveData.
   ///
   /// In en, this message translates to:
@@ -76063,18 +76189,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No'**
   String get query_editor_valueFalse;
-
-  /// Quick filter sheet row that opens the advanced search on its query editor
-  ///
-  /// In en, this message translates to:
-  /// **'Query'**
-  String get diveLog_filter_queryRow;
-
-  /// Advanced search section that hosts the query editor
-  ///
-  /// In en, this message translates to:
-  /// **'Query'**
-  String get diveLog_search_section_query;
 
   /// Dialog that names a query being saved
   ///

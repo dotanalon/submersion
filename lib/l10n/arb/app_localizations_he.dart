@@ -6875,6 +6875,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'הציוד שבו השתמשת, לספירת הצלילות ולהיסטוריית השירות שלו. מיכל שמופיע כאן אינו מוסיף נתוני גז; הוסיפו אותו גם תחת מיכלים.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'הקש \"שימוש בסט\" או \"הוספה\" לבחירת ציוד';
 
@@ -7296,6 +7300,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_tankCard_volume => 'נפח';
 
   @override
+  String get diveLog_edit_tanksCaption =>
+      'ממה נשמת. גרפי הגז, צריכת הגז והסטטיסטיקות מגיעים מהמיכלים האלה.';
+
+  @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
       'חישוב מפרופיל הצלילה';
 
@@ -7582,16 +7590,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_allTypes => 'כל הסוגים';
 
   @override
-  String get diveLog_filter_apply => 'החלת מסננים';
-
-  @override
   String get diveLog_filter_buddyHint => 'חיפוש לפי שם שותף';
 
   @override
   String get diveLog_filter_buddyName => 'שם שותף';
-
-  @override
-  String get diveLog_filter_clearAll => 'ניקוי הכל';
 
   @override
   String get diveLog_filter_clearDates => 'ניקוי תאריכים';
@@ -7672,13 +7674,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'שותף';
 
   @override
-  String get diveLog_filter_sectionDateRange => 'טווח תאריכים';
-
-  @override
   String get diveLog_filter_sectionDepthRange => 'טווח עומק (מטרים)';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => 'אתר צלילה';
 
   @override
   String get diveLog_filter_sectionDiveType => 'סוג צלילה';
@@ -7706,15 +7702,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => 'תאריך התחלה';
-
-  @override
-  String get diveLog_filter_title => 'סינון צלילות';
-
-  @override
-  String get diveLog_filter_resizeGrip => 'שינוי גודל חלונית הסינון';
-
-  @override
-  String get diveLog_filter_tooltip_close => 'סגירת מסנן';
 
   @override
   String get diveLog_fullscreenProfile_close => 'סגירת מסך מלא';
@@ -7929,9 +7916,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => 'רישום צלילה';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => 'חיפוש מתקדם';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => 'מספור צלילות';
@@ -8797,6 +8781,46 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'חיפוש צלילות';
 
   @override
+  String get diveLog_refine_title => 'צמצום';
+
+  @override
+  String get diveLog_refine_groupRules => 'כללים';
+
+  @override
+  String get diveLog_refine_groupPeople => 'אנשים וחיים ימיים';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'שדות מותאמים';
+
+  @override
+  String get diveLog_refine_summaryAny => 'הכול';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מסננים',
+      one: 'מסנן אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הצגת $count צלילות',
+      one: 'הצגת צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'הצגת צלילות';
+
+  @override
   String get diveLog_search_fieldHint => 'חיפוש, או נסו depth > 30m';
 
   @override
@@ -9155,13 +9179,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_search_allTrips => 'כל הטיולים';
 
   @override
-  String get diveLog_search_appBar => 'חיפוש מתקדם';
-
-  @override
   String get diveLog_search_cancel => 'ביטול';
-
-  @override
-  String get diveLog_search_clearAll => 'נקה הכל';
 
   @override
   String get diveLog_search_customFieldKey => 'Custom Field Key';
@@ -9170,13 +9188,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
-  String get diveLog_search_end => 'סיום';
-
-  @override
   String get diveLog_search_errorLoadingCenters => 'שגיאה בטעינת מרכזי צלילה';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes => 'שגיאה בטעינת סוגי צלילה';
 
   @override
   String get diveLog_search_errorLoadingEquipment => 'שגיאה בטעינת הציוד';
@@ -9203,19 +9215,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_search_label_diveSite => 'אתר צלילה';
 
   @override
-  String get diveLog_search_label_diveType => 'סוג צלילה';
-
-  @override
-  String get diveLog_search_label_durationRange => 'טווח משך (min)';
-
-  @override
   String get diveLog_search_label_equipment => 'ציוד';
 
   @override
   String get diveLog_search_label_trip => 'טיול';
-
-  @override
-  String get diveLog_search_search => 'חיפוש';
 
   @override
   String get diveLog_search_section_conditions => 'תנאים';
@@ -9231,12 +9234,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => 'ארגון';
-
-  @override
-  String get diveLog_search_section_social => 'חברתי';
-
-  @override
-  String get diveLog_search_start => 'התחלה';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -9488,6 +9485,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'הסר בלון';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'מילוי מהמיכלים שלי';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'לא ניתן היה להעתיק את נתוני המיכל. נסו שוב.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'מעתיק את הגודל ואת המילוי האחרון של המיכל שנבחר ומוסיף אותו לציוד של הצלילה הזו.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'המיכלים שלי';
 
   @override
   String get diveLog_tank_regulatorLabel => 'וסת';
@@ -12658,10 +12669,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_profileEvent_decoViolation => 'הפרת דקומפרסיה';
 
   @override
+  String get enum_profileEvent_decompressionDive => 'צלילת דקומפרסיה';
+
+  @override
   String get enum_profileEvent_gasSwitch => 'החלפת גז';
 
   @override
   String get enum_profileEvent_lowGas => 'אזהרת גז נמוך';
+
+  @override
+  String get enum_profileEvent_lowNoDecoTime => 'זמן ללא דקו נמוך';
 
   @override
   String get enum_profileEvent_maxDepth => 'עומק מרבי';
@@ -12686,6 +12703,70 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_profileEvent_setpointChange => 'שינוי נקודת כוונון';
+
+  @override
+  String get enum_profileEvent_suunto_ascentRateAlarm => 'אזעקת קצב עלייה';
+
+  @override
+  String get enum_profileEvent_suunto_ceilingBroken => 'חריגה מתקרת הדקו';
+
+  @override
+  String get enum_profileEvent_suunto_cns100Alarm => 'אזעקת CNS 100%';
+
+  @override
+  String get enum_profileEvent_suunto_cns80Warning => 'אזהרת CNS 80%';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopBroken => 'עצירת דקו הופרה';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopReached => 'הגעה לעצירת דקו';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopBroken => 'עצירה עמוקה הופרה';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopReached => 'הגעה לעצירה עמוקה';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeAlarm => 'אזעקת זמן גז';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeNotification => 'התראת זמן גז';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeWarning => 'אזהרת זמן גז';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Alarm => 'אזעקת ppO2 גבוה';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Warning => 'אזהרת ppO2 גבוה';
+
+  @override
+  String get enum_profileEvent_suunto_lowPpo2Alarm => 'אזעקת ppO2 נמוך';
+
+  @override
+  String get enum_profileEvent_suunto_otu250Warning => 'אזהרת OTU 250';
+
+  @override
+  String get enum_profileEvent_suunto_otu300Alarm => 'אזעקת OTU 300';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopBroken => 'עצירת ביטחון הופרה';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopReached => 'הגעה לעצירת ביטחון';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureAlarm => 'אזעקת לחץ מיכל';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureNotification =>
+      'התראת לחץ מיכל';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureWarning => 'אזהרת לחץ מיכל';
 
   @override
   String get enum_profileMetricCategory_decompression => 'דקומפרסיה';
@@ -42690,6 +42771,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'כל הצלילות ממחשב הצלילה הזה כבר יובאו.';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return '$name מתחבר בכבל USB, ש-Submersion לא יכול להשתמש בו ב-iPhone או ב-iPad. הורד את הצלילות שלו עם Submersion במחשב Mac, Windows או Linux, או ייבא אותן מקובץ.';
+  }
+
+  @override
   String get universalImport_compare_noDiveData =>
       'נתוני הצלילה אינם זמינים להשוואה.';
 
@@ -46797,12 +46883,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'לא';
-
-  @override
-  String get diveLog_filter_queryRow => 'שאילתה';
-
-  @override
-  String get diveLog_search_section_query => 'שאילתה';
 
   @override
   String get query_saveDialog_title => 'שמירת שאילתה';

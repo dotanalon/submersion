@@ -6903,6 +6903,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'المعدات التي استخدمتها، لعدد غطساتها وسجل صيانتها. الأسطوانة المدرجة هنا لا تضيف بيانات غاز؛ أضفها أيضًا ضمن الأسطوانات.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'انقر \"استخدام طقم\" أو \"إضافة\" لاختيار المعدات';
 
@@ -7324,6 +7328,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_tankCard_volume => 'الحجم';
 
   @override
+  String get diveLog_edit_tanksCaption =>
+      'ما تنفست منه. تأتي رسوم الغاز البيانية واستهلاك الغاز والإحصاءات من هذه الأسطوانات.';
+
+  @override
   String get diveLog_edit_tooltip_calculateFromProfile => 'حساب من ملف الغوصة';
 
   @override
@@ -7613,16 +7621,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_allTypes => 'جميع الأنواع';
 
   @override
-  String get diveLog_filter_apply => 'تطبيق عوامل التصفية';
-
-  @override
   String get diveLog_filter_buddyHint => 'البحث باسم زميل الغوص';
 
   @override
   String get diveLog_filter_buddyName => 'اسم زميل الغوص';
-
-  @override
-  String get diveLog_filter_clearAll => 'مسح الكل';
 
   @override
   String get diveLog_filter_clearDates => 'مسح التواريخ';
@@ -7703,13 +7705,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'زميل الغوص';
 
   @override
-  String get diveLog_filter_sectionDateRange => 'نطاق التاريخ';
-
-  @override
   String get diveLog_filter_sectionDepthRange => 'نطاق العمق (بالأمتار)';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => 'موقع الغوص';
 
   @override
   String get diveLog_filter_sectionDiveType => 'نوع الغوصة';
@@ -7737,15 +7733,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => 'تاريخ البدء';
-
-  @override
-  String get diveLog_filter_title => 'تصفية الغوصات';
-
-  @override
-  String get diveLog_filter_resizeGrip => 'تغيير حجم لوحة التصفية';
-
-  @override
-  String get diveLog_filter_tooltip_close => 'إغلاق التصفية';
 
   @override
   String get diveLog_fullscreenProfile_close => 'إغلاق ملء الشاشة';
@@ -7961,9 +7948,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => 'تسجيل غوصة';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => 'بحث متقدم';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => 'ترقيم الغوصات';
@@ -8836,6 +8820,46 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'البحث في الغوصات';
 
   @override
+  String get diveLog_refine_title => 'تحسين البحث';
+
+  @override
+  String get diveLog_refine_groupRules => 'القواعد';
+
+  @override
+  String get diveLog_refine_groupPeople => 'الأشخاص والكائنات';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'الحقول المخصصة';
+
+  @override
+  String get diveLog_refine_summaryAny => 'أي';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عوامل',
+      one: 'عامل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عرض $count غوصات',
+      one: 'عرض غوصة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'عرض الغوصات';
+
+  @override
   String get diveLog_search_fieldHint => 'ابحث، أو جرّب depth > 30m';
 
   @override
@@ -9197,13 +9221,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_search_allTrips => 'جميع الرحلات';
 
   @override
-  String get diveLog_search_appBar => 'بحث متقدم';
-
-  @override
   String get diveLog_search_cancel => 'إلغاء';
-
-  @override
-  String get diveLog_search_clearAll => 'مسح الكل';
 
   @override
   String get diveLog_search_customFieldKey => 'Custom Field Key';
@@ -9212,13 +9230,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
-  String get diveLog_search_end => 'النهاية';
-
-  @override
   String get diveLog_search_errorLoadingCenters => 'خطأ في تحميل مراكز الغوص';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes => 'خطأ في تحميل أنواع الغوص';
 
   @override
   String get diveLog_search_errorLoadingEquipment => 'خطأ في تحميل المعدات';
@@ -9245,19 +9257,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_search_label_diveSite => 'موقع غوص';
 
   @override
-  String get diveLog_search_label_diveType => 'نوع الغوصة';
-
-  @override
-  String get diveLog_search_label_durationRange => 'نطاق المدة (min)';
-
-  @override
   String get diveLog_search_label_equipment => 'المعدات';
 
   @override
   String get diveLog_search_label_trip => 'رحلة';
-
-  @override
-  String get diveLog_search_search => 'بحث';
 
   @override
   String get diveLog_search_section_conditions => 'الظروف';
@@ -9273,12 +9276,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => 'المنظمة';
-
-  @override
-  String get diveLog_search_section_social => 'اجتماعي';
-
-  @override
-  String get diveLog_search_start => 'البداية';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -9532,6 +9529,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'إزالة الأسطوانة';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'التعبئة من أسطواناتي';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'تعذّر نسخ بيانات تلك الأسطوانة. حاول مرة أخرى.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'ينسخ حجم الأسطوانة المختارة وآخر تعبئة لها ويضيفها إلى معدات هذه الغطسة.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'أسطواناتي';
 
   @override
   String get diveLog_tank_regulatorLabel => 'منظم التنفس';
@@ -12731,10 +12742,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_profileEvent_decoViolation => 'انتهاك تخفيف الضغط';
 
   @override
+  String get enum_profileEvent_decompressionDive => 'غوصة تخفيف ضغط';
+
+  @override
   String get enum_profileEvent_gasSwitch => 'تبديل الغاز';
 
   @override
   String get enum_profileEvent_lowGas => 'تحذير انخفاض الغاز';
+
+  @override
+  String get enum_profileEvent_lowNoDecoTime => 'انخفاض وقت عدم تخفيف الضغط';
 
   @override
   String get enum_profileEvent_maxDepth => 'أقصى عمق';
@@ -12759,6 +12776,75 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_profileEvent_setpointChange => 'تغيير نقطة الضبط';
+
+  @override
+  String get enum_profileEvent_suunto_ascentRateAlarm => 'إنذار معدل الصعود';
+
+  @override
+  String get enum_profileEvent_suunto_ceilingBroken => 'تجاوز سقف تخفيف الضغط';
+
+  @override
+  String get enum_profileEvent_suunto_cns100Alarm => 'إنذار CNS 100%';
+
+  @override
+  String get enum_profileEvent_suunto_cns80Warning => 'تحذير CNS 80%';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopBroken => 'كسر توقف تخفيف الضغط';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopReached =>
+      'الوصول إلى توقف تخفيف الضغط';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopBroken => 'كسر التوقف العميق';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopReached =>
+      'الوصول إلى التوقف العميق';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeAlarm => 'إنذار وقت الغاز';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeNotification => 'إشعار وقت الغاز';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeWarning => 'تحذير وقت الغاز';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Alarm => 'إنذار ppO2 مرتفع';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Warning => 'تحذير ppO2 مرتفع';
+
+  @override
+  String get enum_profileEvent_suunto_lowPpo2Alarm => 'إنذار ppO2 منخفض';
+
+  @override
+  String get enum_profileEvent_suunto_otu250Warning => 'تحذير OTU 250';
+
+  @override
+  String get enum_profileEvent_suunto_otu300Alarm => 'إنذار OTU 300';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopBroken => 'كسر توقف الأمان';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopReached =>
+      'الوصول إلى توقف الأمان';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureAlarm =>
+      'إنذار ضغط الأسطوانة';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureNotification =>
+      'إشعار ضغط الأسطوانة';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureWarning =>
+      'تحذير ضغط الأسطوانة';
 
   @override
   String get enum_profileMetricCategory_decompression => 'تخفيف الضغط';
@@ -43203,6 +43289,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم استيراد جميع الغوصات من هذا الكمبيوتر بالفعل.';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return 'يتصل $name بكابل USB، ولا يمكن لـ Submersion استخدامه على iPhone أو iPad. نزّل غوصاته باستخدام Submersion على كمبيوتر Mac أو Windows أو Linux، أو استوردها من ملف.';
+  }
+
+  @override
   String get universalImport_compare_noDiveData =>
       'بيانات الغوصة غير متوفرة للمقارنة.';
 
@@ -47359,12 +47450,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'لا';
-
-  @override
-  String get diveLog_filter_queryRow => 'استعلام';
-
-  @override
-  String get diveLog_search_section_query => 'استعلام';
 
   @override
   String get query_saveDialog_title => 'حفظ الاستعلام';

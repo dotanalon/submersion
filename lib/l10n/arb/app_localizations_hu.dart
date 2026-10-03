@@ -7016,6 +7016,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'A használt felszerelés, a merülésszámához és a szervizelési előzményeihez. Az itt felsorolt palack nem ad gázadatot; vegye fel a Palackok közé is.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Koppintson a \"Készlet használata\" vagy \"Hozzáadás\" gombra a felszerelés kiválasztásához';
 
@@ -7444,6 +7448,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_tankCard_volume => 'Térfogat';
 
   @override
+  String get diveLog_edit_tanksCaption =>
+      'Amiből lélegzett. A gázgrafikonok, a gázfogyasztás és a statisztikák ezekből a palackokból származnak.';
+
+  @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
       'Számítás a merülési profilból';
 
@@ -7748,16 +7756,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_allTypes => 'Összes típus';
 
   @override
-  String get diveLog_filter_apply => 'Szűrők alkalmazása';
-
-  @override
   String get diveLog_filter_buddyHint => 'Keresés búvártárs neve alapján';
 
   @override
   String get diveLog_filter_buddyName => 'Búvártárs neve';
-
-  @override
-  String get diveLog_filter_clearAll => 'Összes törlése';
 
   @override
   String get diveLog_filter_clearDates => 'Dátumok törlése';
@@ -7843,13 +7845,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'Búvártárs';
 
   @override
-  String get diveLog_filter_sectionDateRange => 'Dátumtartomány';
-
-  @override
   String get diveLog_filter_sectionDepthRange => 'Mélység tartomány (méter)';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => 'Merülőhely';
 
   @override
   String get diveLog_filter_sectionDiveType => 'Merülés típusa';
@@ -7879,15 +7875,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => 'Kezdés dátuma';
-
-  @override
-  String get diveLog_filter_title => 'Merülések szűrése';
-
-  @override
-  String get diveLog_filter_resizeGrip => 'Szűrőpanel átméretezése';
-
-  @override
-  String get diveLog_filter_tooltip_close => 'Szűrő bezárása';
 
   @override
   String get diveLog_fullscreenProfile_close => 'Teljes képernyő bezárása';
@@ -8105,9 +8092,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => 'Merülés rögzítése';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => 'Speciális keresés';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => 'Merülés számozás';
@@ -8992,6 +8976,46 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Merülések keresése';
 
   @override
+  String get diveLog_refine_title => 'Szűkítés';
+
+  @override
+  String get diveLog_refine_groupRules => 'Szabályok';
+
+  @override
+  String get diveLog_refine_groupPeople => 'Személyek és élővilág';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'Egyéni mezők';
+
+  @override
+  String get diveLog_refine_summaryAny => 'Bármely';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count beállítva',
+      one: '$count beállítva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés megjelenítése',
+      one: '$count merülés megjelenítése',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'Merülések megjelenítése';
+
+  @override
   String get diveLog_search_fieldHint => 'Keresés, pl. depth > 30m';
 
   @override
@@ -9358,13 +9382,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_search_allTrips => 'Összes utazás';
 
   @override
-  String get diveLog_search_appBar => 'Részletes keresés';
-
-  @override
   String get diveLog_search_cancel => 'Mégse';
-
-  @override
-  String get diveLog_search_clearAll => 'Összes törlése';
 
   @override
   String get diveLog_search_customFieldKey => 'Custom Field Key';
@@ -9373,15 +9391,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
-  String get diveLog_search_end => 'Vége';
-
-  @override
   String get diveLog_search_errorLoadingCenters =>
       'Hiba a merülőközpontok betöltésekor';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes =>
-      'Hiba a merülés típusok betöltésekor';
 
   @override
   String get diveLog_search_errorLoadingEquipment =>
@@ -9410,19 +9421,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_search_label_diveSite => 'Merülőhely';
 
   @override
-  String get diveLog_search_label_diveType => 'Merülés típus';
-
-  @override
-  String get diveLog_search_label_durationRange => 'Időtartam tartomány (min)';
-
-  @override
   String get diveLog_search_label_equipment => 'Felszerelés';
 
   @override
   String get diveLog_search_label_trip => 'Utazás';
-
-  @override
-  String get diveLog_search_search => 'Keresés';
 
   @override
   String get diveLog_search_section_conditions => 'Körülmények';
@@ -9438,12 +9440,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => 'Szervezet';
-
-  @override
-  String get diveLog_search_section_social => 'Közösségi';
-
-  @override
-  String get diveLog_search_start => 'Kezdés';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -9702,6 +9698,20 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Palack eltávolítása';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Kitöltés a saját palackjaimból';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'A palack adatait nem sikerült átvenni. Próbálja újra.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Átveszi a kiválasztott palack méretét és legutóbbi töltését, és felveszi a merülés felszerelései közé.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'Saját palackjaim';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Reduktor';
@@ -12922,10 +12932,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_profileEvent_decoViolation => 'Dekó megszegés';
 
   @override
+  String get enum_profileEvent_decompressionDive => 'Dekompressziós merülés';
+
+  @override
   String get enum_profileEvent_gasSwitch => 'Gázcserélés';
 
   @override
   String get enum_profileEvent_lowGas => 'Alacsony gáz figyelmeztetés';
+
+  @override
+  String get enum_profileEvent_lowNoDecoTime => 'Alacsony dekómentes idő';
 
   @override
   String get enum_profileEvent_maxDepth => 'Max mélység';
@@ -12950,6 +12966,78 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_profileEvent_setpointChange => 'Setpoint változás';
+
+  @override
+  String get enum_profileEvent_suunto_ascentRateAlarm =>
+      'Felszállási sebesség riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_ceilingBroken => 'Dekó plafon megsértve';
+
+  @override
+  String get enum_profileEvent_suunto_cns100Alarm => 'CNS 100% riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_cns80Warning => 'CNS 80% figyelmeztetés';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopBroken =>
+      'Dekó megálló megszakítva';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopReached => 'Dekó megálló elérve';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopBroken =>
+      'Mély megálló megszakítva';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopReached => 'Mély megálló elérve';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeAlarm => 'Gázidő riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeNotification => 'Gázidő értesítés';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeWarning => 'Gázidő figyelmeztetés';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Alarm => 'Magas ppO2 riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Warning =>
+      'Magas ppO2 figyelmeztetés';
+
+  @override
+  String get enum_profileEvent_suunto_lowPpo2Alarm => 'Alacsony ppO2 riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_otu250Warning => 'OTU 250 figyelmeztetés';
+
+  @override
+  String get enum_profileEvent_suunto_otu300Alarm => 'OTU 300 riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopBroken =>
+      'Biztonsági megállás megszakítva';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopReached =>
+      'Biztonsági megállás elérve';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureAlarm =>
+      'Palacknyomás riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureNotification =>
+      'Palacknyomás értesítés';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureWarning =>
+      'Palacknyomás figyelmeztetés';
 
   @override
   String get enum_profileMetricCategory_decompression => 'Dekompresszió';
@@ -43344,6 +43432,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ennek a búvárszámítógépnek az összes merülése már importálva lett.';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return 'Ez a számítógép ($name) USB-kábellel csatlakozik, amelyet a Submersion iPhone-on és iPaden nem tud használni. Töltse le a merüléseit a Submersionnel egy Mac, Windows vagy Linux rendszerű számítógépen, vagy importálja őket fájlból.';
+  }
+
+  @override
   String get universalImport_compare_noDiveData =>
       'A merülési adatok nem érhetők el összehasonlításhoz.';
 
@@ -47544,12 +47637,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'Nem';
-
-  @override
-  String get diveLog_filter_queryRow => 'Lekérdezés';
-
-  @override
-  String get diveLog_search_section_query => 'Lekérdezés';
 
   @override
   String get query_saveDialog_title => 'Lekérdezés mentése';
