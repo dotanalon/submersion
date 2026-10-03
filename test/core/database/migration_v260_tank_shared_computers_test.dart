@@ -161,10 +161,13 @@ void main() {
   /// Dive b: a backup left on 21% while the Perdix ran 32%, the backup's
   /// transmitter series sitting on the Perdix's 32% through its source row
   /// only. Dive solo: one computer. At [version] 260 the column already
-  /// exists; [recordedOnD] is what a fold left on every tank of dive d.
+  /// exists; [recorded] is what is already stored on a tank, by id.
+  /// [badAirO2] stores dive d's 21% as text, a row the inference cannot
+  /// read.
   NativeDatabase consolidatedFixture({
     int version = 259,
-    String? recordedOnD,
+    Map<String, String> recorded = const {},
+    bool badAirO2 = false,
   }) => NativeDatabase.memory(
     setup: (rawDb) {
       rawDb.execute('PRAGMA user_version = $version');
@@ -215,10 +218,15 @@ void main() {
         "('b-ean50', 'b', 'perdix', 50, 0, 1, 'deco'), "
         "('b-air', 'b', 'backup', 21, 0, 2, 'backGas')",
       );
-      if (recordedOnD != null) {
+      for (final entry in recorded.entries) {
         rawDb.execute(
-          "UPDATE dive_tanks SET shared_computer_ids = '$recordedOnD' "
-          "WHERE dive_id = 'd'",
+          "UPDATE dive_tanks SET shared_computer_ids = '${entry.value}' "
+          "WHERE id = '${entry.key}'",
+        );
+      }
+      if (badAirO2) {
+        rawDb.execute(
+          "UPDATE dive_tanks SET o2_percent = 'twenty-one' WHERE id = 'air'",
         );
       }
       rawDb.execute(
@@ -269,7 +277,10 @@ void main() {
     // The fold found nobody to share dive d's cylinders, which inference
     // would have shared with the Garmin.
     final db = AppDatabase(
-      consolidatedFixture(version: 260, recordedOnD: '[]'),
+      consolidatedFixture(
+        version: 260,
+        recorded: const {'air': '[]', 'ean50': '[]', 'o2': '[]'},
+      ),
     );
     addTearDown(db.close);
     expect(await sharedById(db), {
@@ -278,5 +289,25 @@ void main() {
       'ean50': '[]',
       'o2': '[]',
     });
+  });
+
+  test('a dive with only some cylinders recorded still has its unrecorded '
+      'primary cylinders inferred', () async {
+    // A peer's edit carried the Garmin's O2 row with a recorded value; the
+    // merged 21% and 50% arrived from an older peer unrecorded.
+    final db = AppDatabase(
+      consolidatedFixture(version: 260, recorded: const {'o2': '[]'}),
+    );
+    addTearDown(db.close);
+    expect(await sharedById(db), inferred);
+  });
+
+  test('a row the inference cannot read does not stop the database '
+      'opening', () async {
+    final db = AppDatabase(consolidatedFixture(version: 260, badAirO2: true));
+    addTearDown(db.close);
+    final shared = await sharedById(db);
+    expect(shared, contains('air'));
+    expect(shared['solo-air'], isNull);
   });
 }

@@ -269,7 +269,8 @@ class DiveSplitService {
             ) ||
             // Another computer breathed this cylinder too (a consolidated
             // tank both logged), so it cannot leave the original dive.
-            decodeSharedComputerIds(tank.sharedComputerIds).isNotEmpty;
+            (decodeSharedComputerIds(tank.sharedComputerIds)?.isNotEmpty ??
+                false);
 
         final freshId = _uuid.v4();
         tankIdMap[tank.id] = freshId;
@@ -297,7 +298,9 @@ class DiveSplitService {
           // unattributed it would become every remaining computer's, and a
           // third computer on its own gas would start the dive on it.
           final sharers = [
-            for (final c in decodeSharedComputerIds(tank.sharedComputerIds))
+            for (final c
+                in decodeSharedComputerIds(tank.sharedComputerIds) ??
+                    const <String>[])
               if (c != source.computerId) c,
           ];
           final heir = sharers.firstOrNull;
@@ -369,7 +372,8 @@ class DiveSplitService {
       // consolidation merged): it breathed them too, so the new dive gets
       // its own copy and the original stops listing it.
       for (final tank in allTanks) {
-        final sharers = decodeSharedComputerIds(tank.sharedComputerIds);
+        final sharers =
+            decodeSharedComputerIds(tank.sharedComputerIds) ?? const <String>[];
         if (source.computerId == null || !sharers.contains(source.computerId)) {
           continue;
         }

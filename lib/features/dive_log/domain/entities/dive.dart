@@ -1158,9 +1158,10 @@ class DiveTank extends Equatable {
   /// The other computers on a consolidated dive that logged this same
   /// cylinder (v260): consolidation keeps one row per physical cylinder,
   /// attributed to [computerId], and lists here the computers merged into
-  /// it. Computer-owned identity, like [computerId]: user edits never
-  /// rewrite it.
-  final List<String> sharedComputerIds;
+  /// it. Empty when that was recorded and found nobody; null when it was
+  /// never recorded (tank_shared_computers.dart). Computer-owned identity,
+  /// like [computerId]: user edits never rewrite it.
+  final List<String>? sharedComputerIds;
 
   /// The regulator this cylinder was breathed through (v202), so high-O2
   /// contact reaches the regulator's service clocks. User-authored: the
@@ -1217,7 +1218,7 @@ class DiveTank extends Equatable {
     this.transmitterSerial,
     this.sourceId,
     this.sourceTankIndex,
-    this.sharedComputerIds = const [],
+    this.sharedComputerIds,
     this.regulatorEquipmentId,
     this.tripCylinderId,
     this.equipmentId,
@@ -1231,7 +1232,7 @@ class DiveTank extends Equatable {
   bool isUsedBy(String computer) =>
       computerId == null ||
       computerId == computer ||
-      sharedComputerIds.contains(computer);
+      (sharedComputerIds?.contains(computer) ?? false);
 
   /// Pressure consumed during dive
   double? get pressureUsed {

@@ -7,27 +7,31 @@ import 'dart:convert';
 /// (same gas, agreeing pressures, or one transmitter) and attributes it to
 /// the computer it merged into. Without this list the folded-in computer
 /// loses the cylinder: its analysis scopes gas to its own tanks and reads
-/// the dive on whatever it kept alone. Stored as a JSON array of computer
-/// ids; null or blank is empty.
-List<String> decodeSharedComputerIds(String? text) {
-  if (text == null || text.trim().isEmpty) return const [];
+/// the dive on whatever it kept alone.
+///
+/// Stored as a JSON array of computer ids. An empty array
+/// ([noSharedComputersRecorded]) means the sharing was recorded and found
+/// nobody; null means it was never recorded, which the open-time inference
+/// (backfillTankSharedComputers) reads as a cylinder to infer. Null, blank
+/// or unreadable text decodes to null.
+List<String>? decodeSharedComputerIds(String? text) {
+  if (text == null || text.trim().isEmpty) return null;
   try {
     final decoded = jsonDecode(text);
-    if (decoded is! List) return const [];
+    if (decoded is! List) return null;
     return List.unmodifiable(decoded.whereType<String>());
   } on FormatException {
-    return const [];
+    return null;
   }
 }
 
 /// The stored value of a cylinder whose sharing was recorded and found
-/// nobody: a fold, or the open-time inference, has handled its dive. Null
-/// means never recorded, which the inference reads as a dive to infer
-/// (backfillTankSharedComputers). Decodes to an empty list like null.
+/// nobody: a fold, a split, or the open-time inference has handled it.
 const String noSharedComputersRecorded = '[]';
 
-/// Inverse of [decodeSharedComputerIds]; an empty list is stored as null.
-String? encodeSharedComputerIds(Iterable<String> ids) {
-  final unique = {...ids}.toList();
-  return unique.isEmpty ? null : jsonEncode(unique);
+/// Inverse of [decodeSharedComputerIds]: null stays null (never recorded),
+/// and an empty list is stored as [noSharedComputersRecorded].
+String? encodeSharedComputerIds(Iterable<String>? ids) {
+  if (ids == null) return null;
+  return jsonEncode({...ids}.toList());
 }

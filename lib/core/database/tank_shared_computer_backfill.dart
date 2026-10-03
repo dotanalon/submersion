@@ -103,11 +103,13 @@ const String _recordedNobody = '[]';
 ///
 /// Runs on upgrade and on every open, so a consolidated dive that arrives
 /// after the upgrade (folded on a pre-v260 peer, or synced into a fresh
-/// install, which runs no rungs) is inferred too. A dive is inferred only
-/// while every one of its cylinders is unrecorded (null): a fold marks the
-/// cylinders it found nobody to share, and this marks the rest of a dive it
-/// infers, so a dive is never guessed twice and an open with nothing new
-/// costs one query.
+/// install, which runs no rungs) is inferred too. A dive is a candidate
+/// while any cylinder of its primary computer, the only merge targets, is
+/// unrecorded (null), and only those cylinders are inferred: a fold records
+/// every cylinder it handled, and this records the rest of a dive it
+/// infers, so a cylinder is never guessed twice and an open with nothing
+/// new costs one query. A dive whose rows arrive partly recorded still has
+/// its unrecorded primary cylinders inferred.
 ///
 /// Local-only: deterministic from rows every device holds, so no HLC bump
 /// and nothing marked pending.
@@ -135,18 +137,25 @@ Future<void> backfillTankSharedComputers(DatabaseConnectionUser db) async {
   final seriesCols = await columnsOf('tank_pressure_series');
   final hasSeries = seriesCols.containsAll(['dive_id', 'tank_id']);
 
-  // Consolidated dives (more than one computer) with nothing recorded on
-  // any cylinder yet.
+  // Consolidated dives (a primary computer plus another) with a primary
+  // cylinder nothing has recorded yet.
   final sources = await db.customSelect('''
     SELECT id, dive_id, computer_id, is_primary FROM dive_data_sources
     WHERE computer_id IS NOT NULL AND dive_id IN (
-      SELECT s.dive_id FROM dive_data_sources s
-      WHERE s.computer_id IS NOT NULL
-        AND NOT EXISTS (
+      SELECT p.dive_id FROM dive_data_sources p
+      WHERE p.is_primary = 1 AND p.computer_id IS NOT NULL
+        AND EXISTS (
           SELECT 1 FROM dive_tanks t
-          WHERE t.dive_id = s.dive_id AND t.shared_computer_ids IS NOT NULL
+          WHERE t.dive_id = p.dive_id
+            AND t.computer_id = p.computer_id
+            AND t.shared_computer_ids IS NULL
         )
-      GROUP BY s.dive_id HAVING COUNT(DISTINCT s.computer_id) > 1
+        AND EXISTS (
+          SELECT 1 FROM dive_data_sources o
+          WHERE o.dive_id = p.dive_id
+            AND o.computer_id IS NOT NULL
+            AND o.computer_id <> p.computer_id
+        )
     )
   ''').get();
   final primaryByDive = <String, String>{};
@@ -222,9 +231,8 @@ Future<void> backfillTankSharedComputers(DatabaseConnectionUser db) async {
     }
   }
 
-  // Every other cylinder of each candidate (a dive with no primary computer
-  // included, which has nothing to infer) is recorded as shared with
-  // nobody, so the next open skips the dive.
+  // Every other unrecorded cylinder of each candidate is recorded as shared
+  // with nobody, so the next open skips the dive.
   final candidates = computersByDive.keys.toList();
   const chunk = 500;
   for (var i = 0; i < candidates.length; i += chunk) {

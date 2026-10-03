@@ -168,7 +168,8 @@ class DiveConsolidationService {
         for (final r in snapshot.tankRows.where(
           (r) => r.diveId == targetDiveId,
         ))
-          r.id: decodeSharedComputerIds(r.sharedComputerIds),
+          r.id:
+              decodeSharedComputerIds(r.sharedComputerIds) ?? const <String>[],
       };
 
       // Junction/child tables the snapshot also captures but a fold

@@ -117,6 +117,7 @@ void main() {
     expect(byO2[50]!.sharedComputerIds, ['garmin']);
     expect(byO2[100]!.computerId, 'garmin');
     expect(byO2[100]!.sharedComputerIds, isEmpty);
+    expect(byO2[100]!.sharedComputerIds, isNotNull);
 
     expect(tanks.where((t) => t.isUsedBy('garmin')), hasLength(3));
     expect(
@@ -136,6 +137,31 @@ void main() {
       {for (final r in rows) r.o2Percent: r.sharedComputerIds},
       {21: '["garmin"]', 50: '["garmin"]', 100: '[]'},
     );
+  });
+
+  test('saving a dive keeps recorded-with-nobody apart from never '
+      'recorded', () async {
+    await diveRepo.createDive(
+      domain.Dive(
+        id: 'n',
+        diverId: 'diver1',
+        dateTime: DateTime.utc(2026, 8, 8),
+        tanks: const [
+          domain.DiveTank(id: 'n-recorded', sharedComputerIds: []),
+          domain.DiveTank(id: 'n-never', order: 1),
+        ],
+      ),
+    );
+    final rows = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals('n'))).get();
+    expect(
+      {for (final r in rows) r.id: r.sharedComputerIds},
+      {'n-recorded': '[]', 'n-never': null},
+    );
+    final tanks = {for (final t in await tanksOf('n')) t.id: t};
+    expect(tanks['n-recorded']!.sharedComputerIds, isEmpty);
+    expect(tanks['n-never']!.sharedComputerIds, isNull);
   });
 
   test('an edit of the dive keeps what the fold recorded', () async {
@@ -163,11 +189,17 @@ void main() {
       final split = await tanksOf(newDiveId);
       expect(split.map((t) => t.gasMix.o2), unorderedEquals([21, 50, 100]));
       expect(split.every((t) => t.computerId == 'garmin'), isTrue);
-      expect(split.every((t) => t.sharedComputerIds.isEmpty), isTrue);
+      // The new dive has one computer, so nothing is recorded there.
+      expect(split.every((t) => t.sharedComputerIds == null), isTrue);
 
       final original = await tanksOf('t');
       expect(original.map((t) => t.gasMix.o2), unorderedEquals([21, 50]));
-      expect(original.every((t) => t.sharedComputerIds.isEmpty), isTrue);
+      // Emptied, the lists stay recorded: never-recorded would let the
+      // open-time inference guess for these cylinders again.
+      final rows = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('t'))).get();
+      expect(rows.map((r) => r.sharedComputerIds), everyElement('[]'));
     },
   );
 
@@ -214,6 +246,7 @@ void main() {
     final left = await tanksOf('t');
     final byO2 = {for (final t in left) t.gasMix.o2: t};
     expect(byO2[21]!.computerId, 'garmin');
+    expect(byO2[21]!.sharedComputerIds, isNotNull);
     expect(byO2[21]!.sharedComputerIds, isEmpty);
     expect(byO2[50]!.computerId, 'garmin');
     expect(left.where((t) => t.isUsedBy('ocean')).map((t) => t.gasMix.o2), [

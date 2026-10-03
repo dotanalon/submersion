@@ -825,7 +825,8 @@ void main() {
       )..where((t) => t.diveId.equals('dive-t'))).get();
       final sharedTank = originalTanks.firstWhere((t) => t.id == 'tank-t1');
       expect(sharedTank.computerId, 'comp-s');
-      expect(sharedTank.sharedComputerIds, isNull);
+      // Recorded as shared with nobody else, not as never recorded.
+      expect(sharedTank.sharedComputerIds, '[]');
       expect(sharedTank.o2Percent, equals(21.0));
       expect(sharedTank.hePercent, equals(0.0));
       expect(sharedTank.startPressure, equals(200.0));

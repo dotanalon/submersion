@@ -10,7 +10,18 @@ extension DiveMigrations on AppDatabase {
   /// next open. Idempotent, and a no-op when the table does not exist yet.
   Future<void> _assertTankSharedComputerIds() async {
     await _addColumnIfMissing('dive_tanks', 'shared_computer_ids', 'TEXT');
-    await backfillTankSharedComputers(this);
+    // A row the inference cannot read must not fail every open: the pass
+    // runs again on the next one, and the column above is what reads need.
+    try {
+      await backfillTankSharedComputers(this);
+    } catch (e, stackTrace) {
+      developer.log(
+        'Inferring consolidated cylinders\' sharing failed; continuing',
+        name: 'AppDatabase',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   /// v256: dives.computer_tissue_json. Idempotent, so it is safe to call
