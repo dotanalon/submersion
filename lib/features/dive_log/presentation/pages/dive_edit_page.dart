@@ -73,6 +73,9 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/nav_track/application/dive_route_link_applier.dart';
+import 'package:submersion/features/nav_track/domain/dive_route_link_draft.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -88,8 +91,11 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/experience_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_gear_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/rare_sections.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/route_link_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/route_row.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_configs/domain/services/dive_tank_config_adapter.dart';
+import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_confirm_dialog.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/statistics_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/tank_row.dart';
@@ -315,6 +321,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// through and the set applied (issue #1487). Read through [_gearRows].
   List<GearProvenance> _gearProvenance = [];
   List<BuddyWithRole> _selectedBuddies = [];
+
+  /// The dive's staged underwater route links, applied on Save. Null until
+  /// an existing dive's current links have loaded, so the row stays inert
+  /// and a Save can never read "not loaded" as "every route removed".
+  DiveRouteLinkDraft? _routeDraft;
+
+  /// The dive's current links could not be read, so the route row says so
+  /// and stays inert instead of claiming the dive has none.
+  bool _routeLinksFailed = false;
   Set<String> _originalBuddyIds = {};
   String? _diverRoleId;
 
@@ -363,6 +378,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final _uuid = const Uuid();
   TankPresetEntity? _defaultPreset;
   bool _tanksDirty = false;
+
+  /// Part of every tank row's key, bumped when a configuration rewrites
+  /// cylinders in place. A tank editor reads its text fields once, so an
+  /// editor left open would keep the old size and write it back on the next
+  /// keystroke; a new key gives it fresh fields (issue #2563).
+  int _tankRowGeneration = 0;
 
   /// Tanks the dive had when it was loaded, or that a prefill (a scan, a
   /// cylinder tag) filled: never suggested a slot, since a suggestion would
@@ -552,6 +573,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     } else if (widget.isEditing) {
       logFailure(_loadExistingDive(), _DiveEditPageState, 'load existing dive');
     } else {
+      // A new dive has no links yet, so its draft is ready immediately.
+      _routeDraft = DiveRouteLinkDraft.initial(const []);
       // For new dives, capture GPS in the background to suggest nearby sites
       _captureLocationForNearby();
       _isPlanned = widget.prefill?.isPlanned ?? false;
@@ -762,7 +785,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Future<void> _suggestNextDiveNumber() async {
     try {
       final repository = ref.read(diveRepositoryProvider);
-      final nextNumber = await repository.getNextDiveNumber();
+      // The diver the dive will be saved under (see the save path), so the
+      // number continues that diver's own log rather than the highest number
+      // across every diver (#2508).
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      final nextNumber = await repository.getNextDiveNumber(diverId: diverId);
       if (mounted && _diveNumberController.text.isEmpty) {
         _silently(() {
           setState(() {
@@ -964,7 +991,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _loopO2Avg = dive.loopO2Avg;
         });
         // Load existing sightings and buddies
-        await Future.wait([_loadSightings(), _loadBuddies()]);
+        await Future.wait([
+          _loadSightings(),
+          _loadBuddies(),
+          _loadRouteLinks(),
+        ]);
       }
     } finally {
       if (mounted) {
@@ -1018,6 +1049,38 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         _originalBuddyIds = buddies.map((b) => b.buddy.id).toSet();
       });
     }
+  }
+
+  Future<void> _loadRouteLinks() async {
+    final diveId = widget.diveId;
+    if (diveId == null) return;
+    try {
+      final linked = await ref.read(navTracksForDiveProvider(diveId).future);
+      if (mounted) {
+        setState(() => _routeDraft = DiveRouteLinkDraft.initial(linked));
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load route links for dive $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) setState(() => _routeLinksFailed = true);
+    }
+  }
+
+  Future<void> _openRouteSheet() async {
+    final draft = _routeDraft;
+    if (draft == null) return;
+    await showRouteLinkSheet(
+      context,
+      draft: draft,
+      entryTime: _currentEntryTime(),
+      onChanged: (next) {
+        setState(() => _routeDraft = next);
+        _markDirty();
+      },
+    );
   }
 
   @override
@@ -1524,7 +1587,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       children: [
         for (var i = 0; i < _tanks.length; i++)
           TankRow(
-            key: ValueKey(_tanks[i].id),
+            key: ValueKey((_tanks[i].id, _tankRowGeneration)),
             tank: _tanks[i],
             tankNumber: i + 1,
             units: units,
@@ -2383,6 +2446,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         _markDirty();
         setState(() => _assignSite(null));
       },
+      // A planned dive has no recording to link (spec 2026-10-02, section 1).
+      routeRow: _isPlanned
+          ? null
+          : RouteRow(
+              draft: _routeDraft,
+              loadFailed: _routeLinksFailed,
+              onTap: _openRouteSheet,
+            ),
       maxDepthSuggestion: hasProfile
           ? _depthSuggestion(
               units,
@@ -2411,7 +2482,32 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           : null,
       surfaceIntervalRow: _surfaceIntervalRow(),
       siteExtras: _siteExtras(),
+      diveTypesRow: _diveTypesRow(),
       profileChild: _profileChild(),
+    );
+  }
+
+  /// The dive type picker, shown in the always-open "The Dive" group. It used
+  /// to sit in the collapsed Conditions group, where divers could not find it
+  /// to correct an imported dive's type (issue #2596).
+  Widget _diveTypesRow() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+      child: DiveTypeMultiSelectField(
+        selectedTypeIds: _selectedDiveTypeIds,
+        onChanged: (ids) {
+          setState(() {
+            _selectedDiveTypeIds = ids;
+            _siteAddedDiveTypeIds = siteAddedAfterManualEdit(
+              siteAddedIds: _siteAddedDiveTypeIds,
+              selectedTypeIds: ids,
+            );
+          });
+          // The picker is a bottom sheet, not a FormField, so Form.onChanged
+          // never sees it; without this, leaving drops the new type unasked.
+          _markDirty();
+        },
+      ),
     );
   }
 
@@ -3213,6 +3309,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         : ref
               .watch(tripCylinderStatesAtProvider(_tripCylinderKeyFor(tripId)))
               .value;
+    // The dive's primary source, which a tank with no computer and no
+    // other source of its own belongs to (issue #2716). Read for every
+    // saved dive, so it is loaded before the diver links a first tank: a
+    // read that started only then would leave the first picks without it.
+    final diveId = widget.diveId;
+    final primarySourceId = diveId == null
+        ? null
+        : ref
+              .watch(diveDataSourcesProvider(diveId))
+              .value
+              ?.where((s) => s.isPrimary)
+              .firstOrNull
+              ?.id;
     return GasGearSection(
       expanded: _isExpanded('gasGear', defaultValue: defaultExpanded),
       onToggle: () => _toggleSection('gasGear', defaultValue: defaultExpanded),
@@ -3227,7 +3336,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               dense: true,
               onChanged: (mode) {
                 _markDirty();
-                setState(() => _diveMode = mode);
+                setState(() {
+                  // Entering CCR with no setpoints logged yet starts from
+                  // the diver's own CCR ppO2 limits. Seeded into state, not
+                  // just shown in the panel, so a dive saved without
+                  // touching the panel keeps what the panel displayed.
+                  if (mode == DiveMode.ccr && _diveMode != DiveMode.ccr) {
+                    _setpointLow ??= ref.read(ccrSetpointLowProvider);
+                    _setpointHigh ??= ref.read(ccrSetpointHighProvider);
+                  }
+                  _diveMode = mode;
+                });
               },
             ),
           ),
@@ -3246,16 +3365,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       tanks: [
         for (var i = 0; i < _tanks.length; i++)
           TankRow(
-            key: ValueKey(_tanks[i].id),
+            key: ValueKey((_tanks[i].id, _tankRowGeneration)),
             tank: _tanks[i],
             tankNumber: i + 1,
             units: units,
             tripCylinderStates: slotStates,
-            takenTripCylinderIds: {
-              for (final t in _tanks)
-                if (t.id != _tanks[i].id && t.tripCylinderId != null)
-                  t.tripCylinderId!,
-            },
+            takenTripCylinderIds: tripCylinderIdsTakenFor(
+              _tanks[i],
+              _tanks,
+              primaryComputerId: _existingDive?.computerId,
+              primarySourceId: primarySourceId,
+            ),
             suggested: _suggestedTankIds.contains(_tanks[i].id),
             onChanged: (updatedTank) {
               final before = _tanks[i];
@@ -3313,8 +3433,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       return Padding(
         padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
         child: CcrSettingsPanel(
-          setpointLow: _setpointLow,
-          setpointHigh: _setpointHigh,
+          // Switching to CCR seeds these from the diver's own CCR ppO2
+          // limits (see the mode selector). A dive already logged as CCR
+          // with no setpoints shows those limits too, rather than the
+          // panel's hardcoded 0.70/1.30 literals, which the diver may not
+          // actually dive.
+          setpointLow: _setpointLow ?? ref.read(ccrSetpointLowProvider),
+          setpointHigh: _setpointHigh ?? ref.read(ccrSetpointHighProvider),
           setpointDeco: _setpointDeco,
           diluentGas: _diluentGas,
           scrubberType: _scrubberType,
@@ -3567,16 +3692,36 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// state until the diver taps Save, so writing through would bypass dirty
   /// tracking and persist changes even if they then cancelled. All merge
   /// rules live in CylinderConfigApplier via DiveTankConfigAdapter, which
-  /// never overwrites a gas mix already on the dive.
-  void _applyCylinderConfig(CylinderConfig config) {
+  /// never overwrites a gas mix already on the dive. A different size,
+  /// pressure, material or label on a matched cylinder is replaced only once
+  /// the diver confirms it (issue #2563).
+  Future<void> _applyCylinderConfig(CylinderConfig config) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+    const adapter = DiveTankConfigAdapter();
 
-    final result = const DiveTankConfigAdapter().apply(
+    var result = adapter.apply(
       tanks: _tanks,
       items: config.items,
       newId: (_) => _uuid.v4(),
     );
+
+    if (result.overwrites.isNotEmpty) {
+      final confirmed = await confirmCylinderOverwrites(
+        context,
+        configName: config.name,
+        overwrites: result.overwrites,
+        tanks: _tanks,
+        units: UnitFormatter(ref.read(settingsProvider)),
+      );
+      if (!confirmed || !mounted) return;
+      result = adapter.apply(
+        tanks: _tanks,
+        items: config.items,
+        newId: (_) => _uuid.v4(),
+        overwrite: true,
+      );
+    }
 
     // A repeat apply matches every role and so reports a non-zero kept while
     // doing no work. Rebuilding then would mark the form dirty and raise an
@@ -3591,6 +3736,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     setState(() {
       _markDirty();
       _tanksDirty = true;
+      _tankRowGeneration++;
       _tanks
         ..clear()
         ..addAll(result.tanks);
@@ -3599,8 +3745,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          '${l10n.cylinderConfigs_applyAdded(result.added)}, '
-          '${l10n.cylinderConfigs_applyKept(result.kept)}',
+          [
+            l10n.cylinderConfigs_applyAdded(result.added),
+            l10n.cylinderConfigs_applyKept(result.kept),
+            if (result.updated > 0)
+              l10n.cylinderConfigs_applyUpdated(result.updated),
+          ].join(', '),
         ),
       ),
     );
@@ -4506,19 +4656,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final l10n = context.l10n;
     final altitudeWarning = _getAltitudeWarning(units);
     return [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-        child: DiveTypeMultiSelectField(
-          selectedTypeIds: _selectedDiveTypeIds,
-          onChanged: (ids) => setState(() {
-            _selectedDiveTypeIds = ids;
-            _siteAddedDiveTypeIds = siteAddedAfterManualEdit(
-              siteAddedIds: _siteAddedDiveTypeIds,
-              selectedTypeIds: ids,
-            );
-          }),
-        ),
-      ),
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -5722,6 +5859,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         decoConservatism: _existingDive?.decoConservatism,
         gradientFactorLow: _existingDive?.gradientFactorLow,
         gradientFactorHigh: _existingDive?.gradientFactorHigh,
+        computerTissue: _existingDive?.computerTissue,
         weatherCode: _existingDive?.weatherCode,
         importId: _existingDive?.importId,
         surfaceInterval: _existingDive?.surfaceInterval,
@@ -5865,6 +6003,44 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ref.invalidate(divesForBuddyProvider(buddyId));
         }
         ref.invalidate(allBuddiesWithDiveCountProvider);
+      }
+
+      // Apply the staged underwater route links. A planned dive has no
+      // recording, so a draft left from before the switch was turned on is
+      // dropped. A failure is reported but never undoes the dive save.
+      final routeDraft = _routeDraft;
+      if (savedDiveId != null &&
+          !_isPlanned &&
+          routeDraft != null &&
+          routeDraft.hasChanges) {
+        try {
+          final skipped = await applyDiveRouteLinkDraft(
+            ref.read(navTrackRepositoryProvider),
+            diveId: savedDiveId,
+            draft: routeDraft,
+          );
+          if (skipped.isNotEmpty) {
+            _log.warning(
+              'Routes already linked elsewhere, left as is: $skipped',
+            );
+          }
+        } catch (e, stackTrace) {
+          _log.error(
+            'Failed to apply route links for dive $savedDiveId',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  context.l10n.navTrack_editRow_saveFailed(e.toString()),
+                ),
+              ),
+            );
+          }
+        }
+        ref.invalidate(navTracksForDiveProvider(savedDiveId));
       }
 
       // Invalidate course providers if course association changed

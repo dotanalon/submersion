@@ -12,8 +12,10 @@ import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_children.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_links.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
@@ -23,6 +25,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_co
 import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_row_restore.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
@@ -565,29 +568,50 @@ class SiteRepository {
   /// relinks media to the survivor inside its own transaction BEFORE
   /// deleting duplicates, so it never needs this cascade.
   ///
-  /// Returns the links it cleared, read in the same transaction, so an undo
-  /// covers exactly the rows the delete touched.
+  /// Returns the links, hides and cascaded children it cleared, read in the
+  /// same transaction, so an undo covers exactly the rows the delete
+  /// touched, and the media rows and links it is about to remove, read
+  /// with the split (issue #2718), when [undoable]. An [undoable] delete
+  /// also leaves the media worker alone, so the undo can still cancel the
+  /// blob deletes.
   Future<SiteLinks> _deleteSiteRows(
     List<String> ids, {
     required bool cascadeMedia,
+    bool undoable = false,
   }) async {
     final split = cascadeMedia
         ? await _mediaRepository.partitionMediaForSiteDeletion(ids)
         : null;
+    final doomedMedia = undoable && split != null
+        ? await readMediaRows(_db, [for (final item in split.doomed) item.id])
+        : const MediaRowsSnapshot();
+    final mediaSiteIds = undoable
+        ? await readMediaSiteIds(_db, ids)
+        : const <String, String>{};
     final now = DateTime.now().millisecondsSinceEpoch;
     final links = await _db.transaction(() async {
       final cleared = await readLinksToSites(_db, ids, clearedAt: now);
+      final children = await readSiteChildren(_db, ids);
       await clearDiveSiteLinks(_db, _syncRepository, ids, now: now);
       await clearPlanLinksToSites(_db, _syncRepository, ids, now: now);
-      // Every profile's hide of the sites (issue #2594), tombstoned.
-      await ProfileHidesRepository().deleteHides(SharedItemKind.site, ids);
+      // Every profile's hide of the sites (issue #2594), tombstoned, and
+      // kept for the undo (issue #2680).
+      final hides = await ProfileHidesRepository().deleteHides(
+        SharedItemKind.site,
+        ids,
+      );
       await (_db.delete(_db.diveSites)..where((t) => t.id.isIn(ids))).go();
       // One batch for every tombstone, not a transaction per site.
       await _syncRepository.logDeletions(
         entityType: 'diveSites',
         recordIds: ids,
       );
-      return cleared;
+      return cleared.copyWith(
+        hides: hides,
+        children: children,
+        media: doomedMedia,
+        mediaSiteIds: mediaSiteIds,
+      );
     });
     if (split == null) return links;
     // The sites are gone by now, so a failure here cannot undo the delete
@@ -596,7 +620,10 @@ class SiteRepository {
     // peers null media.site_id themselves when they apply the tombstone.
     try {
       if (split.doomed.isNotEmpty) {
-        await _mediaDeletionCoordinator.deleteMediaItems(split.doomed);
+        await _mediaDeletionCoordinator.deleteMediaItems(
+          split.doomed,
+          holdRemoteDelete: undoable,
+        );
       }
       if (split.unlinkIds.isNotEmpty) {
         await _mediaRepository.unlinkMediaFromDeletedSites(split.unlinkIds);
@@ -657,15 +684,38 @@ class SiteRepository {
 
   /// Undo for a bulk delete: points the dives and plans of [links] (what
   /// [bulkDeleteSites] returned) back at their re-created sites, leaving any
-  /// row edited since.
+  /// row edited since, and puts back every profile's hide of them (issue
+  /// #2680), their species, features, types and tags, and their media
+  /// (issue #2718).
+  ///
+  /// The rows go back in one transaction. The media worker's queue lives in
+  /// another database, so repairing media whose blob delete already ran
+  /// follows the commit, as the delete's media cleanup does.
   Future<void> restoreSiteLinks(SiteLinks links) async {
-    await restoreLinksToSites(
-      _db,
-      _syncRepository,
-      links,
-      now: DateTime.now().millisecondsSinceEpoch,
-    );
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final restoredMedia = await _db.transaction(() async {
+      await restoreLinksToSites(_db, _syncRepository, links, now: now);
+      await ProfileHidesRepository().restoreHides(
+        SharedItemKind.site,
+        links.hides,
+      );
+      await restoreSiteChildren(_db, _syncRepository, links.children, now: now);
+      final restored = await restoreMediaRows(
+        _db,
+        _syncRepository,
+        links.media,
+        now: now,
+      );
+      await relinkMediaToSites(
+        _db,
+        _syncRepository,
+        links.mediaSiteIds,
+        now: now,
+      );
+      return restored;
+    });
     SyncEventBus.notifyLocalChange();
+    await _mediaDeletionCoordinator.repairRestoredMedia(restoredMedia);
   }
 
   /// Get multiple sites by IDs
@@ -687,7 +737,7 @@ class SiteRepository {
 
   /// Bulk delete multiple sites: only those [actingDiverId] may destroy
   /// (issue #2594); the rest are skipped. Returns the dive and plan links
-  /// the delete cleared, for [restoreSiteLinks] to undo.
+  /// and the hides the delete cleared, for [restoreSiteLinks] to undo.
   Future<SiteLinks> bulkDeleteSites(
     List<String> ids, {
     bool cascadeMedia = true,
@@ -704,7 +754,12 @@ class SiteRepository {
       }
       if (allowed.isEmpty) return const SiteLinks();
       _log.info('Bulk deleting ${allowed.length} sites');
-      final links = await _deleteSiteRows(allowed, cascadeMedia: cascadeMedia);
+      // The site list offers Undo (issue #2718).
+      final links = await _deleteSiteRows(
+        allowed,
+        cascadeMedia: cascadeMedia,
+        undoable: true,
+      );
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk deleted ${allowed.length} sites');
       return links;
@@ -830,8 +885,8 @@ class SiteRepository {
 
       // Returns the plans it moved, read inside the transaction so a plan
       // set at a duplicate meanwhile is moved too rather than failing the
-      // duplicate's delete.
-      final planOriginalSiteIds = await _db.transaction(() async {
+      // duplicate's delete, and the hides it removed.
+      final merged = await _db.transaction(() async {
         await _updateSiteRow(guardedSurvivor, now);
         await _syncRepository.markRecordPending(
           entityType: 'diveSites',
@@ -852,8 +907,9 @@ class SiteRepository {
         // links away.
         await _classification.relinkForMerge(duplicateIds, survivorId);
 
-        // Every profile's hide of a merged-away site (issue #2594).
-        await ProfileHidesRepository().deleteHides(
+        // Every profile's hide of a merged-away site (issue #2594), kept
+        // for the undo (issue #2710).
+        final hides = await ProfileHidesRepository().deleteHides(
           SharedItemKind.site,
           duplicateIds,
         );
@@ -866,7 +922,7 @@ class SiteRepository {
             recordId: duplicateId,
           );
         }
-        return movedPlans;
+        return (plans: movedPlans, hides: hides);
       });
 
       SyncEventBus.notifyLocalChange();
@@ -896,7 +952,7 @@ class SiteRepository {
         diveOriginalSiteIds: diveOriginalSiteIds,
         mediaOriginalSiteIds: mediaOriginalSiteIds,
         featureOriginalSiteIds: featureOriginalSiteIds,
-        planOriginalSiteIds: planOriginalSiteIds,
+        planOriginalSiteIds: merged.plans,
         deletedSpeciesEntries: deletedSpecies,
         modifiedSpeciesEntries: modifiedSpecies,
         deletedSiteTimestamps: {
@@ -906,6 +962,7 @@ class SiteRepository {
         survivorTimestamps: siteTimestamps[survivorId],
         siteTypeIdsBySite: typeIdsBySite,
         siteTagIdsBySite: tagIdsBySite,
+        deletedHides: merged.hides,
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -1000,6 +1057,13 @@ class SiteRepository {
             notify: false,
           );
         }
+
+        // 2c. Put back every profile's hide of the merged-away sites
+        // (issue #2710), which exist again.
+        await ProfileHidesRepository().restoreHides(
+          SharedItemKind.site,
+          snapshot.deletedHides,
+        );
 
         // 3. Re-point dives back to their original sites
         for (final entry in snapshot.diveOriginalSiteIds.entries) {
@@ -1191,10 +1255,10 @@ class SiteRepository {
           )
           .get();
 
-      // Local, not UTC: this matches how lastDivedAt has always been read
-      // back here, so the two dates on one aggregate agree with each other.
+      // dive_date_time is a wall clock flagged UTC; a local decode would
+      // shift both dates by the device's UTC offset (issue #2808).
       DateTime? readDate(Object? ms) =>
-          ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms as int);
+          ms == null ? null : wallClockUtcFromMillis(ms as int);
 
       return {
         for (final row in result)
@@ -1545,6 +1609,10 @@ class MergeSnapshot {
   final Map<String, List<String>> siteTypeIdsBySite;
   final Map<String, List<String>> siteTagIdsBySite;
 
+  /// Every profile's hide of the merged-away sites, which the merge
+  /// removed (issue #2710).
+  final List<ProfileHide> deletedHides;
+
   const MergeSnapshot({
     required this.originalSurvivor,
     required this.deletedSites,
@@ -1558,6 +1626,7 @@ class MergeSnapshot {
     this.survivorTimestamps,
     this.siteTypeIdsBySite = const {},
     this.siteTagIdsBySite = const {},
+    this.deletedHides = const [],
   });
 }
 

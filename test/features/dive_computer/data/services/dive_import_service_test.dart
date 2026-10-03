@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_computer/data/services/dive_import_serv
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
@@ -107,6 +108,7 @@ void main() {
         gfLow: anyNamed('gfLow'),
         gfHigh: anyNamed('gfHigh'),
         decoConservatism: anyNamed('decoConservatism'),
+        computerTissue: anyNamed('computerTissue'),
         events: anyNamed('events'),
         gasSwitches: anyNamed('gasSwitches'),
         diveNumber: anyNamed('diveNumber'),
@@ -117,8 +119,97 @@ void main() {
         descriptorProduct: anyNamed('descriptorProduct'),
         descriptorModel: anyNamed('descriptorModel'),
         libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+        addMissingTanks: anyNamed('addMissingTanks'),
       ),
     ).thenAnswer((_) async => 'dive-id');
+  });
+
+  group('computer tissue', () {
+    const snapshot = ComputerTissueSnapshot(
+      algorithm: 'Suunto Fused2 RGBM',
+      start: ComputerTissueState(n2Bar: [0.79, 0.79]),
+      end: ComputerTissueState(n2Bar: [0.9, 1.1], cnsPercent: 13.2),
+    );
+    final dive = DownloadedDive(
+      fingerprint: 'fp-tissue',
+      startTime: DateTime(2026, 4, 1, 9, 0),
+      durationSeconds: 1800,
+      maxDepth: 18.0,
+      profile: const [],
+      computerTissue: snapshot,
+    );
+
+    ComputerTissueSnapshot? capturedTissue() =>
+        verify(
+              mockComputerRepo.importProfile(
+                computerId: anyNamed('computerId'),
+                profileStartTime: anyNamed('profileStartTime'),
+                points: anyNamed('points'),
+                durationSeconds: anyNamed('durationSeconds'),
+                maxDepth: anyNamed('maxDepth'),
+                avgDepth: anyNamed('avgDepth'),
+                isPrimary: anyNamed('isPrimary'),
+                diverId: anyNamed('diverId'),
+                tanks: anyNamed('tanks'),
+                decoAlgorithm: anyNamed('decoAlgorithm'),
+                gfLow: anyNamed('gfLow'),
+                gfHigh: anyNamed('gfHigh'),
+                decoConservatism: anyNamed('decoConservatism'),
+                computerTissue: captureAnyNamed('computerTissue'),
+                events: anyNamed('events'),
+                gasSwitches: anyNamed('gasSwitches'),
+                diveNumber: anyNamed('diveNumber'),
+                forceNew: anyNamed('forceNew'),
+                rawData: anyNamed('rawData'),
+                rawFingerprint: anyNamed('rawFingerprint'),
+                descriptorVendor: anyNamed('descriptorVendor'),
+                descriptorProduct: anyNamed('descriptorProduct'),
+                descriptorModel: anyNamed('descriptorModel'),
+                libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+                addMissingTanks: anyNamed('addMissingTanks'),
+              ),
+            ).captured.single
+            as ComputerTissueSnapshot?;
+
+    test('a new dive hands the snapshot to the repository', () async {
+      when(
+        mockDiveRepo.getDiveNumberForDate(
+          any,
+          diverId: anyNamed('diverId'),
+          startFrom: anyNamed('startFrom'),
+        ),
+      ).thenAnswer((_) async => 1);
+
+      await service.importSingleDiveAsNew(dive, computerId: computer.id);
+
+      expect(capturedTissue(), snapshot);
+    });
+
+    test('replacing an existing source hands the snapshot over too', () async {
+      when(
+        mockComputerRepo.clearSourceAndProfiles(
+          diveId: anyNamed('diveId'),
+          computerId: anyNamed('computerId'),
+        ),
+      ).thenAnswer((_) async => true);
+      final conflict = ImportConflict(
+        downloaded: dive,
+        existingDiveId: 'existing-dive-1',
+        duplicateResult: const DuplicateResult(
+          matchingDiveId: 'existing-dive-1',
+          confidence: DuplicateConfidence.exact,
+          score: 0.95,
+        ),
+      );
+
+      await service.resolveConflict(
+        conflict,
+        ConflictResolution.replaceSource,
+        computer.id,
+      );
+
+      expect(capturedTissue(), snapshot);
+    });
   });
 
   group('DiveImportService dive numbering', () {
@@ -715,7 +806,7 @@ void main() {
             diveId: anyNamed('diveId'),
             computerId: anyNamed('computerId'),
           ),
-        ).thenAnswer((_) async {});
+        ).thenAnswer((_) async => true);
 
         final result = await service.resolveConflict(
           conflict,
@@ -738,8 +829,9 @@ void main() {
           ),
         ).called(1);
 
-        // Verify importProfile was called with isPrimary: true, descriptor
-        // fields, rawData, rawFingerprint, and avgDepth
+        // Verify importProfile was called with isPrimary: true (the cleared
+        // reading was primary), descriptor fields, rawData, rawFingerprint,
+        // and avgDepth
         verify(
           mockComputerRepo.importProfile(
             computerId: computer.id,
@@ -765,6 +857,7 @@ void main() {
             descriptorProduct: 'Perdix',
             descriptorModel: 42,
             libdivecomputerVersion: '0.8.0',
+            addMissingTanks: true,
           ),
         ).called(1);
       },
@@ -801,7 +894,7 @@ void main() {
           diveId: anyNamed('diveId'),
           computerId: anyNamed('computerId'),
         ),
-      ).thenAnswer((_) async {});
+      ).thenAnswer((_) async => true);
 
       await service.resolveConflict(
         conflict,
@@ -835,6 +928,7 @@ void main() {
                   descriptorProduct: anyNamed('descriptorProduct'),
                   descriptorModel: anyNamed('descriptorModel'),
                   libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+                  addMissingTanks: anyNamed('addMissingTanks'),
                 ),
               ).captured.single
               as List<GasSwitchData>;
@@ -843,6 +937,71 @@ void main() {
       expect(captured.single.timestamp, 600);
       expect(captured.single.depth, 12.0);
       expect(captured.single.toTankIndex, 1);
+    });
+
+    test('resolveConflict with replaceSource re-imports a secondary reading '
+        'as a secondary (#2582)', () async {
+      final dive = DownloadedDive(
+        fingerprint: 'fp-replace-secondary',
+        startTime: DateTime(2026, 4, 7, 9, 0),
+        durationSeconds: 3000,
+        maxDepth: 25.0,
+        profile: const [],
+        tanks: const [],
+        events: const [],
+      );
+      final conflict = ImportConflict(
+        downloaded: dive,
+        existingDiveId: 'existing-dive-78',
+        duplicateResult: const DuplicateResult(
+          matchingDiveId: 'existing-dive-78',
+          confidence: DuplicateConfidence.exact,
+          score: 0.95,
+        ),
+      );
+      when(
+        mockComputerRepo.clearSourceAndProfiles(
+          diveId: anyNamed('diveId'),
+          computerId: anyNamed('computerId'),
+        ),
+      ).thenAnswer((_) async => false);
+
+      await service.resolveConflict(
+        conflict,
+        ConflictResolution.replaceSource,
+        computer.id,
+      );
+
+      final captured = verify(
+        mockComputerRepo.importProfile(
+          computerId: anyNamed('computerId'),
+          profileStartTime: anyNamed('profileStartTime'),
+          points: anyNamed('points'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          avgDepth: anyNamed('avgDepth'),
+          isPrimary: captureAnyNamed('isPrimary'),
+          diverId: anyNamed('diverId'),
+          tanks: anyNamed('tanks'),
+          decoAlgorithm: anyNamed('decoAlgorithm'),
+          gfLow: anyNamed('gfLow'),
+          gfHigh: anyNamed('gfHigh'),
+          decoConservatism: anyNamed('decoConservatism'),
+          events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
+          diveNumber: anyNamed('diveNumber'),
+          forceNew: anyNamed('forceNew'),
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          addMissingTanks: anyNamed('addMissingTanks'),
+        ),
+      ).captured;
+
+      expect(captured, [false]);
     });
 
     test('resolveConflict with consolidate returns null', () async {

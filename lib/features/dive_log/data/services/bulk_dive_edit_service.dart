@@ -370,15 +370,21 @@ class BulkDiveEditService {
                 (e) => e.name == r.tankMaterial,
                 orElse: () => en.TankMaterial.aluminum,
               ),
+        roleSource: en.TankRoleSource.fromName(r.roleSource),
         presetName: r.presetName,
         computerId: r.computerId,
         transmitterSerial: r.transmitterSerial,
+        sourceId: r.sourceId,
         regulatorEquipmentId: r.regulatorEquipmentId,
         tripCylinderId: r.tripCylinderId,
         sourceTankIndex: r.sourceTankIndex,
         // The cylinder link the registry recorded; bulkReplaceTanks writes
         // it only when told this is a restore.
         equipmentId: r.equipmentId,
+        // What the source log recorded (#1496), likewise restore-only.
+        usageDuration: r.usageDuration != null
+            ? Duration(seconds: r.usageDuration!)
+            : null,
       ),
   ];
 

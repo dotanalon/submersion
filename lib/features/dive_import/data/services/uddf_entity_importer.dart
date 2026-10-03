@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_import/data/services/additional_compute
 import 'package:submersion/features/dive_import/data/services/import_map_readers.dart';
 import 'package:submersion/features/dive_import/data/services/imported_profile_readers.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
+import 'package:submersion/features/dive_import/data/services/restored_source_attribution.dart';
 import 'package:submersion/features/dive_import/domain/import_source_file.dart';
 import 'package:submersion/features/dive_import/domain/resyncable_import_formats.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
@@ -39,6 +40,7 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
@@ -72,9 +74,11 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_for_dive_date.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
 import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
@@ -651,6 +655,7 @@ class UddfEntityImporter {
       sourceFileBytes: sourceFileBytes,
       sourceFilesById: sourceFilesById,
       retainSourceDiveNumbers: retainSourceDiveNumbers,
+      sourceHasTrips: data.trips.isNotEmpty,
       now: now,
       dataSourcesByDiveRef: data.dataSourcesByDiveRef,
       onProgress: onProgress,
@@ -2317,6 +2322,7 @@ class UddfEntityImporter {
     Uint8List? sourceFileBytes,
     Map<String, ImportSourceFile> sourceFilesById = const {},
     bool retainSourceDiveNumbers = false,
+    bool sourceHasTrips = false,
     required DateTime now,
     Map<String, List<Map<String, dynamic>>> dataSourcesByDiveRef = const {},
     ImportProgressCallback? onProgress,
@@ -2439,6 +2445,10 @@ class UddfEntityImporter {
       return storedIdByKey[key];
     }
 
+    // The trips the diver can see, read on the first dive placed by date.
+    // Trips are imported before dives, so the file's own are here.
+    List<Trip>? diverTrips;
+
     for (final i in sortedSelected) {
       if (cancelToken?.isCancelled ?? false) break;
 
@@ -2555,7 +2565,23 @@ class UddfEntityImporter {
         }
       }
 
-      final dateTime = diveData['dateTime'] as DateTime? ?? now;
+      final sourceDateTime = diveData['dateTime'] as DateTime?;
+      final dateTime = sourceDateTime ?? now;
+      // A dive with no trip joins the diver's trip whose dates cover it
+      // (#2618). MacDive has no trips at all, so every trip the diver had
+      // made showed 0 dives after a MacDive import. A file that has trips
+      // leaves a dive out of them on purpose, so only a dive whose own trip
+      // was not imported is placed by date there. An undated dive would be
+      // placed by the import clock, so it is not placed at all.
+      // A merged batch says per dive whether its own file had trips.
+      final fileHasTrips =
+          diveData[PayloadMerger.sourceHasTripsKey] as bool? ?? sourceHasTrips;
+      if (linkedTripId == null &&
+          sourceDateTime != null &&
+          (tripRef != null || !fileHasTrips)) {
+        diverTrips ??= await repos.tripRepository.getAllTrips(diverId: diverId);
+        linkedTripId = tripForDiveDate(sourceDateTime, diverTrips)?.id;
+      }
       // CSV imports provide only 'duration' (used as bottomTime); fall back
       // to it for runtime so the total dive time is populated.
       final durationValue = diveData['duration'] as Duration?;
@@ -2639,6 +2665,9 @@ class UddfEntityImporter {
         decoAlgorithm: diveData['decoAlgorithm'] as String?,
         gradientFactorLow: diveData['gradientFactorLow'] as int?,
         gradientFactorHigh: diveData['gradientFactorHigh'] as int?,
+        // Dive-level tissue state the computer reported, as the parser
+        // found it (a ComputerTissueSnapshot, or its JSON map or text).
+        computerTissue: ComputerTissueSnapshot.from(diveData['computerTissue']),
         diveComputerModel: diveData['diveComputerModel'] as String?,
         diveComputerSerial: diveData['diveComputerSerial'] as String?,
         diveComputerFirmware: diveData['diveComputerFirmware'] as String?,
@@ -2817,8 +2846,17 @@ class UddfEntityImporter {
         );
       }
 
+      // A backup of a dive several sources recorded says which of them
+      // recorded each pressure series (issue #2492). Those series are
+      // written once the source rows exist, below, in place of the
+      // waypoint pressures, which hold only the series the app drew.
+      final perSourceSeries =
+          _entriesForDive(diveData, dataSourcesByDiveRef).isEmpty
+          ? const <RestoredTankSeries>[]
+          : restoredTankPressureSeries(diveData, tanks);
+
       // Store per-tank pressure data
-      if (profileData != null && tanks.isNotEmpty) {
+      if (profileData != null && tanks.isNotEmpty && perSourceSeries.isEmpty) {
         await _storeTankPressures(
           profileData,
           tanks,
@@ -3031,6 +3069,41 @@ class UddfEntityImporter {
         );
         await repos.diveRepository.saveComputerReadings(restored);
         restoredDataSources += sourceEntries.length;
+        // Each series under the restored row of the <source> that recorded
+        // it, and the computer of the one its computer recorded; a series
+        // that named neither keeps neither. The companions are built in
+        // entry order, so entry i is restored as row i.
+        final sourceIdByOrdinal = <int, String>{
+          for (var i = 0; i < sourceEntries.length; i++)
+            if (sourceEntries[i]['ordinal'] case final int ordinal)
+              ordinal: restored[i].id.value,
+        };
+        final computerIdByOrdinal = <int, String?>{
+          for (var i = 0; i < sourceEntries.length; i++)
+            if (sourceEntries[i]['ordinal'] case final int ordinal)
+              ordinal: restored[i].computerId.value,
+        };
+        if (perSourceSeries.isNotEmpty) {
+          await repos.tankPressureRepository.insertTankSeries(diveId, [
+            for (final s in perSourceSeries)
+              (
+                tankId: s.tankId,
+                sourceId: sourceIdByOrdinal[s.sourceOrdinal],
+                computerId: computerIdByOrdinal[s.computerOrdinal],
+                samples: s.samples,
+              ),
+          ]);
+        }
+        // Each tank row under its own source and computer (#2716).
+        final tankLinks = restoredTankAttribution(
+          diveData,
+          tanks,
+          sourceIdByOrdinal: sourceIdByOrdinal,
+          computerIdByOrdinal: computerIdByOrdinal,
+        );
+        if (tankLinks.isNotEmpty) {
+          await repos.diveRepository.restoreTankAttribution(tankLinks);
+        }
         // Only a single restored source owns the series unambiguously; with
         // several, nothing in the file says which recorded them.
         if (restored.length == 1 && restored.single.id.present) {
@@ -3182,6 +3255,9 @@ class UddfEntityImporter {
           role: role,
           order: t['order'] as int? ?? 0,
           transmitterSerial: t['transmitterSerial'] as String?,
+          // How long the source log says the tank was breathed (MacDive,
+          // issue #1496).
+          usageDuration: t['usageDuration'] as Duration?,
         );
       }).toList();
     }

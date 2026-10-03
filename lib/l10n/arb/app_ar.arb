@@ -53,7 +53,6 @@
   "diveLog_tank_saveAsPreset_saved": "تم حفظ الإعداد المسبق \"{name}\"",
   "settings_units_defaultCurrency": "العملة الافتراضية",
   "settings_units_dialog_defaultCurrency": "العملة الافتراضية",
-  "diveSites_list_menu_select": "تحديد المواقع",
   "diveSites_list_menu_fillLocationDetails": "إكمال تفاصيل الموقع الناقصة",
   "diveSites_backfill_confirm_title": "إكمال تفاصيل الموقع الناقصة؟",
   "diveSites_backfill_confirm_body": "{count, plural, =1{موقع غوص واحد له إحداثيات ينقصه البلد أو المنطقة أو البلدة أو المسطح المائي.} other{{count} مواقع غوص لها إحداثيات ينقصها البلد أو المنطقة أو البلدة أو المسطح المائي.}} سيبحث Submersion عن كل منها في OpenStreetMap ويملأ الحقول الفارغة فقط. يستغرق ذلك نحو {minutes, plural, =1{دقيقة واحدة} =2{دقيقتين} other{{minutes} دقائق}}.",
@@ -282,6 +281,8 @@
   "equipment_color_stone": "حجري",
   "equipment_color_zinc": "زنكي",
   "equipment_color_slate": "رمادي أردوازي",
+  "equipment_color_black": "أسود",
+  "equipment_color_white": "أبيض",
   "equipment_color_none": "بلا",
   "equipment_color_sheetTitle": "اختر لونًا",
   "equipment_setEdit_figureSwitch_subtitle": "عرض معدات هذه المجموعة على غواص",
@@ -342,14 +343,7 @@
   "trips_story_checklistProgress": "اكتمل {done} من {total}",
   "trips_story_generateItinerary": "إنشاء خط سير",
   "trips_story_openGallery": "فتح صور الرحلة",
-  "trips_story_generateItineraryError": "تعذّر إنشاء برنامج الرحلة: {error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "تعذّر إنشاء برنامج الرحلة. حاول مرة أخرى.",
   "trips_dayType_diveDay": "يوم غوص",
   "trips_dayType_seaDay": "يوم بحري",
   "trips_dayType_portDay": "يوم في الميناء",
@@ -854,6 +848,7 @@
   "buddies_stat_favoriteSite": "الموقع المفضل",
   "buddies_stat_firstDive": "الغطسة الأولى",
   "buddies_stat_lastDive": "آخر غطسة",
+  "buddies_summary_mostDives": "Most Dives",
   "buddies_summary_overview": "نظرة عامة",
   "buddies_summary_quickActions": "إجراءات سريعة",
   "buddies_summary_recentBuddies": "الرفاق الأخيرون",
@@ -1422,9 +1417,21 @@
   "connections_selection_dives": "{count, plural, =1{غوصة واحدة} other{{count} غوصة}}",
   "@connections_selection_dives": {"placeholders": {"count": {"type": "int"}}},
   "connections_selection_topConnections": "أقوى الروابط",
-  "connections_selection_firstLast": "الأولى {first}، الأخيرة {last}",
-  "@connections_selection_firstLast": {"placeholders": {"first": {"type": "String"}, "last": {"type": "String"}}},
   "connections_selection_hint": "انقر على عقدة أو خط لعرض التفاصيل.",
+  "connections_details_dives": "الغوصات",
+  "connections_details_connections": "الروابط",
+  "connections_details_first": "الأولى",
+  "connections_details_last": "الأخيرة",
+  "connections_kindOne_buddy": "رفيق",
+  "connections_kindOne_site": "موقع",
+  "connections_kindOne_trip": "رحلة",
+  "connections_kindOne_diveCenter": "مركز غوص",
+  "connections_kindOne_equipment": "معدات",
+  "connections_kindOne_species": "نوع",
+  "connections_kindOne_tag": "وسم",
+  "connections_kindOne_diveType": "نوع الغوص",
+  "connections_kindOne_diveComputer": "كمبيوتر غوص",
+  "connections_kindOne_course": "دورة",
   "connections_empty_noDives": "لا توجد غوصات بعد. تظهر الروابط عندما يحتوي السجل على غوصات.",
   "connections_empty_buddies": "لا يوجد رفقاء مرتبطون بالغوصات بعد. أضف رفقاء إلى غوصاتك أو حوّل أسماء الرفقاء القديمة من الإعدادات، أدوات البيانات.",
   "connections_empty_sites": "لا توجد غوصة لها موقع بعد.",
@@ -2237,6 +2244,8 @@
   "diveLog_deco_tissueSlow": "بطيئة",
   "diveLog_deco_title": "حالة الديكو",
   "diveLog_deco_totalDecoTime": "الإجمالي: {time}",
+  "diveLog_deco_withheld_ccr": "لم يُسجَّل لهذه الغطسة بجهاز إعادة التنفس أي نقطة ضبط (setpoint) ولا ppO2 للدائرة، لذا لا يمكن حساب تحميل الأنسجة وNDL وتخفيف الضغط. أضف نقطة الضبط عند تعديل الغطسة لحسابها.",
+  "diveLog_deco_withheld_scr": "لم يُقَس ppO2 للدائرة في هذه الغطسة بجهاز إعادة التنفس شبه المغلق، لذا لا يمكن حساب تحميل الأنسجة وNDL وتخفيف الضغط.",
   "diveLog_delete_cancel": "إلغاء",
   "diveLog_delete_confirm": "لا يمكن التراجع عن هذا الإجراء. سيتم حذف الغوصة وجميع البيانات المرتبطة بها (الملف الشخصي، الأسطوانات، المشاهدات) نهائياً.",
   "diveLog_delete_delete": "حذف",
@@ -2302,6 +2311,22 @@
   "diveLog_detail_section_decoStatus": "حالة الديكو",
   "diveLog_detail_section_details": "التفاصيل",
   "diveLog_detail_section_diveProfile": "ملف الغوصة",
+  "diveLog_detail_profileRevision_kind_edit": "تعديل",
+  "diveLog_detail_profileRevision_kind_create": "إنشاء",
+  "diveLog_detail_profileRevision_kind_computerImport": "استيراد من كمبيوتر الغوص",
+  "diveLog_detail_profileRevision_kind_legacy": "سابق",
+  "diveLog_detail_profileRevision_editType_profileEditor": "محرر الملف",
+  "diveLog_detail_profileRevision_editType_dataQualityRepair": "إصلاح جودة البيانات",
+  "diveLog_detail_profileRevision_editType_smoothAll": "تنعيم الملف بالكامل",
+  "diveLog_detail_profileRevision_editType_smoothSelection": "تنعيم التحديد",
+  "diveLog_detail_profileRevision_editType_removeAllOutliers": "إزالة كل القيم الشاذة",
+  "diveLog_detail_profileRevision_editType_removeSelectedOutliers": "إزالة القيم الشاذة المحددة",
+  "diveLog_detail_profileRevision_editType_shiftDepth": "إزاحة العمق",
+  "diveLog_detail_profileRevision_editType_shiftTime": "إزاحة الوقت",
+  "diveLog_detail_profileRevision_editType_deleteSegment": "حذف المقطع",
+  "diveLog_detail_profileRevision_editType_deleteSegmentInterpolated": "حذف المقطع (مع استيفاء)",
+  "diveLog_detail_profileRevision_editType_generateFromWaypoints": "إنشاء من نقاط المسار",
+  "diveLog_detail_profileRevision_editType_trimEndZeros": "قص الأصفار النهائية",
   "diveLog_detail_section_equipment": "المعدات",
   "diveLog_detail_section_marineLife": "الأنواع",
   "diveLog_detail_sightingPhotos": "{count, plural, =1{صورة واحدة} other{{count} صور}}",
@@ -3752,6 +3777,8 @@
   "dropTarget_error_unsupportedFile": "نوع ملف غير مدعوم",
   "dropTarget_error_wizardActive": "أنهِ الاستيراد الحالي أولاً",
   "dropTarget_error_readFailed": "تعذرت قراءة الملف",
+  "dropTarget_error_mediaNeedsDestination": "لربط الصور ومقاطع الفيديو، أفلتها على شاشة الوسائط أو على غطسة أو موقع غطس",
+  "dropTarget_error_someUnreadable": "{count, plural, one{تعذرت قراءة ملف واحد وتم تخطيه} two{تعذرت قراءة ملفين وتم تخطيهما} few{تعذرت قراءة {count} ملفات وتم تخطيها} many{تعذرت قراءة {count} ملفًا وتم تخطيها} other{تعذرت قراءة {count} ملف وتم تخطيها}}",
   "enum_altitudeGroup_extreme": "ارتفاع شديد",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",
   "enum_altitudeGroup_group1": "مجموعة الارتفاع 1",
@@ -4307,6 +4334,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "هذه الغوصة تطابق الإعداد بالفعل",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{مع تحديث واحدة} other{مع تحديث {count}}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "استبدال بيانات الأسطوانات؟",
+  "cylinderConfigs_overwriteBody": "يؤدي تطبيق {name} إلى تغيير أسطوانات موجودة بالفعل في هذه الغوصة:",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "أسطوانة {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}: {from} ← {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "يتم الإبقاء على خلطات الغاز وضغوط البداية الخاصة بالغوصة.",
+  "cylinderConfigs_overwriteConfirm": "استبدال",
+  "cylinderConfigs_fieldVolume": "الحجم",
+  "cylinderConfigs_fieldWorkingPressure": "ضغط العمل",
+  "cylinderConfigs_fieldMaterial": "المادة",
   "cylinderConfigs_sectionTitle": "الإعدادات",
   "equipment_serviceClocks_hoursSource": "محسوب من زمن الغوص المسجل",
   "equipment_serviceClocks_hoursLeft": "متبقٍ {remaining} من {total} ساعة",
@@ -4519,6 +4593,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "لا شيء متأخر عن الصيانة.",
   "equipment_list_errorLoading": "خطأ في تحميل المعدات: {error}",
   "equipment_list_filterAll": "جميع المعدات",
+  "equipment_list_filterCurrent": "المعدات الحالية",
   "equipment_list_filterServiceDue": "الصيانة مستحقة",
   "equipment_list_filterServiceDueSoon": "قريبًا",
   "equipment_list_filterServiceOverdue": "متأخرة",
@@ -4689,6 +4764,7 @@
   "equipment_sets_itemCountSemanticLabel": "{count} في المجموعة",
   "equipment_sets_itemCountSingular": "{count} عنصر",
   "equipment_figure_itemLabel": "{number}، {type}، {name}",
+  "equipment_figure_itemLabelUnnumbered": "{type}، {name}",
   "equipment_figure_summary": "{name}، {count, plural, =1{عنصر واحد} other{{count} عناصر}}",
   "equipment_figure_trayTitle": "يُحمل أيضًا",
   "equipment_figure_frontCount": "الأمام · {count}",
@@ -5361,6 +5437,8 @@
   "media_import_review_chooseSite": "اختر الموقع",
   "media_import_review_ambiguous": "تتطابق عدة غطسات",
   "media_import_review_noMatch": "لا توجد غطسة مطابقة",
+  "media_import_review_noCaptureTime": "لم يُعثر على تاريخ الالتقاط",
+  "media_import_review_noMatchFileDate": "لا توجد غطسة تطابق تاريخ الملف؛ لا يحتوي الملف على تاريخ التقاط",
   "media_import_review_skipped": "لم يتم الاستيراد",
   "media_import_review_linkChip": "ربط بالغطسة رقم {number}",
   "media_import_review_linkToDive": "ربط بغطسة",
@@ -5507,6 +5585,7 @@
   "plannerCanvas_issue_gasDensityHigh": "كثافة الغاز {value} g/L تتجاوز الحد الموصى به",
   "plannerCanvas_issue_hypoxic": "غاز ناقص الأكسجين عند {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "تنتهي الأسطوانة تحت الحد الأدنى الآمن {pressure}",
+  "plannerCanvas_issue_diluentModExceeded": "يتجاوز غاز التخفيف حد MOD الخاص به عند {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_noBailout": "خطة تخفيف الضغط CCR لا تتضمن غاز إنقاذ (bailout)",
   "plannerCanvas_issue_noDecoGas": "يلزم تخفيف الضغط ولكن لا يوجد غاز تخفيف",
   "plannerCanvas_range_base": "أساسي",
@@ -5995,6 +6074,7 @@
   "settings_data_export_failed": "فشل التصدير: {error}",
   "settings_data_header_backupSync": "النسخ الاحتياطي والمزامنة",
   "settings_data_header_storage": "التخزين",
+  "settings_data_header_import": "الاستيراد",
   "settings_data_import_completed": "اكتملت العملية",
   "settings_data_import_failed": "فشلت العملية: {error}",
   "settings_data_offlineMaps": "الخرائط غير المتصلة",
@@ -6160,7 +6240,7 @@
   "settings_manage_weightPresets": "إعدادات الأوزان",
   "settings_manage_weightPresets_subtitle": "مجموعات أوزان قابلة لإعادة الاستخدام لغطسة",
   "weightPresets_page_title": "إعدادات الأوزان",
-  "weightPresets_page_empty": "احفظ أوزانًا من محرر الغطسة وستظهر هنا لإعادة الاستخدام.",
+  "weightPresets_page_empty": "احفظ أوزانًا من محرر الغطسة، أو انقر على + لإنشاء مجموعة هنا.",
   "weightPresets_action_rename": "إعادة تسمية",
   "weightPresets_action_new": "New preset",
   "weightPresets_action_edit": "Edit",
@@ -6262,7 +6342,7 @@
   "settings_section_appearance_title": "المظهر",
   "settings_section_data_subtitle": "النسخ الاحتياطي والاستعادة والتخزين",
   "settings_section_data_title": "البيانات",
-  "settings_section_decompression_subtitle": "عوامل التدرج",
+  "settings_section_decompression_subtitle": "GF، مصادر البيانات والتخدير",
   "settings_section_decompression_title": "تخفيف الضغط",
   "settings_section_diverProfile_subtitle": "الغواص النشط والملفات الشخصية",
   "settings_section_diverProfile_title": "ملف الغواص",
@@ -6666,6 +6746,7 @@
   "insights_ranking_itemCount": "{count} {label}",
   "insights_ranking_moreItems": "و {count} أخرى",
   "insights_ranking_semanticLabel": "{name}، المرتبة {rank}، {count} {label}",
+  "insights_ranking_semanticLabelWithSubtitle": "{name}، {subtitle}، المرتبة {rank}، {count} {label}",
   "insights_records_appBar_title": "أرقام الغوص القياسية",
   "insights_records_coldestDive": "أبرد غوصة",
   "insights_records_deepestDive": "أعمق غوصة",
@@ -7113,7 +7194,7 @@
   "transfer_csvExport_unitsMine": "وحداتي",
   "transfer_csvExport_unitsMineDescription": "القيم بإعدادات الوحدات والتاريخ والوقت الخاصة بك، مع ذكرها في عنوان كل عمود",
   "transfer_detail_backTooltip": "العودة إلى النقل",
-  "transfer_export_aboutContent": "قم بتصدير بيانات الغوص بصيغ متعددة. ينشئ PDF سجل غوص قابل للطباعة. UDDF هو تنسيق عالمي متوافق مع معظم برامج تسجيل الغوص. يمكن فتح ملفات CSV في تطبيقات جداول البيانات.",
+  "transfer_export_aboutContent": "قم بتصدير بيانات الغوص بصيغ متعددة. ينشئ PDF سجل غوص قابل للطباعة. UDDF هو تنسيق عالمي متوافق مع معظم برامج تسجيل الغوص. يمكن فتح ملفات CSV وExcel في تطبيقات جداول البيانات. يمكنك أيضًا نسخ قاعدة بياناتك بالكامل احتياطيًا من الإعدادات > نسخ احتياطي واستعادة.",
   "transfer_export_aboutTitle": "حول التصدير",
   "transfer_export_backupLink": "انتقال إلى النسخ الاحتياطي والاستعادة",
   "transfer_export_completed": "اكتمل التصدير",
@@ -7143,7 +7224,7 @@
   "transfer_export_uddfTitle": "تصدير UDDF",
   "transfer_import_aboutContent": "استخدم \"استيراد البيانات\" للحصول على أفضل تجربة -- يكتشف تلقائيًا صيغة الملف والتطبيق المصدر. تتوفر أيضًا خيارات الصيغ الفردية أدناه للوصول المباشر.",
   "transfer_import_aboutTitle": "حول الاستيراد",
-  "transfer_import_fileImportSemanticLabel": "استيراد البيانات مع الكشف التلقائي",
+  "transfer_import_fileImportSemanticLabel": "استيراد بيانات الغوص من ملف",
   "transfer_import_fileImportSubtitle": "يكتشف تلقائيًا CSV و UDDF و FIT والمزيد",
   "transfer_import_fileImportTitle": "استيراد البيانات",
   "transfer_import_sectionHeader": "استيراد البيانات",
@@ -7198,6 +7279,7 @@
   "trips_detail_dialog_deleteTitle": "حذف الرحلة؟",
   "trips_detail_dives_empty": "لا توجد غوصات في هذه الرحلة بعد",
   "trips_detail_dives_errorLoading": "تعذر تحميل الغوصات",
+  "trips_detail_error_loading": "تعذّر تحميل الرحلة.",
   "trips_detail_dives_unknownSite": "موقع غوص غير معروف",
   "trips_detail_dives_viewAll": "عرض الكل ({count})",
   "trips_detail_durationDays": "{days} أيام",
@@ -7218,8 +7300,8 @@
   "trips_detail_label_vesselType": "Type",
   "trips_detail_scan_accessDenied": "تم رفض الوصول إلى مكتبة الصور",
   "trips_detail_scan_addDivesFirst": "أضف غوصات أولًا لربط الصور",
-  "trips_detail_scan_errorLinking": "خطأ في ربط الصور: {error}",
-  "trips_detail_scan_errorScanning": "خطأ في المسح: {error}",
+  "trips_detail_scan_errorLinking": "تعذّر ربط الصور. حاول مرة أخرى.",
+  "trips_detail_scan_errorScanning": "تعذّر البحث عن الصور. حاول مرة أخرى.",
   "trips_detail_scan_linkedPhotos": "تم ربط {count} صور",
   "trips_detail_scan_linkingPhotos": "جارٍ ربط الصور...",
   "trips_detail_sectionTitle_dailyBreakdown": "Daily Breakdown",
@@ -7385,6 +7467,8 @@
   "trips_gear_add": "إضافة معدات",
   "trips_gear_remove": "إزالة",
   "trips_gear_failed": "تعذر تغيير المعدات. حاول مرة أخرى.",
+  "trips_gear_useSet": "استخدام مجموعة",
+  "trips_gear_packedFromSet": "{count, plural, =0{كل ما في {name} مُجهز بالفعل} one{تم تجهيز عنصر واحد من {name}} two{تم تجهيز عنصرين من {name}} few{تم تجهيز {count} عناصر من {name}} many{تم تجهيز {count} عنصرًا من {name}} other{تم تجهيز {count} عنصر من {name}}}",
   "trips_cylinders_forecast_todayShort": "اليوم يحتاج إلى {needed}، ولديك {full} ممتلئة.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
@@ -7436,14 +7520,7 @@
   "trips_cylinders_forecast_useEstimate": "استخدام التقدير",
   "trips_cylinders_forecast_fewer": "غطسات أقل",
   "trips_cylinders_forecast_more": "غطسات أكثر",
-  "trips_cylinders_forecast_saveError": "تعذّر حفظ الخطة: {error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "تعذّر حفظ الخطة. حاول مرة أخرى.",
   "trips_cylinders_forecast_dayPlanned": "خططتها أنت",
   "trips_cylinders_segment_record": "استهلاك الغاز",
   "trips_cylinders_recordEmpty": "لا توجد غطسات من هذه الأسطوانات بعد.",
@@ -7505,6 +7582,7 @@
     }
   },
   "trips_cylinders_record_exported": "تم تصدير سجل الغاز",
+  "trips_cylinders_record_exportFailed": "تعذّر تصدير سجل الغاز. حاول مرة أخرى.",
   "trips_cylinders_title": "الأسطوانات",
   "trips_cylinders_summary": "ممتلئة {full} · جزئية {partial} · فارغة {empty}",
   "@trips_cylinders_summary": {
@@ -7705,8 +7783,8 @@
   "trips_edit_sectionTitle_vessel": "Vessel Details",
   "trips_edit_semanticLabel_save": "حفظ الرحلة",
   "trips_edit_snackBar_added": "تمت إضافة الرحلة بنجاح",
-  "trips_edit_snackBar_errorLoading": "خطأ في تحميل الرحلة: {error}",
-  "trips_edit_snackBar_errorSaving": "خطأ في حفظ الرحلة: {error}",
+  "trips_edit_snackBar_errorLoading": "تعذّر تحميل الرحلة. حاول مرة أخرى.",
+  "trips_edit_snackBar_errorSaving": "تعذّر حفظ الرحلة. حاول مرة أخرى.",
   "trips_edit_snackBar_updated": "تم تحديث الرحلة بنجاح",
   "trips_edit_validation_nameRequired": "يرجى إدخال اسم الرحلة",
   "trips_edit_validation_vesselRequired": "Vessel name is required for liveaboard trips",
@@ -7717,9 +7795,9 @@
   "trips_gallery_diveSection_title": "غوصة #{number} - {site}",
   "trips_gallery_empty_subtitle": "انقر على أيقونة الكاميرا لمسح معرض الصور",
   "trips_gallery_empty_title": "لا توجد صور في هذه الرحلة",
-  "trips_gallery_errorLinking": "خطأ في ربط الصور: {error}",
-  "trips_gallery_errorScanning": "خطأ في المسح: {error}",
-  "trips_gallery_error_loading": "خطأ في تحميل الصور: {error}",
+  "trips_gallery_errorLinking": "تعذّر ربط الصور. حاول مرة أخرى.",
+  "trips_gallery_errorScanning": "تعذّر البحث عن الصور. حاول مرة أخرى.",
+  "trips_gallery_error_loading": "تعذّر تحميل الصور.",
   "trips_gallery_linkedPhotos": "تم ربط {count} صور",
   "trips_gallery_linkingPhotos": "جارٍ ربط الصور...",
   "trips_gallery_tooltip_scan": "مسح معرض الجهاز",
@@ -7729,6 +7807,8 @@
   "trips_itinerary_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_noDives": "No dives",
+  "trips_itinerary_error_loading": "تعذّر تحميل برنامج الرحلة.",
+  "trips_itinerary_daySaveError": "تعذّر حفظ اليوم. حاول مرة أخرى.",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_list_button_retry": "إعادة المحاولة",
@@ -7738,7 +7818,7 @@
   "trips_list_empty_filtered_title": "لا توجد رحلات تطابق عوامل التصفية",
   "trips_list_empty_subtitle": "أنشئ رحلات لتجميع غوصاتك حسب الوجهة",
   "trips_list_empty_title": "لم تتم إضافة رحلات بعد",
-  "trips_list_error_loading": "خطأ في تحميل الرحلات: {error}",
+  "trips_list_error_loading": "تعذّر تحميل رحلاتك.",
   "trips_list_fab_addTrip": "إضافة رحلة",
   "trips_list_filters_clearAll": "مسح الكل",
   "trips_list_inProgress": "جارية",
@@ -7760,7 +7840,7 @@
   "trips_picker_clearTooltip": "مسح الاختيار",
   "trips_picker_empty_createButton": "إنشاء رحلة",
   "trips_picker_empty_title": "لا توجد رحلات بعد",
-  "trips_picker_error": "خطأ في تحميل الرحلات: {error}",
+  "trips_picker_error": "تعذّر تحميل رحلاتك.",
   "trips_picker_hint": "انقر لاختيار رحلة",
   "trips_picker_newTrip": "رحلة جديدة",
   "trips_picker_noSelection": "لم يتم اختيار رحلة",
@@ -7770,6 +7850,7 @@
   "trips_search_empty_hint": "البحث بالاسم أو الموقع أو المنتجع",
   "trips_search_fieldLabel": "البحث في الرحلات...",
   "trips_search_noResults": "لم يتم العثور على رحلات لـ \"{query}\"",
+  "trips_search_error": "تعذّر البحث في رحلاتك.",
   "trips_search_tooltip_back": "رجوع",
   "trips_search_tooltip_clear": "مسح البحث",
   "trips_summary_header_subtitle": "اختر رحلة من القائمة لعرض التفاصيل",
@@ -8064,14 +8145,7 @@
     }
   },
   "trips_diveScan_deselectAll": "إلغاء تحديد الكل",
-  "trips_diveScan_error": "خطأ في البحث عن الغوصات: {error}",
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_diveScan_error": "تعذّر البحث عن الغوصات. حاول مرة أخرى.",
   "trips_diveScan_findButton": "البحث عن الغوصات المطابقة",
   "trips_diveScan_groupOtherTrips": "في رحلات أخرى ({count})",
   "@trips_diveScan_groupOtherTrips": {
@@ -8404,6 +8478,7 @@
   "diveComputer_pinCode_submit": "إرسال",
   "diveComputer_pinCode_title": "رمز PIN مطلوب",
   "diveComputer_scan_bluetoothSemanticLabel": "جهاز Bluetooth: {name}",
+  "diveComputer_scan_bluetoothUnavailable": "Bluetooth متوقف أو غير متاح. شغّله واضغط على إعادة المحاولة، أو اتصل عبر علامة التبويب كابل USB.",
   "diveComputer_scan_emptyStateInstructions": "تأكد من أن كمبيوتر الغوص:\n• قيد التشغيل\n• في وضع إقران Bluetooth\n• قريب من جهازك",
   "diveComputer_scan_knownBadge": "معروف",
   "diveComputer_scan_lookingForDevicesTitle": "البحث عن الأجهزة",
@@ -8610,6 +8685,7 @@
   "sharedItems_bulkRemoveTitle": "{count, plural, one{إزالة {count} عنصر من ملفك؟} other{إزالة {count} عناصر من ملفك؟}}",
   "sharedItems_bulkSharedWarning_sites": "{count, plural, one{{count} منها مشترك مع ملفات غوص أخرى وسيُحذف للجميع.} other{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.}}",
   "sharedItems_bulkSharedWarning_trips": "{count, plural, one{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.} other{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.}}",
+  "sharedItems_hiddenHere": "مخفي عن ملفك",
   "sharedItems_mergeTooManyShared": "يمكن أن ينتمي موقع واحد فقط من المواقع المحددة إلى ملف غوص آخر. ألغِ تحديد المواقع الأخرى للدمج.",
   "sharedItems_notOwner_site": "يمكن لمالك هذا الموقع فقط حذفه",
   "sharedItems_notOwner_trip": "يمكن لمالك هذه الرحلة فقط حذفها",
@@ -8625,6 +8701,7 @@
   "sharedItems_shareOwnerOnly": "يمكن لـ {owner} فقط تغيير المشاركة",
   "sharedItems_sharedBy": "تمت المشاركة بواسطة {owner}",
   "sharedItems_undo": "تراجع",
+  "sharedItems_unhideAction": "إظهار في ملفي",
   "trips_deleteShared_body": "«{name}» مشتركة مع ملفات غوص أخرى. حذفها من هنا يزيلها للجميع.",
   "trips_deleteShared_title": "حذف الرحلة المشتركة؟",
   "trips_unshareConfirm_body": "سيؤدي هذا إلى إزالة «{name}» من عروض ملفات الغوص الأخرى. يمكنك مشاركتها مرة أخرى لاحقًا.",
@@ -9570,6 +9647,8 @@
   },
   "diveLog_detail_altitudeMismatch_title": "موقع الغوص على ارتفاع",
   "diveLog_detail_altitudeMismatch_subtitle": "هذا الموقع مسجل له ارتفاع لكن الغطسة بلا ارتفاع، لذا افترض تحليل تخفيف الضغط مستوى سطح البحر. عيّن ارتفاع الغطسة للتصحيح.",
+  "diveLog_detail_sacSegmentsNoPressure": "سُجّل ضغطا البداية والنهاية للأسطوانة فقط، لذا لا يمكن تقسيم استهلاك الغاز إلى مقاطع. يتطلب ذلك قراءات ضغط أثناء الغوصة، مثل قراءات جهاز إرسال. يظهر متوسط الغوصة كاملة ضمن الأسطوانات.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "لم يُسجَّل ضغط الأسطوانة أثناء الغوصة",
   "diveLog_detail_sacVolumeHint": "أضف حجم الأسطوانة لعرض RMV بوحدة {unit}",
   "emergencyCard_title": "الطوارئ",
   "emergencyCard_callDan": "اتصل بـ {name}",
@@ -11992,7 +12071,7 @@
   "species_lake_sturgeon_desc": "حفش مدرع بطيء النمو من البحيرات العظمى وحوض المسيسيبي، يكنس القاع بفمه الأنبوبي.",
   "species_european_sturgeon_name": "حفش البحر الأوربي",
   "species_european_sturgeon_desc": "حفش مدرع مهدد بالانقراض بشدة من الأنهار الأطلسية، يُربى اليوم ويُطلق في نهري غارون وإلبه.",
-  "species_alligator_gar_name": "سمكة التمساح",
+  "species_alligator_gar_name": "الغار التمساحي",
   "species_alligator_gar_desc": "عملاق ما قبل التاريخ بخطم عريض مسنن وحراشف مدرعة معينية الشكل، يصعد لابتلاع الهواء في الأنهار الجنوبية.",
   "species_longnose_gar_name": "الغار طويل الأنف",
   "species_longnose_gar_desc": "سمكة مدرعة نحيلة بخطم يشبه الإبرة، تتعلق بلا حراك تحت سطح الأنهار الدافئة مباشرة.",
@@ -12972,6 +13051,8 @@
   "diveLog_profileEditor_mode_outlier": "قيمة شاذة",
   "diveLog_profileEditor_mode_draw": "رسم",
   "diveLog_profileEditor_mode_trim": "قص",
+  "diveLog_profileEditor_revisionSelectorTooltip": "تبديل المراجعة النشطة. هذا التغيير يسري مفعوله فوراً وسيتم أساس جميع التعديلات المستقبلية على هذه المراجعة.",
+  "diveLog_profileEditor_revisionSwitchFailed": "تعذر تبديل مراجعة الملف الشخصي.",
   "diveLog_sources_sectionTitle": "{count, plural, zero{مصدر البيانات} one{مصدر البيانات} two{مصدرا البيانات} few{مصادر البيانات} many{مصادر البيانات} other{مصادر البيانات}}",
   "diveLog_sources_badge_manual": "يدوي",
   "diveLog_sources_badge_viewing": "قيد العرض",
@@ -13549,7 +13630,7 @@
   "transmitters_action_delete": "حذف جهاز الإرسال",
   "transmitters_action_apply": "تطبيق على الغطسات الحالية",
   "transmitters_apply_title": "تطبيق على الغطسات الحالية؟",
-  "transmitters_apply_content": "{tanks} أسطوانة في {dives} غطسة تحمل جهاز الإرسال هذا. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر.",
+  "transmitters_apply_content": "{tanks} أسطوانة في {dives} غطسة تحمل جهاز الإرسال هذا. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر أو المأخوذ من اسم جهاز الإرسال.",
   "transmitters_apply_done": "تم تحديث {tanks} أسطوانة في {dives} غطسة",
   "transmitters_apply_nothing": "لا توجد أسطوانة تحمل جهاز الإرسال هذا",
   "transmitters_delete_title": "حذف جهاز الإرسال؟",
@@ -13576,6 +13657,7 @@
   "diveComputer_detail_transmittersSummary": "{known} معروف، {unassigned} غير معيّن",
   "diveLog_tank_assignTransmitter": "تعيين جهاز إرسال",
   "diveLog_tank_reassignSeries": "إعادة تعيين سلسلة الضغط",
+  "diveLog_tank_roleFromTransmitterName": "{role}، مأخوذ من اسم جهاز الإرسال",
   "diveLog_reassignSheet_title": "سلاسل الضغط",
   "diveLog_reassignSheet_swap": "تبديل",
   "diveLog_reassignSheet_moveTo": "نقل إلى",
@@ -13585,6 +13667,8 @@
   "universalImport_summary_noticeUnknownTransmitterTitle": "أجهزة إرسال غير معيّنة",
   "universalImport_summary_noticeUnknownTransmitterBody": "جهاز إرسال واحد أو أكثر في هذا التنزيل غير معيّن لأسطوانة. عيّنها لتحصل التنزيلات القادمة على الحجم والدور الصحيحين.",
   "universalImport_summary_noticeAssignTransmitters": "تعيين أجهزة الإرسال",
+  "universalImport_summary_noticeTransmitterNameRolesTitle": "أدوار الأسطوانات مأخوذة من أسماء أجهزة الإرسال",
+  "universalImport_summary_noticeTransmitterNameRolesBody": "أخذ كمبيوتر الغوص بعض أدوار الأكسجين والمخفف من الأسماء المعطاة لأجهزة الإرسال: الاسم الذي يبدأ بـ O يُقرأ أكسجين، والذي يبدأ بـ D يُقرأ مخففًا. عيّن أجهزة الإرسال لتأكيد هذه الأدوار أو تصحيحها.",
   "universalImport_summary_noticeDiveNumberConflictTitle": "أرقام الغطسات مستخدمة بالفعل",
   "universalImport_summary_noticeDiveNumberConflictBody": "احتفظت هذه الغطسات بالرقم الوارد من مصدرها، لكن غطسات أخرى في سجلك تستخدم الأرقام نفسها بالفعل. افتح «ترقيم الغوصات» من قائمة صفحة الغطسات لإعادة ترقيمها.",
   "dataQuality_detector_unknown_transmitter": "جهاز إرسال غير معيّن",
@@ -13712,6 +13796,11 @@
   "navTrack_review_row_maxDepth": "أقصى عمق",
   "navTrack_review_row_maxSpeed": "أقصى سرعة",
   "navTrack_review_leaveUnlinked": "الترك بدون ربط",
+  "navTrack_review_noOverlapHint": "لا توجد غطسة تتداخل مع وقت هذا التسجيل. أقرب الغطسات حسب وقت البدء:",
+  "navTrack_review_offsetBefore": "قبل التسجيل بـ {offset}",
+  "navTrack_review_offsetAfter": "بعد التسجيل بـ {offset}",
+  "navTrack_review_offsetDays": "{days}d {hours}h",
+  "navTrack_review_chooseAnotherDive": "اختيار غطسة أخرى...",
   "navTrack_list_importFailed": "فشل الاستيراد: {error}",
   "navTrack_list_matchError": "تعذرت مطابقة المسارات.",
   "navTrack_list_matchSuccess": "تمت مطابقة المسارات مع الغطسات.",
@@ -13735,6 +13824,11 @@
   "navTrack_section_menuOpen": "فتح المسار",
   "navTrack_section_menuOpen3d": "فتح المشهد ثلاثي الأبعاد",
   "navTrack_section_menuMakePrimary": "تعيين كأساسي",
+  "navTrack_editRow_none": "لا يوجد",
+  "navTrack_editRow_loadFailed": "تعذر تحميل المسارات",
+  "navTrack_editRow_more": "{name} +{count}",
+  "navTrack_editSheet_removeTooltip": "إزالة المسار",
+  "navTrack_editRow_saveFailed": "تعذر تحديث مسارات هذه الغوصة تحت الماء: {error}",
   "navTrack_importError_unsupportedFormat": "هذا الملف ليس سجل ملاحة Seacraft ENC.",
   "navTrack_importError_unreadable": "تعذرت قراءة هذا الملف كسجل ملاحة Seacraft ENC.",
   "navTrack_importError_tooShort": "يحتوي هذا التسجيل على عدد قليل جدًا من العينات ليكون مسارًا قابلاً للاستخدام.",
@@ -13742,7 +13836,6 @@
   "navTrack_importError_tooLarge": "يحتوي هذا التسجيل على عينات أكثر مما يمكن لمسار تخزينه.",
   "diveDetailSection_navTrack_name": "مسار تحت الماء",
   "diveDetailSection_navTrack_description": "مسار تحت الماء تم قياسه من وحدة تحكم ملاحية",
-  "dashboard_quickActions_navRoutes": "المسارات تحت الماء",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
   "navTrack_list_durationMinutes": "{minutes}min"
 ,
@@ -14164,6 +14257,7 @@
   "savedQueries_snackbar_deleted": "تم حذف \"{name}\"",
   "settings_manage_savedQueries": "الاستعلامات المحفوظة",
   "settings_manage_savedQueries_subtitle": "إعادة تسمية الاستعلامات المحفوظة وإعادة ترتيبها وحذفها",
+  "settings_manage_navRoutes_subtitle": "استيراد المسارات المسجلة ومحاذاتها وربطها",
   "query_editor_needsText": "أدخل كلمة واحدة على الأقل",
   "query_saveNeedsDiver": "أنشئ ملف غواص لحفظ الاستعلامات"
 }

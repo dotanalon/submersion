@@ -33,6 +33,7 @@ void main() {
     String computerId,
     List<double> o2Percents, {
     List<(int, int)> switches = const [],
+    bool switchesEntered = false,
   }) async {
     final entry = DateTime.utc(2026, 8, 8, 10, 16);
     await diveRepo.createDive(
@@ -62,8 +63,8 @@ void main() {
     await (db.update(db.dives)..where((t) => t.id.equals(id))).write(
       DivesCompanion(computerId: Value(computerId)),
     );
-    // Switches as a file import or an older download left them:
-    // unattributed. (timestamp, tank index)
+    // Switches as a download writes them, its computer's (v258, #2582), or
+    // as the diver entered them: unattributed. (timestamp, tank index)
     for (final (timestamp, tankIndex) in switches) {
       await db
           .into(db.gasSwitches)
@@ -74,7 +75,7 @@ void main() {
               timestamp: timestamp,
               tankId: '$id-t$tankIndex',
               createdAt: 0,
-            ),
+            ).copyWith(computerId: Value(switchesEntered ? null : computerId)),
           );
     }
     await db
@@ -157,20 +158,48 @@ void main() {
     },
   );
 
-  test('each computer\'s gas switches are recorded as its own', () async {
-    await consolidateSuuntoAndGarmin();
+  test('a switch the diver entered stays unattributed through the fold, so '
+      'it keeps applying to every computer', () async {
+    await seedDive(
+      't',
+      'suunto',
+      [21, 50],
+      switches: [(1740, 1)],
+      switchesEntered: true,
+    );
+    await seedDive(
+      's',
+      'garmin',
+      [21, 50],
+      switches: [(1980, 1)],
+      switchesEntered: true,
+    );
+    await consolidation.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
 
     final switches = await (db.select(
       db.gasSwitches,
     )..where((t) => t.diveId.equals('t'))).get();
-    final byComputer = <String?, List<int>>{};
-    for (final sw in switches) {
-      byComputer.putIfAbsent(sw.computerId, () => []).add(sw.timestamp);
-    }
-    expect(byComputer.keys, unorderedEquals(['suunto', 'garmin']));
-    expect(byComputer['suunto'], unorderedEquals([0, 1740]));
-    expect(byComputer['garmin'], unorderedEquals([0, 1980, 2340]));
+    expect(switches, hasLength(2));
+    expect(switches.map((s) => s.computerId), everyElement(isNull));
   });
+
+  test(
+    'each computer\'s gas switches keep their computer through the fold',
+    () async {
+      await consolidateSuuntoAndGarmin();
+
+      final switches = await (db.select(
+        db.gasSwitches,
+      )..where((t) => t.diveId.equals('t'))).get();
+      final byComputer = <String?, List<int>>{};
+      for (final sw in switches) {
+        byComputer.putIfAbsent(sw.computerId, () => []).add(sw.timestamp);
+      }
+      expect(byComputer.keys, unorderedEquals(['suunto', 'garmin']));
+      expect(byComputer['suunto'], unorderedEquals([0, 1740]));
+      expect(byComputer['garmin'], unorderedEquals([0, 1980, 2340]));
+    },
+  );
 
   test(
     'a split takes the departing computer\'s gas switches with it',
@@ -205,8 +234,8 @@ void main() {
   test('a later fold leaves an already consolidated dive\'s unattributed '
       'switches alone', () async {
     await consolidateSuuntoAndGarmin();
-    // A switch from before v251: nothing says which of the two logged it,
-    // so it applies to both and must keep doing so.
+    // A switch the diver entered, or one on a merged cylinder that v258
+    // could not attribute: it applies to both and must keep doing so.
     await db
         .into(db.gasSwitches)
         .insert(

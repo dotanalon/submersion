@@ -8,6 +8,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
@@ -110,6 +111,10 @@ class DiveConsolidationService {
           now: now,
         );
       }
+      // Its tanks too, for the same reason (issue #2716): once the
+      // secondaries' copies join them, two sources that name no computer
+      // leave nothing else to tell one cylinder's copies apart.
+      await attributeTankSources(_db, _sync, targetDiveId, now: now);
 
       // First consolidation: stamp the target's own children with the
       // primary computer so null stays reserved for manual entries.
@@ -131,30 +136,6 @@ class DiveConsolidationService {
           targetRow.computerId!,
           now: now,
         );
-        // A single-source target's switches are its own computer's gas
-        // plan: stamp them so the secondary's analysis does not pick them up
-        // (#2560). A target already holding several sources is left alone,
-        // like the pressure series above: its unattributed switches predate
-        // v251, could be any computer's, and keep applying to all of them.
-        final unstampedSwitches = targetSources.length != 1
-            ? const <GasSwitche>[]
-            : await (_db.select(_db.gasSwitches)..where(
-                    (t) =>
-                        t.diveId.equals(targetDiveId) & t.computerId.isNull(),
-                  ))
-                  .get();
-        for (final row in unstampedSwitches) {
-          await (_db.update(
-            _db.gasSwitches,
-          )..where((t) => t.id.equals(row.id))).write(
-            GasSwitchesCompanion(computerId: Value(targetRow.computerId)),
-          );
-          await _sync.markRecordPending(
-            entityType: 'gasSwitches',
-            recordId: row.id,
-            localUpdatedAt: now,
-          );
-        }
         // With a fresh clock: stamping moves these events into any scope
         // tombstone the computer already has on this dive (#1926), and with
         // their old clocks a relayed copy of that scope would delete them.
@@ -167,6 +148,10 @@ class DiveConsolidationService {
                 hlc: Value(await _sync.issueRowClock()),
               ),
             );
+        // Not the gas switches (#2582): a download stamps its own, and v258
+        // attributed the stored ones through their cylinder, so a switch
+        // still unattributed is one the diver entered. Claiming it for the
+        // primary would let a later Replace Source of that computer delete it.
       }
 
       var nextTankOrder =
@@ -353,7 +338,11 @@ class DiveConsolidationService {
           sourceIdMap[null] = sourceIdMap[fallback.id]!;
         }
 
-        // Tanks: merged ones map, kept ones copy with attribution.
+        // Tanks: merged ones map, kept ones copy with attribution: their
+        // computer, and their source re-pointed at the target's copy of it
+        // (issue #2716); a tank whose source is not known is the
+        // secondary's primary source's, as `null` is above.
+        final secTankSources = await resolveTankSources(_db, secondary.id);
         final secTanks =
             snapshot.tankRows.where((r) => r.diveId == secondary.id).toList()
               ..sort((a, b) => a.tankOrder.compareTo(b.tankOrder));
@@ -381,6 +370,10 @@ class DiveConsolidationService {
                         id: Value(freshId),
                         diveId: Value(targetDiveId),
                         computerId: Value(secRow.computerId),
+                        sourceId: Value(
+                          sourceIdMap[secTankSources[tank.id]] ??
+                              sourceIdMap[null],
+                        ),
                         tankOrder: Value(nextTankOrder++),
                       ),
                 );
@@ -469,7 +462,10 @@ class DiveConsolidationService {
           );
         }
 
-        // Gas switches, re-based + tank FK remapped (drop unmappable).
+        // Gas switches, re-based + tank FK remapped (drop unmappable). Each
+        // keeps its own computerId (#2582): a download or the v258 backfill
+        // stamped the imported ones, and a null one is the diver's, which a
+        // Replace Source must not be able to delete.
         for (final row in snapshot.gasSwitchRows.where(
           (r) => r.diveId == secondary.id,
         )) {
@@ -486,8 +482,6 @@ class DiveConsolidationService {
                       diveId: Value(targetDiveId),
                       tankId: Value(newTankId),
                       timestamp: Value(row.timestamp + offset),
-                      // The secondary computer's own switch (#2560).
-                      computerId: Value(row.computerId ?? secRow.computerId),
                     ),
               );
           await _sync.markRecordPending(
@@ -699,6 +693,25 @@ class DiveConsolidationService {
                 .firstWhere((l) => l != null, orElse: () => null)
           : null;
 
+      // The same rule for the site and the runtime. A dive logged without
+      // them, say by an earlier file import that dropped them, is repaired by
+      // re-importing the file and consolidating each dive into its
+      // duplicate (#1809).
+      final secondaryRows = [
+        for (final secondary in plan.secondaries)
+          snapshot.diveRows.firstWhere((r) => r.id == secondary.id),
+      ];
+      final siteFill = targetRow.siteId == null
+          ? secondaryRows
+                .map((r) => r.siteId)
+                .firstWhere((id) => id != null, orElse: () => null)
+          : null;
+      final runtimeFill = targetRow.runtime == null
+          ? secondaryRows
+                .map((r) => r.runtime)
+                .firstWhere((s) => s != null, orElse: () => null)
+          : null;
+
       // Touch the target so sync carries the consolidation.
       await (_db.update(
         _db.dives,
@@ -716,6 +729,10 @@ class DiveConsolidationService {
               : const Value.absent(),
           exitLongitude: exitFill != null
               ? Value(exitFill.longitude)
+              : const Value.absent(),
+          siteId: siteFill != null ? Value(siteFill) : const Value.absent(),
+          runtime: runtimeFill != null
+              ? Value(runtimeFill)
               : const Value.absent(),
         ),
       );
@@ -956,6 +973,19 @@ class DiveConsolidationService {
         );
       }
 
+      // Data sources BEFORE the tanks: diveTanks.sourceId is an FK into
+      // diveDataSources (v251, issue #2716), enforced immediately like the
+      // tank FKs below. Sources reference no tank, so they can come first.
+      await _db.batch((batch) {
+        for (final r in snapshot.dataSourceRows) {
+          batch.insert(
+            _db.diveDataSources,
+            r.toCompanion(false),
+            mode: InsertMode.insertOrReplace,
+          );
+        }
+      });
+
       // Tanks BEFORE the batch below: tankPressureProfiles.tankId (and
       // gasSwitches.tankId further down) are FKs into diveTanks, and FK
       // enforcement is immediate under `PRAGMA foreign_keys = ON`, so the
@@ -974,13 +1004,6 @@ class DiveConsolidationService {
       // Child rows verbatim (original ids never collide with consolidation
       // output: consolidated children all had fresh ids).
       await _db.batch((batch) {
-        for (final r in snapshot.dataSourceRows) {
-          batch.insert(
-            _db.diveDataSources,
-            r.toCompanion(false),
-            mode: InsertMode.insertOrReplace,
-          );
-        }
         for (final r in snapshot.tideRows) {
           batch.insert(
             _db.tideRecords,
@@ -1007,8 +1030,8 @@ class DiveConsolidationService {
         );
       }
       // Series restored after the batch above: dataSourceRows and diveTanks
-      // (inserted earlier) are the series' FK parents and must be back
-      // first.
+      // (both inserted before it) are the series' FK parents and must be
+      // back first.
       for (final r in snapshot.profileSeriesRows) {
         await _profileSeries.restoreSeriesRow(r, now: now);
       }

@@ -24,7 +24,7 @@ void main() {
   }
 
   test('v250 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v251 (gas plan attribution, #2560) landed on top; the
+    // Relaxed once v251 (dive_tanks.source_id, #2716) landed on top; the
     // newest rung owns the exact assertions.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(250));
     expect(AppDatabase.migrationVersions, contains(250));

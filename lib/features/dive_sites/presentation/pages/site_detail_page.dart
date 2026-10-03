@@ -215,7 +215,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             const SizedBox(height: kSiteDetailCardGap),
           ],
           SiteDetailHeader(site: site),
-          SharedByBanner(ownerId: site.diverId, isShared: site.isShared),
+          SharedByBanner(
+            kind: SharedItemKind.site,
+            itemId: site.id,
+            ownerId: site.diverId,
+            isShared: site.isShared,
+          ),
           const SizedBox(height: kSiteDetailCardGap),
           SiteDetailSectionList(
             sections: sections,
@@ -380,10 +385,17 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     // Watched, as the trip page does, so the menu follows the profile once
-    // it has loaded (issue #2594).
-    final canDestroy = canDestroySharedItem(
+    // it has loaded (issue #2594); null until then (issue #2682).
+    final canDestroy = canDestroySharedItemOnceKnown(
+      ref.watch(validatedCurrentDiverIdProvider),
       ownerId: site.diverId,
-      activeDiverId: ref.watch(validatedCurrentDiverIdProvider).value,
+    );
+    // A site this profile already removed offers Unhide (issue #2679).
+    final hidden = watchHiddenHere(
+      ref,
+      SharedItemKind.site,
+      site.id,
+      canDestroy: canDestroy != false,
     );
 
     return Container(
@@ -469,8 +481,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 openInConnectionsMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
                 // Delete for the owner; another profile only removes the
-                // shared site from itself (issue #2594).
-                if (canDestroy)
+                // shared site from itself (issue #2594); neither while the
+                // profile is unknown (issue #2682).
+                if (canDestroy == true)
                   PopupMenuItem(
                     value: 'delete',
                     child: ListTile(
@@ -482,7 +495,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                       contentPadding: EdgeInsets.zero,
                     ),
                   )
-                else
+                else if (hidden)
+                  PopupMenuItem(
+                    value: 'unhide',
+                    child: ListTile(
+                      leading: const Icon(Icons.visibility_outlined),
+                      title: Text(context.l10n.sharedItems_unhideAction),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  )
+                else if (canDestroy == false)
                   PopupMenuItem(
                     value: 'remove',
                     child: ListTile(
@@ -515,6 +537,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     }
     if (action == 'remove') {
       await _removeFromProfile(context, ref, site);
+      return;
+    }
+    if (action == 'unhide') {
+      // A failed unhide says so (issue #2677).
+      await runHideChange(
+        ScaffoldMessenger.of(context),
+        context.l10n,
+        () =>
+            ref.read(siteListNotifierProvider.notifier).unhideSites([site.id]),
+      );
       return;
     }
     if (action == 'delete') {

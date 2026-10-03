@@ -7,15 +7,24 @@ part of 'app_database_migrations.dart';
 /// asserted again here.
 extension BeforeOpenBackstops on AppDatabase {
   Future<void> _beforeOpen(OpeningDetails details) async {
+    // v257 backstop: metadata-only profile revision history over existing
+    // dive_profile_series rows. Safe to re-run: INSERT OR IGNORE keeps
+    // existing revisions untouched and only fills missing pointer rows.
+    await _assertProfileSeriesHistorySchema();
+    await _backfillProfileSeriesHistoryRows();
+
+    // v252 backstop: nav_tracks.diver_id. Column only; the backfill stays
+    // in the rung.
+    await _assertNavTrackDiverIdColumn();
+
     // v249 backstop: the trip fill forecast's columns.
     await _assertTripFillForecastColumns();
 
     // v240 backstop: the events-by-dive index.
     await _assertProfileEventsDiveIdIndex();
-    // v251 backstop: dive_tanks.shared_computer_ids and
-    // gas_switches.computer_id. Every read of either selects the whole row, so a database that arrives by restore or
-    // sync-adopt without it would throw on the first read.
-    await _assertGasPlanAttributionColumns();
+    // v260 backstop: dive_tanks.shared_computer_ids (#2560); every tank read
+    // selects the whole row, so a restore or sync-adopt without it throws.
+    await _assertTankSharedComputerIdsColumn();
 
     // v237 backstop: the dive figure switch.
     await _assertShowDiveFigureColumn();
@@ -200,6 +209,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // v123 backstop: re-assert safety review tables + settings columns
     // (parallel-branch collision self-heal).
     await _assertSafetyReviewSchema();
+    // v253 backstop: the review's inputs fingerprint, after the table above.
+    await _assertSafetyReviewInputsHashColumn();
 
     // v124 backstop: re-assert the equipment_attributes table (schema
     // only -- the legacy-column copy must NOT run here, it would
@@ -443,6 +454,12 @@ extension BeforeOpenBackstops on AppDatabase {
     // arrives by restore or sync-adopt without them would throw on the
     // first read.
     await _assertBuddyProfileDiveLinkColumns();
+    // v256 backstop: re-assert dives.computer_tissue_json. Every dive
+    // read selects the whole row, so a database that arrives by restore
+    // or sync-adopt without it would throw on the first read.
+    await _assertComputerTissueColumn();
+    // v258 backstop: gas_switches.computer_id (#2582), backfill included.
+    await _assertGasSwitchComputerIdColumn();
     // v182 backstop: re-assert the packed profile series tables, then
     // pack any dive that still has legacy rows and no series row. A
     // schema-version collision with a parallel branch skips the rung on
@@ -532,6 +549,12 @@ extension BeforeOpenBackstops on AppDatabase {
     // gets the column on this open too.
     await _assertTankSeriesSourceIdColumn();
 
+    // v251 backstop: re-assert dive_tanks.source_id (#2716; same
+    // parallel-branch version-collision self-heal). Column only; the
+    // backfill stays in the rung, and a tank with no source resolves to the
+    // dive's primary source, as before the column.
+    await _assertDiveTankSourceIdColumn();
+
     // v186 backstop: re-assert pre_dive_checklist_template_items.
     // equipment_id (same parallel-branch version-collision self-heal).
     // Safe to re-run on every open: the helper is column-only with no
@@ -584,6 +607,14 @@ extension BeforeOpenBackstops on AppDatabase {
     // or sync-adopt without the rung would throw on the first read.
     // Column only, no backfill, so it cannot touch diver data.
     await _assertTankTransmitterSerialColumn();
+
+    // v254 backstop: re-assert dive_tanks.role_source, for the same reason
+    // as transmitter_serial above. Column only, no backfill.
+    await _assertTankRoleSourceColumn();
+
+    // v259 backstop: re-assert dive_tanks.usage_duration (issue #1496).
+    // Column only, no backfill.
+    await _assertTankUsageDurationColumn();
 
     // v145 backstop: re-assert the gps_tracks provenance and trim columns.
     await _assertGpsTrackColumns();

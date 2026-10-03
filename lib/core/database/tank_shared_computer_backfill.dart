@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
-/// A dive_tanks row as the v251 backfill sees it.
+/// A dive_tanks row as the v260 backfill sees it.
 typedef BackfillTank = ({
   String id,
   String? computerId,
@@ -16,7 +16,7 @@ typedef BackfillTank = ({
 const double _gasTolerancePct = 0.5;
 
 /// Which computers share which of the primary's cylinders on one dive
-/// consolidated before v251 recorded it: tank id -> computer ids.
+/// consolidated before v260 recorded it: tank id -> computer ids.
 ///
 /// Consolidation merges a secondary's cylinder only into a PRIMARY tank
 /// with the same gas, and drops the secondary's row. So a secondary
@@ -48,23 +48,33 @@ Map<String, List<String>> inferSharedComputers({
   return result;
 }
 
-/// v251: fills `dive_tanks.shared_computer_ids` on dives consolidated before
+/// v260: fills `dive_tanks.shared_computer_ids` on dives consolidated before
 /// the fold recorded it (see [inferSharedComputers]).
 ///
 /// Local-only and idempotent: deterministic from rows every device holds,
 /// so no HLC bump and nothing marked pending; a tank that already records
 /// its sharers is skipped. A no-op until the column exists.
 Future<void> backfillTankSharedComputers(DatabaseConnectionUser db) async {
-  final tankCols = await db
-      .customSelect("PRAGMA table_info('dive_tanks')")
-      .get();
-  if (!tankCols.any((c) => c.read<String>('name') == 'shared_computer_ids')) {
+  Future<bool> hasColumns(String table, List<String> names) async {
+    final cols = {
+      for (final c
+          in await db.customSelect("PRAGMA table_info('$table')").get())
+        c.read<String>('name'),
+    };
+    return cols.containsAll(names);
+  }
+
+  // A no-op until the column exists, and on a partial-schema fixture that
+  // lacks what the inference reads.
+  if (!await hasColumns('dive_tanks', [
+        'shared_computer_ids',
+        'computer_id',
+        'o2_percent',
+        'he_percent',
+      ]) ||
+      !await hasColumns('dive_data_sources', ['computer_id', 'is_primary'])) {
     return;
   }
-  final sourceCols = await db
-      .customSelect("PRAGMA table_info('dive_data_sources')")
-      .get();
-  if (sourceCols.isEmpty) return;
 
   // Consolidated dives: a primary source with a computer, plus at least one
   // other computer.

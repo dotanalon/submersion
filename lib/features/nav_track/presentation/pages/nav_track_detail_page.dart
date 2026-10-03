@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -14,13 +13,16 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// Whether changing a route's site should also move its anchor to the new
 /// site's pin (item 5).
@@ -53,6 +55,12 @@ bool navTrackAnchorShouldFollowSiteChange(
   }
   return (write: true, anchor: newSiteLocation);
 }
+
+/// Returned by the site picker's "New Dive Site" button in place of a
+/// [DiveSite], so the caller can tell "create a new one" apart from "picked
+/// this existing one" (the sheet resolves to null when merely dismissed).
+/// Mirrors `_createNewSiteSentinel` in `dive_edit_page.dart`.
+const _createNewSiteSentinel = '__create_new__';
 
 /// One route: stats, an inline map when anchored, its dive link, correction
 /// status, and 3D (spec 2026-09-10-underwater-nav-track-design.md, "The
@@ -130,41 +138,13 @@ class NavTrackDetailPage extends ConsumerWidget {
     NavTrack route,
   ) async {
     final dives = await ref.read(divesProvider.future);
-    final sorted = [...dives]
-      ..sort(
-        (a, b) =>
-            (a.effectiveEntryTime.millisecondsSinceEpoch - route.startTime)
-                .abs()
-                .compareTo(
-                  (b.effectiveEntryTime.millisecondsSinceEpoch -
-                          route.startTime)
-                      .abs(),
-                ),
-      );
-    if (!context.mounted) return;
-    final l10n = context.l10n;
-    final chosen = await showModalBottomSheet<Dive>(
-      context: context,
-      builder: (context) => ListView(
-        shrinkWrap: true,
-        children: [
-          for (final dive in sorted.take(20))
-            ListTile(
-              title: Text(
-                l10n.navTrack_common_diveNumber(
-                  (dive.diveNumber ?? dive.id).toString(),
-                ),
-              ),
-              subtitle: Text(
-                UnitFormatter(
-                  ref.read(settingsProvider),
-                ).formatDateTime(dive.effectiveEntryTime),
-              ),
-              onTap: () => Navigator.of(context).pop(dive),
-            ),
-        ],
-      ),
+    final nearest = NavTrackMatcher.nearestByStart(
+      routeStartSeconds: route.startTime ~/ 1000,
+      dives: dives,
     );
+    if (!context.mounted) return;
+    // Only an unlinked route offers "Choose dive", so nothing is marked.
+    final chosen = await showNavTrackDiveChoiceSheet(context, dives: nearest);
     if (chosen == null) return;
     await ref
         .read(navTrackRepositoryProvider)
@@ -172,7 +152,8 @@ class NavTrackDetailPage extends ConsumerWidget {
   }
 
   /// Opens the same site picker the import review page uses and, on a
-  /// choice, persists the new site.
+  /// choice, persists the new site. "New Dive Site" opens the site form
+  /// seeded with the route's anchor and assigns the site once it is saved.
   ///
   /// The anchor follows the new site's pin only when the diver never moved
   /// the start point away from the old site's pin: the current anchor is
@@ -192,7 +173,7 @@ class NavTrackDetailPage extends ConsumerWidget {
               .then((s) => s?.location);
     if (!context.mounted) return;
 
-    final chosen = await showModalBottomSheet<DiveSite>(
+    final chosen = await showModalBottomSheet<Object>(
       context: context,
       isScrollControlled: true,
       builder: (sheetContext) => DraggableScrollableSheet(
@@ -204,22 +185,36 @@ class NavTrackDetailPage extends ConsumerWidget {
           scrollController: scrollController,
           selectedSiteId: oldSiteId,
           onSiteSelected: (site) => Navigator.of(sheetContext).pop(site),
-          onCreateNewSite: () => Navigator.of(sheetContext).pop(),
+          onCreateNewSite: () =>
+              Navigator.of(sheetContext).pop(_createNewSiteSentinel),
         ),
       ),
     );
-    if (chosen == null) return;
+
+    DiveSite? site;
+    if (chosen is DiveSite) {
+      site = chosen;
+    } else if (chosen == _createNewSiteSentinel) {
+      if (!context.mounted) return;
+      final newSiteId = await context.push<String>(
+        '/sites/new',
+        extra: route.anchor,
+      );
+      if (newSiteId == null || !context.mounted) return;
+      site = await ref.read(siteProvider(newSiteId).future);
+    }
+    if (site == null || !context.mounted) return;
 
     final anchorChange = navTrackAnchorChangeForSite(
       route.anchor,
       oldSiteLocation,
-      chosen.location,
+      site.location,
     );
     await ref
         .read(navTrackRepositoryProvider)
         .setSite(
           route.id,
-          chosen.id,
+          site.id,
           anchor: anchorChange.anchor,
           clearAnchor: anchorChange.write && anchorChange.anchor == null,
         );
@@ -531,18 +526,10 @@ class _ActionCard extends StatelessWidget {
       child: ListTile(
         leading: Icon(icon),
         title: Text(label),
-        subtitle: Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: TextButton(
-            key: actionKey,
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              visualDensity: VisualDensity.compact,
-              alignment: AlignmentDirectional.centerStart,
-            ),
-            onPressed: onAction,
-            child: Text(actionLabel),
-          ),
+        subtitle: TileSubtitleAction(
+          actionKey: actionKey,
+          onPressed: onAction,
+          label: actionLabel,
         ),
       ),
     );

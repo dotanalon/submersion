@@ -11,10 +11,12 @@ import 'package:submersion/features/dive_import/data/services/missing_computer_a
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_log/domain/services/source_ownership.dart';
@@ -174,6 +176,15 @@ class DiveReimportService {
           diveData: diveData,
           now: now,
         );
+
+        // A tank the file gained is new, with no source yet (v251, issue
+        // #2716); the dive's sources are already in place.
+        await attributeTankSources(
+          db,
+          _syncRepository,
+          diveId,
+          now: now.millisecondsSinceEpoch,
+        );
       }
 
       await _updateDataSourceSnapshot(
@@ -328,6 +339,12 @@ class DiveReimportService {
     final decoConservatism = _asInt(diveData['decoConservatism']);
     final gfLow = _asInt(diveData['gradientFactorLow']);
     final gfHigh = _asInt(diveData['gradientFactorHigh']);
+    // The dive-level tissue state the computer reported. It belongs to the
+    // parse like the summary columns beside it, so a parse without one
+    // clears it.
+    final computerTissue = ComputerTissueSnapshot.from(
+      diveData['computerTissue'],
+    );
 
     await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
       DivesCompanion(
@@ -348,6 +365,7 @@ class DiveReimportService {
         otu: Value(_asDouble(diveData['otu'])),
         decoAlgorithm: Value(decoAlgorithm),
         decoConservatism: Value(decoConservatism),
+        computerTissueJson: Value(computerTissue?.encode()),
         gradientFactorLow: Value(gfLow),
         gradientFactorHigh: Value(gfHigh),
         entryLatitude: entryLatitude != null
@@ -441,6 +459,9 @@ class DiveReimportService {
       final gasMix = t['gasMix'];
       final o2Percent = gasMix is GasMix ? gasMix.o2 : null;
       final hePercent = gasMix is GasMix ? gasMix.he : null;
+      // How long the file says the tank was breathed (issue #1496). A dive
+      // imported before v259 has none stored, so this is how it gets one.
+      final usageSeconds = (t['usageDuration'] as Duration?)?.inSeconds;
 
       final row = matched[i];
       if (row != null) {
@@ -460,6 +481,9 @@ class DiveReimportService {
                 : const Value.absent(),
             hePercent: hePercent != null
                 ? Value(hePercent)
+                : const Value.absent(),
+            usageDuration: usageSeconds != null
+                ? Value(usageSeconds)
                 : const Value.absent(),
           ),
         );
@@ -482,6 +506,7 @@ class DiveReimportService {
                 endPressure: Value(endPressure),
                 o2Percent: Value(o2Percent ?? 21.0),
                 hePercent: Value(hePercent ?? 0.0),
+                usageDuration: Value(usageSeconds),
               ),
             );
         await _syncRepository.markRecordPending(
@@ -648,6 +673,8 @@ class DiveReimportService {
             ndl: p['ndl'] as int?,
             tts: p['tts'] as int?,
             ceiling: _asDouble(p['ceiling']),
+            gf99: p['gf99'] as int?,
+            n2Load: p['n2Load'] as int?,
           ),
       ],
       now: now.millisecondsSinceEpoch,

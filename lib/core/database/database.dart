@@ -232,7 +232,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 251;
+  static const int currentSchemaVersion = 260;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1024,14 +1024,64 @@ class AppDatabase extends _$AppDatabase {
     // floor does not move. #2562 and #2409 held stale claims below 249
     // when this was taken.
     250,
-    // v251: dive_tanks.shared_computer_ids (the other computers on a
-    // consolidated dive that logged the same cylinder) and
-    // gas_switches.computer_id, so each computer on a consolidated dive is
-    // analysed on its own gas plan (issue #2560). Additive nullable columns
-    // plus a local, deterministic backfill of the shared tanks; the floor
-    // stays. Renumbered from 241, 248 and then 250: main shipped 241 to 250
-    // while this was open, and 243 and 246 are held by #2409.
+    // v251: dive_tanks.source_id (issue #2716), the data source a tank row
+    // came from, so two computer-less sources' copies of one cylinder come
+    // apart; backfilled where unambiguous. Additive nullable column, so the
+    // floor stays at 240. 250 is trip_hides and site_hides (#2594).
     251,
+    // v252: nav_tracks.diver_id, the route's owner, backfilled from each
+    // linked route's dive (issue #2691 follow-up). Additive nullable column,
+    // so the floor does not move. 251 is dive_tanks.source_id (#2716).
+    252,
+    // v253: dive_safety_reviews.inputs_hash, the settings a review was
+    // computed from (issue #2592). An additive nullable column, so the floor
+    // does not move: the receiving overlay keeps it when an older peer's
+    // payload omits it. Merged after v254 (#2595): a database already at 254
+    // never runs this rung, and the beforeOpen backstop adds the column.
+    253,
+    // v254: dive_tanks.role_source, where a cylinder's role came from
+    // (issue #2595). An additive nullable column, so the floor does not
+    // move. 251 is dive_tanks.source_id (#2716) and 252
+    // nav_tracks.diver_id (#2703); 253 is
+    // dive_safety_reviews.inputs_hash (#2592).
+    254,
+    // v255: drops the ceilings safety stop samples carried from every
+    // stored profile series (issue #2550): a safety stop is no deco
+    // obligation, and its depth drew a deco stop band. Rewrites blobs in
+    // place without moving their sync stamp; an older peer's copy still
+    // reads as a safety stop, so the floor does not move. 254 is
+    // dive_tanks.role_source (#2595), 253 safety review inputs (#2592).
+    255,
+    // v256: dives.computer_tissue_json, the tissue state a dive computer
+    // reports for the dive (import of Garmin, Shearwater, Suunto, Ratio and
+    // UDDF tissue data, issue #1977). Additive nullable column, no
+    // backfill, so the floor stays. Renumbered from 220 and then 241: main
+    // shipped 220 to 255 while this was open.
+    256,
+    // v257: metadata-only profile revision history over existing
+    // dive_profile_series rows (#1197). No profile samples are copied:
+    // history rows point at existing series ids and track parent/branch
+    // relations. Local-only table, so the floor stays. Renumbered from 246
+    // and then 256: main shipped 247 through 256 while this branch was open.
+    257,
+    // v258: gas_switches.computer_id, the computer whose reading a switch
+    // came from (issue #2582), backfilled from the switch's cylinder.
+    // Additive nullable column, so the floor stays. Sits below 259, which
+    // main shipped first; a database already at 259 gains the column and
+    // its backfill through the beforeOpen backstop.
+    258,
+    // v259: dive_tanks.usage_duration, how long a cylinder was breathed as
+    // the source log recorded it (issue #1496). An additive nullable
+    // column, so the floor does not move: an older peer's payload omits it
+    // and the row keeps null. 258 is held by an open branch (#2828).
+    259,
+    // v260: dive_tanks.shared_computer_ids, the other computers on a
+    // consolidated dive that logged the same cylinder, so each computer is
+    // analysed on its own gas plan (issue #2560). Additive nullable column
+    // plus a local, deterministic backfill, so the floor stays. Renumbered
+    // from 241, 248, 250 and 251 while this was open; gas_switches.computer_id,
+    // which the analysis also reads, is v258 (#2582).
+    260,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

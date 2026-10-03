@@ -10,9 +10,11 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -25,7 +27,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
-import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
@@ -42,11 +43,20 @@ import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
+final _log = LoggerService.forClass(TripListContent);
+
 class TripListContent extends ConsumerStatefulWidget {
   final void Function(String?)? onItemSelected;
   final String? selectedId;
   final bool showAppBar;
   final Widget? floatingActionButton;
+
+  /// Drives bulk selection from outside the list when set.
+  ///
+  /// In table mode the page's header carries the overflow menu, "Select
+  /// items" among it, so the page has to reach the same controller the rows
+  /// use. Left null, the list owns its own.
+  final SelectionController? selectionController;
 
   const TripListContent({
     super.key,
@@ -54,6 +64,7 @@ class TripListContent extends ConsumerStatefulWidget {
     this.selectedId,
     this.showAppBar = true,
     this.floatingActionButton,
+    this.selectionController,
   });
 
   @override
@@ -61,8 +72,19 @@ class TripListContent extends ConsumerStatefulWidget {
 }
 
 class _TripListContentState extends ConsumerState<TripListContent> {
-  /// Owns the bulk-selection state machine for this list.
-  final SelectionController _selection = SelectionController();
+  /// The bulk-selection state machine for this list: the page's when it
+  /// passes one, otherwise this list's own.
+  late final SelectionController _selection = _adoptSelection();
+
+  /// Only a controller this list created is this list's to dispose. Set in
+  /// the same step that picks the controller, so the two cannot disagree.
+  bool _ownsSelection = false;
+
+  SelectionController _adoptSelection() {
+    final external = widget.selectionController;
+    _ownsSelection = external == null;
+    return external ?? SelectionController();
+  }
 
   /// Convenience mirrors of the controller, so the widget tree reads clearly.
   bool get _isSelectionMode => _selection.value.isActive;
@@ -85,7 +107,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _selection.dispose();
+    if (_ownsSelection) _selection.dispose();
     super.dispose();
   }
 
@@ -199,7 +221,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             ? _buildEmptyState(context, filter.hasActiveFilters)
             : _buildTripList(context, ref, trips, filter.equipmentId != null),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => _buildErrorState(context, error),
+        error: (_, _) => _buildErrorState(context),
       );
     }
 
@@ -264,14 +286,6 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                       active: ref.watch(tripFilterProvider).query != null,
                       onPressed: _openQueryFilter,
                     ),
-                    // The only way into bulk actions: entry by long-press was removed,
-                    // so nothing but this control opens selection mode on touch.
-                    IconButton(
-                      key: const ValueKey('enter_selection'),
-                      icon: const Icon(Icons.checklist),
-                      tooltip: context.l10n.common_selection_enterTooltip,
-                      onPressed: _selection.enterExplicit,
-                    ),
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert),
                       onSelected: (value) {
@@ -286,6 +300,10 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                       itemBuilder: (context) {
                         final currentMode = ref.read(tripListViewModeProvider);
                         return [
+                          ...selectItemsMenuEntries(
+                            context,
+                            onSelect: _selection.enterExplicit,
+                          ),
                           ...ListViewModeToggle.menuItems(
                             context,
                             currentMode: currentMode,
@@ -337,7 +355,8 @@ class _TripListContentState extends ConsumerState<TripListContent> {
 
     // Another profile's shared trips are hidden, not deleted, and the
     // owner's shared ones are named as going for everyone (issue #2594).
-    final sharing = await readSharingContext(ref);
+    final sharing = await readSharingContext(ref, context);
+    if (sharing == null) return BulkActionOutcome.failed;
     if (!mounted) return BulkActionOutcome.cancelled;
     final trips = ref.read(tripListNotifierProvider).value ?? const [];
     final selected = [
@@ -408,21 +427,39 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     _selection.exit();
 
     var deleted = 0;
-    for (final trip in split.destroy) {
-      if (await notifier.deleteTrip(trip.id)) deleted++;
+    var hidden = 0;
+    var failed = false;
+    // The selection is gone, so a failure part way says what was done and
+    // that the rest was not, rather than escaping unseen (issue #2682).
+    try {
+      for (final trip in split.destroy) {
+        if (await notifier.deleteTrip(trip.id)) deleted++;
+      }
+      if (split.hide.isNotEmpty) {
+        hidden = await notifier.hideTrips([for (final t in split.hide) t.id]);
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not finish the trip bulk delete',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      failed = true;
     }
-    final hidden = split.hide.isEmpty
-        ? 0
-        : await notifier.hideTrips([for (final t in split.hide) t.id]);
 
-    if (!mounted) return BulkActionOutcome.completed;
     final summary = [
       if (deleted > 0) l10n.common_bulkDelete_snackbar(deleted),
       if (hidden > 0) l10n.sharedItems_bulkHiddenSnackbar(hidden),
+      if (failed) l10n.common_error_tryAgain,
     ];
-    // Nothing done (every action refused): no empty snackbar.
-    if (summary.isNotEmpty) {
-      messenger.showSnackBar(SnackBar(content: Text(summary.join(' · '))));
+    // Nothing done (every action refused): no empty snackbar. A failure
+    // says so even once the list has closed.
+    if ((mounted || failed) && summary.isNotEmpty) {
+      // Replaces any earlier summary, as the site list's does, so the
+      // latest outcome is the one showing.
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(content: Text(summary.join(' · '))));
     }
     return BulkActionOutcome.completed;
   }
@@ -469,16 +506,13 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             _buildTableView(context, tripsAsync, filter),
           );
 
-          // Table mode has no app bar of its own, so both bars live here: the
-          // contextual one while selecting, and the Select affordance while
-          // not. They share a slot and a height, so the table does not shift
-          // as the mode opens.
+          // Table mode has no app bar of its own: "Select items" sits in the
+          // page header's overflow menu, and the contextual bar opens above
+          // the table while selecting.
           return Column(
             children: [
               if (selection.isActive)
-                _buildSelectionBar(loadedTrips, SelectionBarShell.pane)
-              else
-                SelectionEntryBar(controller: _selection),
+                _buildSelectionBar(loadedTrips, SelectionBarShell.pane),
               Expanded(child: tableContent),
             ],
           );
@@ -495,7 +529,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
   ) {
     return tripsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, s) => _buildErrorState(context, e),
+      error: (_, _) => _buildErrorState(context),
       data: (trips) {
         if (trips.isEmpty) {
           return _buildEmptyState(context, filter.hasActiveFilters);
@@ -589,14 +623,6 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             compact: true,
             onPressed: _openQueryFilter,
           ),
-          // The only way into bulk actions: entry by long-press was removed,
-          // so nothing but this control opens selection mode on touch.
-          IconButton(
-            key: const ValueKey('enter_selection'),
-            icon: const Icon(Icons.checklist, size: 20),
-            tooltip: context.l10n.common_selection_enterTooltip,
-            onPressed: _selection.enterExplicit,
-          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) {
@@ -610,6 +636,10 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             itemBuilder: (context) {
               final currentMode = ref.read(tripListViewModeProvider);
               return [
+                ...selectItemsMenuEntries(
+                  context,
+                  onSelect: _selection.enterExplicit,
+                ),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
@@ -862,14 +892,15 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     );
   }
 
-  Widget _buildErrorState(BuildContext context, Object error) {
+  /// The repository logs the failure; the diver gets a plain line and Retry.
+  Widget _buildErrorState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.red),
           const SizedBox(height: 16),
-          Text(context.l10n.trips_list_error_loading('$error')),
+          Text(context.l10n.trips_list_error_loading),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () =>
@@ -1184,8 +1215,8 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) =>
-              Center(child: Text('${context.l10n.common_label_error}: $error')),
+          // The repository logs the failure; the diver gets a plain line.
+          error: (_, _) => Center(child: Text(context.l10n.trips_search_error)),
         );
       },
     );

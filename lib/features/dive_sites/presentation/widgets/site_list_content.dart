@@ -11,9 +11,9 @@ import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
-import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/core/models/sort_state.dart';
@@ -68,6 +68,13 @@ class SiteListContent extends ConsumerStatefulWidget {
   /// If null, the map icon will navigate to the map page (mobile behavior).
   final VoidCallback? onMapViewToggle;
 
+  /// Drives bulk selection from outside the list when set.
+  ///
+  /// In table mode the page's header carries the overflow menu, "Select
+  /// items" among it, so the page has to reach the same controller the rows
+  /// use. Left null, the list owns its own.
+  final SelectionController? selectionController;
+
   const SiteListContent({
     super.key,
     this.onItemSelected,
@@ -78,6 +85,7 @@ class SiteListContent extends ConsumerStatefulWidget {
     this.isMapMode = false,
     this.isMapViewActive = false,
     this.onMapViewToggle,
+    this.selectionController,
   });
 
   @override
@@ -89,8 +97,19 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   String? _lastScrolledToId;
   bool _selectionFromList = false;
 
-  /// Owns the bulk-selection state machine for this list.
-  final SelectionController _selection = SelectionController();
+  /// The bulk-selection state machine for this list: the page's when it
+  /// passes one, otherwise this list's own.
+  late final SelectionController _selection = _adoptSelection();
+
+  /// Only a controller this list created is this list's to dispose. Set in
+  /// the same step that picks the controller, so the two cannot disagree.
+  bool _ownsSelection = false;
+
+  SelectionController _adoptSelection() {
+    final external = widget.selectionController;
+    _ownsSelection = external == null;
+    return external ?? SelectionController();
+  }
 
   /// Convenience mirrors of the controller, so the widget tree reads clearly.
   bool get _isSelectionMode => _selection.value.isActive;
@@ -115,7 +134,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _selection.dispose();
+    if (_ownsSelection) _selection.dispose();
     super.dispose();
   }
 
@@ -285,9 +304,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final selectedCount = _selectedIds.length;
     // A merge destroys every site but the first (issue #2594): another
     // profile's shared site may only be the survivor, so at most one fits.
-    final sharing = await readSharingContext(ref);
+    final sharing = await readSharingContext(ref, context);
+    if (sharing == null) return BulkActionOutcome.failed;
     final selected = await _readSelectedSites(_selectedIds.toList());
-    if (selected == null) return BulkActionOutcome.cancelled;
+    if (selected == null) return BulkActionOutcome.failed;
     final notOwned = [
       for (final s in selected)
         if (!canDestroySharedItem(
@@ -369,9 +389,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final idsToDelete = _selectedIds.toList();
     // Another profile's shared sites are hidden, not deleted, and the
     // owner's shared ones are named as going for everyone (issue #2594).
-    final sharing = await readSharingContext(ref);
+    final sharing = await readSharingContext(ref, context);
+    if (sharing == null) return BulkActionOutcome.failed;
     final selectedSites = await _readSelectedSites(idsToDelete);
-    if (selectedSites == null) return BulkActionOutcome.cancelled;
+    if (selectedSites == null) return BulkActionOutcome.failed;
     final split = splitForBulkDelete(
       selectedSites,
       ownerOf: (s) => s.diverId,
@@ -449,18 +470,84 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       final deleted = deleteCount > 0
           ? await notifier.bulkDeleteSites(destroyIds)
           : null;
-      final hidden = hideCount > 0 ? await notifier.hideSites(hideIds) : 0;
+      // Null when the hide failed: the summary says so beside the deletes.
+      final hidden = hideCount > 0
+          ? await tryHideChange(() => notifier.hideSites(hideIds))
+          : 0;
 
       _deletedSites = deleted;
+      // Even after a failed hide: it may have been written before the
+      // refresh failed, and an unhide of one not hidden does nothing.
       _hiddenSiteIds = hideIds;
 
       final summary = [
         if (deleted != null && deleted.sites.isNotEmpty)
           l10n.diveSites_list_bulkDelete_snackbar(deleted.sites.length),
-        if (hidden > 0) l10n.sharedItems_bulkHiddenSnackbar(hidden),
+        if (hidden case final n? when n > 0)
+          l10n.sharedItems_bulkHiddenSnackbar(n),
+        if (hidden == null) l10n.common_error_tryAgain,
       ];
-      // Nothing done (every action refused): no empty snackbar.
-      if (mounted && summary.isNotEmpty) {
+      // Only a failed hide to report: nothing for Undo to take back.
+      if (hidden == null && (deleted?.sites.isEmpty ?? true)) {
+        scaffoldMessenger.clearSnackBars();
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text(l10n.common_error_tryAgain)),
+        );
+        return BulkActionOutcome.completed;
+      }
+      // Takes back what the bulk delete did, clearing each half once it is
+      // back. Anything left says so, even once the list has closed, and
+      // offers Undo again for the rest (issue #2677).
+      Future<void> undo() async {
+        final toRestore = _deletedSites;
+        if (toRestore == null || toRestore.sites.isEmpty) {
+          _deletedSites = null;
+        } else {
+          try {
+            await notifier.restoreSites(
+              toRestore.sites,
+              links: toRestore.links,
+            );
+            _deletedSites = null;
+          } catch (e, stackTrace) {
+            _log.error(
+              'Could not restore the deleted sites',
+              error: e,
+              stackTrace: stackTrace,
+            );
+          }
+        }
+        final toUnhide = _hiddenSiteIds;
+        if (toUnhide.isEmpty ||
+            await tryHideChange(
+                  () => notifier.unhideSites(toUnhide).then((_) => true),
+                ) ==
+                true) {
+          _hiddenSiteIds = const [];
+        }
+        if (_deletedSites != null || _hiddenSiteIds.isNotEmpty) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(l10n.common_error_tryAgain),
+              action: SnackBarAction(
+                label: l10n.diveSites_list_bulkDelete_undo,
+                onPressed: undo,
+              ),
+            ),
+          );
+        } else if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(l10n.diveSites_list_bulkDelete_restored),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+
+      // Nothing done (every action refused): no empty snackbar. A failure
+      // says so even once the list has closed.
+      if ((mounted || hidden == null) && summary.isNotEmpty) {
         scaffoldMessenger.clearSnackBars();
         scaffoldMessenger.showSnackBar(
           SnackBar(
@@ -469,29 +556,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             showCloseIcon: true,
             action: SnackBarAction(
               label: l10n.diveSites_list_bulkDelete_undo,
-              onPressed: () async {
-                final toRestore = _deletedSites;
-                final toUnhide = _hiddenSiteIds;
-                if (toRestore != null && toRestore.sites.isNotEmpty) {
-                  await notifier.restoreSites(
-                    toRestore.sites,
-                    links: toRestore.links,
-                  );
-                }
-                if (toUnhide.isNotEmpty) {
-                  await notifier.unhideSites(toUnhide);
-                }
-                _deletedSites = null;
-                _hiddenSiteIds = const [];
-                if (mounted) {
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.diveSites_list_bulkDelete_restored),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
+              onPressed: undo,
             ),
           ),
         );
@@ -631,20 +696,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                       tooltip: context.l10n.diveSites_list_tooltip_sort,
                       onPressed: () => _showSortSheet(context),
                     ),
-                    // The only way into bulk actions: entry by long-press was removed,
-                    // so nothing but this control opens selection mode on touch.
-                    IconButton(
-                      key: const ValueKey('enter_selection'),
-                      icon: const Icon(Icons.checklist),
-                      tooltip: context.l10n.common_selection_enterTooltip,
-                      onPressed: _selection.enterExplicit,
-                    ),
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert),
                       onSelected: (value) {
-                        if (value == 'select') {
-                          _selection.enterExplicit();
-                        } else if (value == 'import') {
+                        if (value == 'import') {
                           context.push('/sites/import');
                         } else if (value == 'fill_location_details') {
                           unawaited(
@@ -673,6 +728,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                       itemBuilder: (context) {
                         final currentMode = ref.read(siteListViewModeProvider);
                         return [
+                          ...selectItemsMenuEntries(
+                            context,
+                            onSelect: _selection.enterExplicit,
+                          ),
                           ...ListViewModeToggle.menuItems(
                             context,
                             currentMode: currentMode,
@@ -683,16 +742,6 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                             ],
                           ),
                           const PopupMenuDivider(),
-                          PopupMenuItem(
-                            value: 'select',
-                            child: ListTile(
-                              leading: const Icon(Icons.checklist),
-                              title: Text(
-                                context.l10n.diveSites_list_menu_select,
-                              ),
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
                           PopupMenuItem(
                             value: 'import',
                             child: ListTile(
@@ -771,15 +820,13 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         builder: (context, selection, _) {
           final tableContent = _buildTableView(context, sitesAsync, filter);
 
-          // Table mode has no app bar of its own, so the Select affordance
-          // lives in the same slot the contextual bar takes, at the same
-          // height -- the table does not shift as the mode opens.
+          // Table mode has no app bar of its own: "Select items" sits in the
+          // page header's overflow menu, and the contextual bar opens above
+          // the table while selecting.
           return Column(
             children: [
               if (selection.isActive)
-                _buildCompactSelectionAppBar(context, loadedSites)
-              else
-                SelectionEntryBar(controller: _selection),
+                _buildCompactSelectionAppBar(context, loadedSites),
               Expanded(child: tableContent),
             ],
           );
@@ -929,18 +976,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             tooltip: context.l10n.diveSites_list_tooltip_sort,
             onPressed: () => _showSortSheet(context),
           ),
-          IconButton(
-            key: const ValueKey('enter_selection'),
-            icon: const Icon(Icons.checklist, size: 20),
-            tooltip: context.l10n.common_selection_enterTooltip,
-            onPressed: _selection.enterExplicit,
-          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) {
-              if (value == 'select') {
-                _selection.enterExplicit();
-              } else if (value == 'import') {
+              if (value == 'import') {
                 context.push('/sites/import');
               } else if (value == 'fill_location_details') {
                 unawaited(
@@ -968,6 +1007,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             itemBuilder: (context) {
               final currentMode = ref.read(siteListViewModeProvider);
               return [
+                ...selectItemsMenuEntries(
+                  context,
+                  onSelect: _selection.enterExplicit,
+                ),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
@@ -979,12 +1022,12 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 ),
                 const PopupMenuDivider(),
                 PopupMenuItem(
-                  value: 'select',
-                  child: Text(context.l10n.diveSites_list_menu_select),
-                ),
-                PopupMenuItem(
                   value: 'import',
-                  child: Text(context.l10n.diveSites_list_menu_import),
+                  child: ListTile(
+                    leading: const Icon(Icons.download),
+                    title: Text(context.l10n.diveSites_list_menu_import),
+                    contentPadding: EdgeInsets.zero,
+                  ),
                 ),
                 PopupMenuItem(
                   value: 'fill_location_details',

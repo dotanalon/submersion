@@ -83,14 +83,15 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
               ),
               body: const Center(child: CircularProgressIndicator()),
             ),
-      error: (error, stack) => widget.embedded
-          ? Center(child: Text('${context.l10n.common_label_error}: $error'))
+      // The repository logs the failure; the diver gets a plain line.
+      error: (_, _) => widget.embedded
+          ? Center(child: Text(context.l10n.trips_detail_error_loading))
           : Scaffold(
               appBar: AppBar(
                 title: Text(context.l10n.trips_detail_appBar_title),
               ),
               body: Center(
-                child: Text('${context.l10n.common_label_error}: $error'),
+                child: Text(context.l10n.trips_detail_error_loading),
               ),
             ),
     );
@@ -374,7 +375,12 @@ class _TripDetailContent extends ConsumerWidget {
   Widget _headerCards(Trip trip) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      SharedByBanner(ownerId: trip.diverId, isShared: trip.isShared),
+      SharedByBanner(
+        kind: SharedItemKind.trip,
+        itemId: trip.id,
+        ownerId: trip.diverId,
+        isShared: trip.isShared,
+      ),
       TripHeaderCards(
         children: [
           TripGearAlertsPanel(trip: trip),
@@ -464,9 +470,16 @@ class _TripDetailContent extends ConsumerWidget {
     // Lightroom scan hidden pending Adobe review (lightroomUiEnabled).
     final hasLightroomAccount =
         lightroomUiEnabled && ref.watch(lightroomAccountProvider).value != null;
-    final canDestroy = canDestroySharedItem(
+    final canDestroy = canDestroySharedItemOnceKnown(
+      ref.watch(validatedCurrentDiverIdProvider),
       ownerId: trip.diverId,
-      activeDiverId: ref.watch(validatedCurrentDiverIdProvider).value,
+    );
+    // A trip this profile already removed offers Unhide (issue #2679).
+    final hidden = watchHiddenHere(
+      ref,
+      SharedItemKind.trip,
+      trip.id,
+      canDestroy: canDestroy != false,
     );
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
@@ -504,6 +517,14 @@ class _TripDetailContent extends ConsumerWidget {
           }
         } else if (value == 'remove') {
           await _removeFromProfile(context, ref, trip);
+        } else if (value == 'unhide') {
+          // A failed unhide says so (issue #2677).
+          await runHideChange(
+            ScaffoldMessenger.of(context),
+            context.l10n,
+            () =>
+                ref.read(tripListNotifierProvider.notifier).unhideTrip(trip.id),
+          );
         } else if (value == 'export') {
           _showExportOptions(context, ref);
         } else if (value == 'scan-dives') {
@@ -558,8 +579,9 @@ class _TripDetailContent extends ConsumerWidget {
           ),
         ),
         // Delete for the owner; another profile only removes the shared
-        // trip from itself (issue #2594).
-        if (canDestroy)
+        // trip from itself (issue #2594); neither while the profile is
+        // unknown (issue #2682).
+        if (canDestroy == true)
           PopupMenuItem(
             value: 'delete',
             child: Row(
@@ -573,7 +595,18 @@ class _TripDetailContent extends ConsumerWidget {
               ],
             ),
           )
-        else
+        else if (hidden)
+          PopupMenuItem(
+            value: 'unhide',
+            child: Row(
+              children: [
+                const Icon(Icons.visibility_outlined),
+                const SizedBox(width: 8),
+                Flexible(child: Text(context.l10n.sharedItems_unhideAction)),
+              ],
+            ),
+          )
+        else if (canDestroy == false)
           PopupMenuItem(
             value: 'remove',
             child: Row(
