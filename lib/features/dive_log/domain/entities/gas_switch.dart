@@ -66,6 +66,7 @@ class GasSwitch extends Equatable {
     double? depth,
     DateTime? createdAt,
     String? computerId,
+    bool clearComputerId = false,
   }) {
     return GasSwitch(
       id: id ?? this.id,
@@ -74,7 +75,7 @@ class GasSwitch extends Equatable {
       tankId: tankId ?? this.tankId,
       depth: depth ?? this.depth,
       createdAt: createdAt ?? this.createdAt,
-      computerId: computerId ?? this.computerId,
+      computerId: clearComputerId ? null : (computerId ?? this.computerId),
     );
   }
 

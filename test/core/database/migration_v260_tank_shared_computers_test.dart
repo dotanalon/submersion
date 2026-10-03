@@ -109,6 +109,21 @@ void main() {
       );
     });
 
+    test('a sidemount backup left on another bottom gas keeps its own', () {
+      expect(
+        inferSharedComputers(
+          primaryComputerId: 'perdix',
+          secondaryComputerIds: {'backup'},
+          tanks: [
+            tank('left', 'perdix', 32, role: 'sidemountLeft'),
+            tank('right', 'perdix', 32, role: 'sidemountRight'),
+            tank('b-left', 'backup', 21, role: 'sidemountLeft'),
+          ],
+        ),
+        isEmpty,
+      );
+    });
+
     test('a cylinder labelled back gas but rich in O2 is not the secondary\'s '
         'bottom gas', () {
       // An import without roles labels every cylinder back gas.

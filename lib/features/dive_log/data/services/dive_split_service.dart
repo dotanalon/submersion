@@ -293,6 +293,17 @@ class DiveSplitService {
         );
 
         if (hasRemainingRefs) {
+          // A computer that shares the cylinder takes it over (#2560): left
+          // unattributed it would become every remaining computer's, and a
+          // third computer on its own gas would start the dive on it.
+          final sharers = [
+            for (final c in decodeSharedComputerIds(tank.sharedComputerIds))
+              if (c != source.computerId) c,
+          ];
+          final heir = sharers.firstOrNull;
+          final heirSourceId = heir == null
+              ? null
+              : sources.where((s) => s.computerId == heir).firstOrNull?.id;
           // A link to the source that left goes with this clock rather than
           // the FK's silent SET NULL (v251). Only that one: the computer
           // rule also selects tanks of another source of the same computer
@@ -301,10 +312,13 @@ class DiveSplitService {
             _db.diveTanks,
           )..where((t) => t.id.equals(tank.id))).write(
             DiveTanksCompanion(
-              computerId: const Value(null),
+              computerId: Value(heir),
               sourceId: tank.sourceId == source.id
-                  ? const Value(null)
+                  ? Value(heirSourceId)
                   : const Value.absent(),
+              sharedComputerIds: heir == null
+                  ? const Value.absent()
+                  : Value(encodeSharedComputerIds(sharers.skip(1))),
             ),
           );
           await _sync.markRecordPending(
@@ -317,12 +331,9 @@ class DiveSplitService {
         }
       }
 
-      // Shared tanks the departing computer recorded pressures on but
-      // never owned: clone them so the moved rows have a home.
-      for (final s in movingPressures) {
-        if (tankIdMap.containsKey(s.tankId)) continue;
-        final tank = allTanks.where((t) => t.id == s.tankId).firstOrNull;
-        if (tank == null) continue;
+      // The departing computer's own copy, on the new dive, of a cylinder
+      // it used but did not own.
+      Future<void> cloneForDepartingComputer(DiveTank tank) async {
         final freshId = _uuid.v4();
         tankIdMap[tank.id] = freshId;
         await _db
@@ -345,6 +356,15 @@ class DiveSplitService {
         );
       }
 
+      // Shared tanks the departing computer recorded pressures on but
+      // never owned: clone them so the moved rows have a home.
+      for (final s in movingPressures) {
+        if (tankIdMap.containsKey(s.tankId)) continue;
+        final tank = allTanks.where((t) => t.id == s.tankId).firstOrNull;
+        if (tank == null) continue;
+        await cloneForDepartingComputer(tank);
+      }
+
       // Cylinders the departing computer shared with another (tanks a
       // consolidation merged): it breathed them too, so the new dive gets
       // its own copy and the original stops listing it.
@@ -354,26 +374,7 @@ class DiveSplitService {
           continue;
         }
         if (!tankIdMap.containsKey(tank.id)) {
-          final freshId = _uuid.v4();
-          tankIdMap[tank.id] = freshId;
-          await _db
-              .into(_db.diveTanks)
-              .insert(
-                tank
-                    .toCompanion(false)
-                    .copyWith(
-                      id: Value(freshId),
-                      diveId: Value(newDiveId),
-                      computerId: Value(source.computerId),
-                      sourceId: Value(newSourceId),
-                      sharedComputerIds: const Value(null),
-                    ),
-              );
-          await _sync.markRecordPending(
-            entityType: 'diveTanks',
-            recordId: freshId,
-            localUpdatedAt: now,
-          );
+          await cloneForDepartingComputer(tank);
         }
         await (_db.update(
           _db.diveTanks,

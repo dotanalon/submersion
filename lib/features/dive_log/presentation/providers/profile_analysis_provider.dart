@@ -1121,18 +1121,23 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     // Resolved here rather than inside the isolate because only this side
     // knows the dive; the source is stamped onto the returned analysis below
     // so a display can name the origin of every deco number it prints (#1047).
+    final (
+      recordedGfLow,
+      recordedGfHigh,
+      recordedAlgorithm,
+    ) = decoSource != null
+        ? (
+            decoSource.gradientFactorLow,
+            decoSource.gradientFactorHigh,
+            decoSource.decoAlgorithm,
+          )
+        : (dive.gradientFactorLow, dive.gradientFactorHigh, dive.decoAlgorithm);
     final gfSource = GradientFactorSource.resolve(
-      diveGfLow: decoSource != null
-          ? decoSource.gradientFactorLow
-          : dive.gradientFactorLow,
-      diveGfHigh: decoSource != null
-          ? decoSource.gradientFactorHigh
-          : dive.gradientFactorHigh,
+      diveGfLow: recordedGfLow,
+      diveGfHigh: recordedGfHigh,
       settingsGfLow: inputs.gfLow,
       settingsGfHigh: inputs.gfHigh,
-      recordedAlgorithm: decoSource != null
-          ? decoSource.decoAlgorithm
-          : dive.decoAlgorithm,
+      recordedAlgorithm: recordedAlgorithm,
     );
     if (gfSource.origin == GfOrigin.computer) {
       _log.debug(

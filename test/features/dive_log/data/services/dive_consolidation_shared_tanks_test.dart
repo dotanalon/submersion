@@ -183,6 +183,31 @@ void main() {
     expect(switches.map((s) => s.computerId), everyElement(isNull));
   });
 
+  test('splitting the owner out hands each shared cylinder to the computer '
+      'that shares it', () async {
+    await consolidateSuuntoAndGarmin();
+    // A third computer on its own gas, so a cylinder left unattributed
+    // would wrongly become its too.
+    await seedDive('o', 'ocean', [32]);
+    await consolidation.apply(targetDiveId: 't', secondaryDiveIds: ['o']);
+
+    final suuntoSource = (await diveRepo.getDataSources(
+      't',
+    )).firstWhere((s) => s.computerId == 'suunto');
+    await DiveSplitService(
+      diveRepo,
+    ).split(diveId: 't', sourceId: suuntoSource.id);
+
+    final left = await tanksOf('t');
+    final byO2 = {for (final t in left) t.gasMix.o2: t};
+    expect(byO2[21]!.computerId, 'garmin');
+    expect(byO2[21]!.sharedComputerIds, isEmpty);
+    expect(byO2[50]!.computerId, 'garmin');
+    expect(left.where((t) => t.isUsedBy('ocean')).map((t) => t.gasMix.o2), [
+      32,
+    ]);
+  });
+
   test(
     'each computer\'s gas switches keep their computer through the fold',
     () async {

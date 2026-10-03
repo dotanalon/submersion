@@ -26,6 +26,13 @@ const double _gasTolerancePct = 0.5;
 /// _decoMinO2Percent).
 const double _decoMinO2Percent = 41.0;
 
+/// The `tank_role` names of a cylinder the diver starts the dive on.
+const Set<String> _bottomGasRoles = {
+  'backGas',
+  'sidemountLeft',
+  'sidemountRight',
+};
+
 /// Which computers share which of the primary's cylinders on one dive
 /// consolidated before v260 recorded it: tank id -> computer ids.
 ///
@@ -56,10 +63,10 @@ Map<String, List<String>> inferSharedComputers({
   bool sameGas(BackfillTank a, BackfillTank b) =>
       (a.o2 - b.o2).abs() <= _gasTolerancePct &&
       (a.he - b.he).abs() <= _gasTolerancePct;
-  // A cylinder labelled back gas but at deco strength is not a bottom gas:
-  // an import without roles labels every cylinder back gas.
+  // Back gas and sidemount cylinders are bottom gas, unless at deco
+  // strength: an import without roles labels every cylinder back gas.
   bool isBottomGas(BackfillTank t) =>
-      t.role == 'backGas' && t.o2 < _decoMinO2Percent;
+      _bottomGasRoles.contains(t.role) && t.o2 < _decoMinO2Percent;
 
   bool shares(String computer, BackfillTank tank) {
     if (loggedOn.contains((tankId: tank.id, computerId: computer))) {
